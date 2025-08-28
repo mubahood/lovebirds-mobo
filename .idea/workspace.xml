@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AndroidLayouts">
+    <shared>
+      <config />
+    </shared>
+  </component>
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="NONE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="1b882ce3-1198-472a-b1a3-9e9b778a292b" name="Changes" comment="latest changesxzxzx" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="before-claude-clean-up" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;mubahood&quot;
+  }
+}</component>
+  <component name="GitToolBoxStore">
+    <option name="projectConfigVersion" value="5" />
+    <option name="recentBranches">
+      <RecentBranches>
+        <option name="branchesForRepo">
+          <list>
+            <RecentBranchesForRepo>
+              <option name="branches">
+                <list>
+                  <RecentBranch>
+                    <option name="branchName" value="muhindo-dev" />
+                    <option name="lastUsedInstant" value="1751975426" />
+                  </RecentBranch>
+                  <RecentBranch>
+                    <option name="branchName" value="before-claude-clean-up" />
+                    <option name="lastUsedInstant" value="1751707530" />
+                  </RecentBranch>
+                  <RecentBranch>
+                    <option name="branchName" value="ios" />
+                    <option name="lastUsedInstant" value="1750715724" />
+                  </RecentBranch>
+                </list>
+              </option>
+              <option name="repositoryRootUrl" value="file://$PROJECT_DIR$" />
+            </RecentBranchesForRepo>
+          </list>
+        </option>
+      </RecentBranches>
+    </option>
+  </component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/mubahood/luganda-translated-movies-mobo-new.git&quot;,
+    &quot;accountId&quot;: &quot;afeb7382-49f4-4654-b3cd-b56e4cf3d00c&quot;
+  }
+}</component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$USER_HOME$/.pub-cache/hosted/pub.dev/chewie-1.7.4/lib/src/chewie_player.dart" root0="SKIP_INSPECTION" />
+    <setting file="file://$USER_HOME$/.pub-cache/hosted/pub.dev/chewie-1.7.5/lib/src/chewie_player.dart" root0="SKIP_INSPECTION" />
+    <setting file="file://$USER_HOME$/.pub-cache/hosted/pub.dev/video_player-2.8.2/lib/video_player.dart" root0="SKIP_INSPECTION" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
+  <component name="ProjectId" id="2WwpTN3NgYYBTeXQdhQ3dpW7XIN" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;Flutter.main.dart.executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;ScreenRecorder.SavePath&quot;: &quot;/Users/mac/Desktop&quot;,
+    &quot;ScreenshotViewer.SavePath&quot;: &quot;/Users/mac/Desktop/ugflix&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;com.android.tools.idea.streaming.emulator.zoom.toolbar.visible&quot;: &quot;false&quot;,
+    &quot;com.android.tools.idea.streaming.zoom.toolbar.visible&quot;: &quot;false&quot;,
+    &quot;com.google.services.firebase.aqiPopupShown&quot;: &quot;true&quot;,
+    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
+    &quot;io.flutter.reload.alreadyRun&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/mac/Desktop/github/lovebirds-mobo/lib/screens/shop/screens/shop/cart&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;show.migrate.to.gradle.popup&quot;: &quot;false&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/lib/screens/shop/screens/shop/cart" />
+      <recent name="$PROJECT_DIR$/lib/models" />
+      <recent name="$PROJECT_DIR$/android/app/src/main/res/drawable" />
+      <recent name="$PROJECT_DIR$/assets/images" />
+      <recent name="$PROJECT_DIR$/ios/Runner" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/lib/screens/shop/screens/shop/full_app" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="main.dart" type="FlutterRunConfigurationType" factoryName="Flutter">
+      <option name="filePath" value="$PROJECT_DIR$/lib/main.dart" />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="1b882ce3-1198-472a-b1a3-9e9b778a292b" name="Changes" comment="" />
+      <created>1697653510486</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1697653510486</updated>
+    </task>
+    <task id="LOCAL-00001" summary="latest changes">
+      <option name="closed" value="true" />
+      <created>1751726460823</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1751726460823</updated>
+    </task>
+    <task id="LOCAL-00002" summary="latest changes">
+      <option name="closed" value="true" />
+      <created>1751726467288</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1751726467288</updated>
+    </task>
+    <task id="LOCAL-00003" summary="latest changesxzxzx">
+      <option name="closed" value="true" />
+      <created>1751726482651</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1751726482651</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+    <MESSAGE value="asasa" />
+    <MESSAGE value="latest changes" />
+    <MESSAGE value="latest changesxzxzx" />
+    <option name="LAST_COMMIT_MESSAGE" value="latest changesxzxzx" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="Dart">
+          <url>file://$PROJECT_DIR$/lib/screens/shop/screens/shop/full_app/section/SectionDashboard.dart</url>
+          <line>311</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="Dart">
+          <url>file://$PROJECT_DIR$/lib/screens/shop/screens/shop/full_app/SectionResume.dart</url>
+          <line>65</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="Dart">
+          <url>file://$PROJECT_DIR$/lib/screens/shop/screens/shop/ProductSearchScreen.dart</url>
+          <line>199</line>
+          <option name="timeStamp" value="3" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="Dart">
+          <url>file://$PROJECT_DIR$/lib/screens/shop/screens/shop/widgets.dart</url>
+          <line>46</line>
+          <option name="timeStamp" value="7" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="Dart">
+          <url>file://$PROJECT_DIR$/lib/screens/shop/screens/shop/ProductsScreen.dart</url>
+          <line>21</line>
+          <option name="timeStamp" value="8" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="Dart">
+          <url>file://$PROJECT_DIR$/lib/screens/shop/screens/shop/ProductSearchScreen.dart</url>
+          <line>57</line>
+          <option name="timeStamp" value="10" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="Dart">
+          <url>file://$PROJECT_DIR$/lib/utils/CustomTheme.dart</url>
+          <line>229</line>
+          <option name="timeStamp" value="11" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="Dart">
+          <url>file://$PROJECT_DIR$/lib/screens/shop/screens/order_history_screen.dart</url>
+          <line>73</line>
+          <option name="timeStamp" value="12" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="NONE" type="Dart">
+          <url>file://$PROJECT_DIR$/lib/screens/shop/screens/shop/chat/chat_screen.dart</url>
+          <line>31</line>
+          <log-expression expression="al Map&lt;String, dynamic&gt; params;&#10;&#10;  const ChatScreen(this.params, {Key? key}) : super(key: key);&#10;&#10;  @override&#10;  _ChatScreenState createState() =&gt; _ChatScreenState();&#10;}&#10;&#10;class _ChatScreenState extends State&lt;ChatScreen&gt; with TickerProviderStateMixin {&#10;  ChatHead chatHead = ChatHead();&#10;  late Product product;&#10;  late ThemeData theme;&#10;  late CustomTheme ct;&#10;  late ScrollController _scrollC;&#10;  late TextEditingController _txtC;&#10;  late FocusNode _focusNode;&#10;&#10;  final MainController _mainC = Get.find&lt;MainController&gt;();&#10;  final List&lt;String&gt; _menuChoices = [&#10;    'Delete chat',&#10;    'Report User',&#10;    'Block User',&#10;  ];&#10;  final List&lt;Timer&gt; _timers = [];&#10;&#10;  List&lt;ChatMessage&gt; _msgs = [];&#10;  bool _inputEmpty = true;&#10;  bool _disposed = false, _listenerBusy = false;&#10;  late Future&lt;void&gt; _initFuture;&#10;  late AnimationController _fadeC;&#10;&#10;  // Enhanced multimedia support&#10;  final ImagePicker _imagePicker = ImagePicker();&#10;  AudioRecorder? _audioRecorder;&#10;  AudioPlayer? _audioPlayer;&#10;  String? _recordingPath;&#10;  bool _isRecording = false;&#10;  Map&lt;String, VideoPlayerController&gt; _videoControllers = {};&#10;  bool _showMultimediaOptions = false;&#10;&#10;  @override&#10;  void initState() {&#10;    super.initState();&#10;&#10;    theme = AppTheme.theme;&#10;    ct = AppTheme.customTheme;&#10;    _scrollC = ScrollController();&#10;    if (widget.params.containsKey('start_message')) {&#10;      start_message = widget.params['start_message'].toString().trim();&#10;    }&#10;&#10;    _txtC = TextEditingController(text: start_message)&#10;      ..addListener(() =&gt; setState(() =&gt; _inputEmpty = _txtC.text.isEmpty));&#10;    _txtC.text = start_message;&#10;    _txtC.selection = TextSelection.fromPosition(&#10;      TextPosition(offset: _txtC.text.length),&#10;    );&#10;    _focusNode = FocusNode();&#10;&#10;    _fadeC = AnimationController(&#10;      vsync: this,&#10;      duration: const Duration(milliseconds: 300),&#10;      lowerBound: 0.8,&#10;      upperBound: 1.0,&#10;    )..forward();&#10;&#10;    // Initialize multimedia components&#10;    _audioRecorder = AudioRecorder();&#10;    _audioPlayer = AudioPlayer();&#10;&#10;    _initFuture = _initialize();&#10;  }&#10;&#10;  @override&#10;  void dispose() {&#10;    _disposed = true;&#10;    _scrollC.dispose();&#10;    _txtC.dispose();&#10;    _focusNode.dispose();&#10;    _fadeC.dispose();&#10;    for (var t in _timers) t.cancel();&#10;&#10;    // Dispose multimedia components&#10;    _audioRecorder?.dispose();&#10;    _audioPlayer?.dispose();&#10;&#10;    // Dispose video controllers&#10;    for (var controller in _videoControllers.values) {&#10;      controller.dispose();&#10;    }&#10;    _videoControllers.clear();&#10;&#10;    super.dispose();&#10;  }&#10;&#10;  List&lt;String&gt; accepted_tasks = ['START_CHAT'];&#10;&#10;  String task = '';&#10;  String receiver_id = '';&#10;  String sender_id = '';&#10;  String start_message = '';&#10;&#10;  Future&lt;void&gt; _initialize() async {&#10;    if (!widget.params.containsKey('receiver_id')) {&#10;      Utils.toast('Receiver ID not found.');&#10;      Get.back();&#10;      return;&#10;    }&#10;    if (!widget.params.containsKey('chatHead')) {&#10;      if (widget.params['chatHead'].runtimeType == chatHead.runtimeType) {&#10;        chatHead = widget.params['chatHead'];&#10;        _markAsRead();&#10;      }&#10;    }&#10;&#10;    receiver_id = widget.params['receiver_id'];&#10;    if (receiver_id.isEmpty) {&#10;      Utils.toast('Receiver ID is empty.');&#10;      Get.back();&#10;      return;&#10;    }&#10;    if (_mainC.userModel.id &lt; 1) {&#10;      await _mainC.getLoggedInUser();&#10;    }&#10;    if (_mainC.userModel.id &lt; 1) {&#10;      Utils.toast('Logged in user not found.');&#10;      Get.back();&#10;      return;&#10;    }&#10;&#10;    sender_id = _mainC.userModel.id.toString();&#10;    if (sender_id.isEmpty) {&#10;      Utils.toast('Sender ID is empty.');&#10;      Get.back();&#10;      return;&#10;    }&#10;    sender_id = sender_id.trim();&#10;    receiver_id = receiver_id.trim();&#10;    String product_id = '';&#10;&#10;    if (sender_id == receiver_id) {&#10;      Utils.toast('Sender and receiver IDs are the same.');&#10;      Get.back();&#10;      return;&#10;    }&#10;&#10;    if (widget.params.containsKey('task')) {&#10;      if (widget.params['task'] == 'PRODUCT_CHAT') {&#10;        if (widget.params['product'].runtimeType != ((Product()).runtimeType)) {&#10;          return;&#10;        }&#10;        product = widget.params['product'];&#10;        product_id = product.id.toString();&#10;&#10;        List&lt;ChatHead&gt; temp_chats = await ChatHead.get_items(&#10;          _mainC.userModel,&#10;          where:&#10;              ' product_owner_id = $receiver_id AND customer_id = $sender_id AND product_id = $product_id ',&#10;        );&#10;&#10;        if (temp_chats.isEmpty) {&#10;          temp_chats = await ChatHead.get_items(&#10;            _mainC.userModel,&#10;            where:&#10;                ' product_owner_id = $sender_id AND customer_id = $receiver_id AND product_id = $product_id ',&#10;          );&#10;&#10;          if (temp_chats.isNotEmpty) {&#10;            chatHead = temp_chats[0];&#10;          }&#10;        }&#10;      }&#10;    } else if (chatHead.id &lt; 1) {&#10;      List&lt;ChatHead&gt; temp_chats = await ChatHead.get_items(&#10;        _mainC.userModel,&#10;        where: ' product_owner_id = $receiver_id AND customer_id = $sender_id',&#10;      );&#10;&#10;      if (temp_chats.isEmpty) {&#10;        temp_chats = await ChatHead.get_items(&#10;          _mainC.userModel,&#10;          where:&#10;              ' product_owner_id = $sender_id AND customer_id = $receiver_id',&#10;        );&#10;&#10;        if (temp_chats.isNotEmpty) {&#10;          chatHead = temp_chats[0];&#10;        }&#10;      }&#10;    }&#10;&#10;    _markAsRead();&#10;&#10;    if (chatHead.id &lt; 1) {&#10;      RespondModel? resp;&#10;      Utils.showLoader(false);&#10;      try {&#10;        resp = RespondModel(&#10;          await Utils.http_post('chat-start', {&#10;            'sender_id': sender_id,&#10;            'receiver_id': receiver_id,&#10;            'proChatsScreenduct_id': product_id,&#10;          }),&#10;        );&#10;      } catch (e) {&#10;        Utils.toast('Failed to start chat because: $e');&#10;        //pop&#10;        Get.back();&#10;        return;&#10;      } finally {&#10;        Utils.hideLoader();&#10;      }&#10;&#10;      if (resp.code != 1) {&#10;        Utils.toast(resp.message);&#10;        Get.back();&#10;        return;&#10;      }&#10;&#10;      ChatHead tempHead = ChatHead.fromJson(resp.data);&#10;      if (tempHead.id &lt; 1) {&#10;        Utils.toast('Failed to parse chat');&#10;        Get.back();&#10;        return;&#10;      }&#10;&#10;      chatHead = tempHead;&#10;      _markAsRead();&#10;      setState(() {});&#10;    }&#10;&#10;    if (chatHead.id &lt; 1) {&#10;      await _startChat();&#10;      if (chatHead.id &lt; 1) {&#10;        Utils.toast2('Failed to start chat');&#10;        Get.back();&#10;        return;&#10;      }&#10;    }&#10;&#10;    _msgs = await ChatMessage.get_items(&#10;        _mainC.userModel,&#10;        where: 'chat_head_id = ${chatHead.id}',&#10;      )&#10;      ..sort((a, b) =&gt; a.id.compareTo(b.id));&#10;&#10;    _markAsRead();&#10;&#10;    _pollLoop();&#10;    setState(() {});&#10;    task = widget.params['task'];&#10;&#10;    _scrollToBottom();&#10;  }&#10;&#10;  Future&lt;void&gt; _startChat() async {&#10;    Utils.toast2('Please wait…', is_long: true);&#10;    if (!await Utils.is_connected()) {&#10;      Utils.toast2('No internet connection');&#10;      return;&#10;    }&#10;    // Chat starting logic can be enhanced later if needed&#10;  }&#10;&#10;  Future&lt;void&gt; _markAsRead() async {&#10;    if (chatHead.id &lt; 1) {&#10;      return;&#10;    }&#10;    RespondModel r = RespondModel(&#10;      await Utils.http_post('chat-mark-as-read', {&#10;        'receiver_id': chatHead.customer_id,&#10;        'chat_head_id': chatHead.id,&#10;      }),&#10;    );&#10;&#10;    if (r.code == 1) {&#10;      await chatHead.save();&#10;    } else {&#10;      Utils.toast(r.message);&#10;    }&#10;&#10;    await ChatHead.getLocalData();&#10;    await ChatHead.getLocalData();&#10;  }&#10;&#10;  void _pollLoop() {&#10;    if (_disposed || _listenerBusy) return;&#10;    _listenerBusy = true;&#10;    ChatMessage.getOnlineItems(&#10;      _mainC.userModel,&#10;      params: {'chat_head_id': chatHead.id, 'doDeleteAll': true},&#10;    ).then((_) async {&#10;      final all = await ChatMessage.getLocalData(&#10;          _mainC.userModel,&#10;          where: 'chat_head_id = ${chatHead.id}',&#10;        )&#10;        ..sort((a, b) =&gt; a.id.compareTo(b.id));&#10;      if (all.length &gt; _msgs.length) {&#10;        setState(() =&gt; _msgs = all);&#10;        _scrollToBottom();&#10;      }&#10;      _listenerBusy = false;&#10;      if (!_disposed) Future.delayed(const Duration(seconds: 5), _pollLoop);&#10;    });&#10;  }&#10;&#10;  Future&lt;void&gt; _onRefresh() =&gt; _initialize();&#10;&#10;  Future&lt;void&gt; _sendMessage() async {&#10;    final text = _txtC.text.trim();&#10;    if (text.isEmpty) return Utils.toast(&quot;Can't send empty&quot;);&#10;&#10;    final me = _mainC.userModel.id.toString();&#10;    final other =&#10;        me == chatHead.product_owner_id&#10;            ? chatHead.customer_id&#10;            : chatHead.product_owner_id;&#10;&#10;    ChatMessage msg =&#10;        ChatMessage()&#10;          ..chat_head_id = chatHead.id.toString()&#10;          ..sender_id = me&#10;          ..receiver_id = other&#10;          ..body = text&#10;          ..type = 'text'&#10;          ..created_at = DateTime.now().toIso8601String()&#10;          ..updated_at = DateTime.now().toIso8601String()&#10;          ..isMyMessage = true;&#10;&#10;    _txtC.clear();&#10;    setState(() =&gt; _inputEmpty = true);&#10;    _showMultimediaOptions = false;&#10;    _msgs.add(msg);&#10;&#10;    _scrollToBottom();&#10;&#10;    // keep keyboard open&#10;    _focusNode.requestFocus();&#10;    await msg.save();&#10;    doSendMessage(msg);&#10;  }&#10;&#10;  // Enhanced _sendMessage method for multimedia&#10;  Future&lt;void&gt; _sendMultimediaMessage({&#10;    required String messageType,&#10;    required String content,&#10;    String? photoUrl,&#10;    String? audioUrl,&#10;    String? videoUrl,&#10;    String? latitude,&#10;    String? longitude,&#10;  }) async {&#10;    final me = _mainC.userModel.id.toString();&#10;    final other =&#10;        me == chatHead.product_owner_id&#10;            ? chatHead.customer_id&#10;            : chatHead.product_owner_id;&#10;&#10;    // Add message to local list immediately&#10;    ChatMessage msg =&#10;        ChatMessage()&#10;          ..chat_head_id = chatHead.id.toString()&#10;          ..sender_id = me&#10;          ..receiver_id = other&#10;          ..body = content&#10;          ..type = messageType&#10;          ..photo = photoUrl ?? ''&#10;          ..audio = audioUrl ?? ''&#10;          ..longitude = longitude ?? ''&#10;          ..latitude = latitude ?? ''&#10;          ..created_at = DateTime.now().toIso8601String()&#10;          ..updated_at = DateTime.now().toIso8601String()&#10;          ..isMyMessage = true;&#10;&#10;    setState(() {&#10;      _msgs.add(msg);&#10;      _showMultimediaOptions = false;&#10;    });&#10;&#10;    _scrollToBottom();&#10;    await msg.save();&#10;&#10;    try {&#10;      Map&lt;String, dynamic&gt; requestData = {&#10;        'receiver_id': other,&#10;        'content': content,&#10;        'message_type': messageType,&#10;      };&#10;&#10;      // Add multimedia specific fields&#10;      if (photoUrl != null) requestData['photo'] = photoUrl;&#10;      if (audioUrl != null) requestData['audio'] = audioUrl;&#10;      if (videoUrl != null) requestData['video'] = videoUrl;&#10;      if (latitude != null) requestData['latitude'] = latitude;&#10;      if (longitude != null) requestData['longitude'] = longitude;&#10;&#10;      final response = await Utils.http_post('chat-send', requestData);&#10;      final resp = RespondModel(response);&#10;&#10;      if (resp.code == 1) {&#10;        msg.status = 'sent';&#10;        await msg.save();&#10;      } else {&#10;        print('Failed to send $messageType message: ${resp.message}');&#10;        Utils.toast('Failed to send $messageType message: ${resp.message}');&#10;        msg.status = 'failed';&#10;        await msg.save();&#10;      }&#10;    } catch (e) {&#10;      Utils.toast('Error sending $messageType message: $e');&#10;      msg.status = 'failed';&#10;      await msg.save();&#10;    }&#10;  }&#10;&#10;  void _scrollToBottom() {&#10;    WidgetsBinding.instance.addPostFrameCallback((_) {&#10;      if (_scrollC.hasClients) {&#10;        _scrollC.animateTo(&#10;          _scrollC.position.maxScrollExtent,&#10;          duration: const Duration(milliseconds: 300),&#10;          curve: Curves.easeOut,&#10;        );&#10;      }&#10;    });&#10;  }&#10;&#10;  Future&lt;void&gt; doSendMessage(ChatMessage msg) async {&#10;    // Send message to server using enhanced API format&#10;    try {&#10;      final resp = RespondModel(&#10;        await Utils.http_post('chat-send', {&#10;          'receiver_id': msg.receiver_id,&#10;          'content': msg.body,&#10;          'message_type': msg.type,&#10;        }),&#10;      );&#10;&#10;      if (resp.code == 1) {&#10;        // Message sent successfully, update local status&#10;        msg.status = 'sent';&#10;        await msg.save();&#10;      } else {&#10;        // Handle error&#10;        Utils.toast('Failed to send message: ${resp.message}');&#10;        msg.status = 'failed';&#10;        await msg.save();&#10;      }&#10;    } catch (e) {&#10;      // Handle network error&#10;      Utils.toast('Failed to send message: $e');&#10;      msg.status = 'failed';&#10;      await msg.save();&#10;    }&#10;  }&#10;" language="Dart" />
+          <option name="timeStamp" value="14" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="Dart">
+          <url>file://$PROJECT_DIR$/lib/screens/shop/screens/shop/chat/chat_screen.dart</url>
+          <line>734</line>
+          <option name="timeStamp" value="15" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="Dart">
+          <url>file://$PROJECT_DIR$/lib/utils/AppConfig.dart</url>
+          <line>30</line>
+          <option name="timeStamp" value="17" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="Dart">
+          <url>file://$PROJECT_DIR$/lib/screens/auth/register_screen.dart</url>
+          <line>198</line>
+          <option name="timeStamp" value="18" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>

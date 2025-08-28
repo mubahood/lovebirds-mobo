@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "282131284355",
+    "project_id": "lovebirds-18778",
+    "storage_bucket": "lovebirds-18778.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:282131284355:android:c3a6e074ffd3cb44ff36b6",
+        "android_client_info": {
+          "package_name": "com.lovebirds.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBZeVFWyhcwT1SYE2oOYmjEi-tvT3i8j5E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

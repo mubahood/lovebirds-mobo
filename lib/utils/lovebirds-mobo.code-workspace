@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"name": "lovebirds-mobo",
+			"path": "../.."
+		},
+		{
+			"name": "lovebirds-api",
+			"path": "../../../../../../../Applications/MAMP/htdocs/lovebirds-api"
+		}
+	],
+	"settings": {}
+}
