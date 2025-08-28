@@ -110,8 +110,10 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
         child: Opacity(
           opacity: widget.opacity,
           child: Container(
-            width: double.infinity, // Add full width
-            height: 600, // Fixed height to ensure visibility
+            width: double.infinity,
+            // Add full width
+            height: 600,
+            // Fixed height to ensure visibility
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
               color: CustomTheme.cardDark, // Fallback background color
@@ -681,7 +683,9 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: badge['color'].withValues(alpha: 0.5),
+                                    color: badge['color'].withValues(
+                                      alpha: 0.5,
+                                    ),
                                     blurRadius: 10,
                                     offset: const Offset(0, 4),
                                   ),
@@ -915,7 +919,10 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Colors.blue, Colors.blueAccent.withValues(alpha: 0.8)],
+                      colors: [
+                        Colors.blue,
+                        Colors.blueAccent.withValues(alpha: 0.8),
+                      ],
                     ),
                     shape: BoxShape.circle,
                     border: Border.all(color: Colors.white, width: 2),

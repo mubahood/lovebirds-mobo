@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutx/flutx.dart';
 import 'package:get/get.dart';
-import 'package:lovebirds_app/screens/dating/SwipeScreen.dart';
+import 'package:lovebirds_app/screens/dating/OrbitalSwipeScreen.dart';
 import 'package:lovebirds_app/screens/dating/MatchesScreen.dart';
 import 'package:lovebirds_app/screens/shop/screens/shop/full_app/section/AccountSection.dart';
 import 'package:lovebirds_app/screens/shop/screens/shop/chat/ChatsScreen.dart';
@@ -87,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen>
                           physics: const NeverScrollableScrollPhysics(),
                           controller: controller.tabController,
                           children: <Widget>[
-                            const SwipeScreen(),
+                            const OrbitalSwipeScreen(),
                             const MatchesScreen(),
                             ProductsScreen(const {}),
                             const ChatsScreen(),

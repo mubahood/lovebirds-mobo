@@ -9,7 +9,7 @@ import '../../models/RespondModel.dart';
 import '../../utils/dating_theme.dart';
 import '../../utils/Utilities.dart';
 import '../subscription/subscription_selection_screen.dart';
-import '../dating/SwipeScreen.dart';
+import '../dating/OrbitalSwipeScreen.dart';
 
 class ModernProfileScreen extends StatefulWidget {
   const ModernProfileScreen({Key? key}) : super(key: key);
@@ -644,7 +644,7 @@ class _ModernProfileScreenState extends State<ModernProfileScreen> {
               ),
             ),
             TextButton(
-              onPressed: () => Get.to(() => const SwipeScreen()),
+              onPressed: () => Get.to(() => const OrbitalSwipeScreen()),
               child: Text(
                 'See More',
                 style: TextStyle(color: DatingTheme.primaryPink),

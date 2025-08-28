@@ -1121,10 +1121,7 @@ class DebugUtils {
 ```dart
 class AppConfig {
   static const String APP_NAME = "Lovebirds";
-  static const String BASE_URL = "https://api.lovebirds.com";
-  static const String PRIVACY_POLICY_URL = "https://lovebirds.com/privacy";
-  static const String TERMS_URL = "https://lovebirds.com/terms";
-  
+   
   // Feature flags
   static const bool ENABLE_PUSH_NOTIFICATIONS = true;
   static const bool ENABLE_LOCATION_SERVICES = true;

@@ -3,7 +3,7 @@ import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutx/flutx.dart';
 
 import '../../utils/dating_theme.dart';
-import '../dating/SwipeScreen.dart';
+import '../dating/OrbitalSwipeScreen.dart';
 import '../dating/matches_screen.dart';
 import '../shop/screens/shop/ProductsScreen.dart';
 import '../dating/dating_chat_list_screen.dart';
@@ -24,7 +24,7 @@ class _DatingMainNavigationScreenState extends State<DatingMainNavigationScreen>
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
-    const SwipeScreen(), // Discover - Main dating swipe interface
+    const OrbitalSwipeScreen(), // Discover - Main dating swipe interface
     MatchesScreen(), // Matches - View matches and who liked you
     ProductsScreen({}), // Marketplace - Shopping and gifts
     const DatingChatListScreen(), // Messages - Dating conversations
@@ -132,7 +132,9 @@ class _DatingMainNavigationScreenState extends State<DatingMainNavigationScreen>
                             decoration:
                                 isActive
                                     ? BoxDecoration(
-                                      color: item.activeColor.withValues(alpha: 0.1),
+                                      color: item.activeColor.withValues(
+                                        alpha: 0.1,
+                                      ),
                                       borderRadius: BorderRadius.circular(12),
                                     )
                                     : null,

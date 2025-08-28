@@ -3,23 +3,33 @@ import '../models/UserModel.dart';
 import '../utils/Utilities.dart';
 
 class SwipeService {
-  // Get next user to swipe on
-  static Future<UserModel?> getSwipeUser() async {
+  // Get batch of users for orbital swipe
+  static Future<List<UserModel>> getBatchSwipeUsers({int count = 8}) async {
     try {
-      final response = await Utils.http_get('swipe-discovery', {});
+      final response = await Utils.http_get('swipe-discovery-batch', {
+        'count': count.toString(),
+      });
+      print(response.toString());
       final resp = RespondModel(response);
 
-      if (resp.code == 1 && resp.data != null) {
-        final userData = resp.data['user'];
-        if (userData != null) {
-          return UserModel.fromJson(userData);
-        }
+      if (resp.code == 1 && resp.data != null && resp.data['users'] is List) {
+        final users =
+            (resp.data['users'] as List)
+                .map((userData) => UserModel.fromJson(userData))
+                .toList();
+        return users;
       }
-      return null;
+      return [];
     } catch (e) {
-      print('Error getting swipe user: $e');
-      return null;
+      print('Error getting batch swipe users: $e');
+      return [];
     }
+  }
+
+  // Get next user to swipe on (legacy support)
+  static Future<UserModel?> getSwipeUser() async {
+    final users = await getBatchSwipeUsers(count: 1);
+    return users.isNotEmpty ? users.first : null;
   }
 
   // Send swipe action to backend

@@ -16,7 +16,7 @@ import '../../utils/Utilities.dart';
 import '../../widget/widgets.dart';
 import '../shop/screens/shop/chat/chat_screen.dart';
 import 'ProfileViewScreen.dart';
-import 'SwipeScreen.dart';
+import 'OrbitalSwipeScreen.dart';
 import 'WhoLikedMeScreen.dart';
 import 'MatchesScreen.dart';
 
@@ -452,8 +452,8 @@ class _UsersListScreenState extends State<UsersListScreen> {
   }
 
   Widget _buildSwipe() {
-    // Navigate to the comprehensive SwipeScreen
-    return const SwipeScreen();
+    // Navigate to the revolutionary OrbitalSwipeScreen (our new default)
+    return const OrbitalSwipeScreen();
   }
 
   Widget _buildTile(UserModel u) {
@@ -548,7 +548,10 @@ class _UsersListScreenState extends State<UsersListScreen> {
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.black.withValues(alpha: 0.8), Colors.transparent],
+                  colors: [
+                    Colors.black.withValues(alpha: 0.8),
+                    Colors.transparent,
+                  ],
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
                   stops: const [0.0, 0.4], // Gradient covers bottom 40%

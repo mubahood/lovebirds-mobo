@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutx/flutx.dart';
 import '../../services/onboarding_service.dart';
 import '../../utils/CustomTheme.dart';
-import '../dating/SwipeScreen.dart';
+import '../dating/OrbitalSwipeScreen.dart';
 
 /// Interactive Onboarding Screen with Step-by-Step Tutorials
 class InteractiveOnboardingScreen extends StatefulWidget {
@@ -167,7 +167,7 @@ class _InteractiveOnboardingScreenState
 
     if (mounted) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const SwipeScreen()),
+        MaterialPageRoute(builder: (context) => const OrbitalSwipeScreen()),
       );
     }
   }
@@ -369,7 +369,10 @@ class _InteractiveOnboardingScreenState
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.2),
+          width: 1,
+        ),
       ),
       child: Row(
         children: [
