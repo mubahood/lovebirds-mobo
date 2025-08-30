@@ -49,10 +49,7 @@ class CartAppBarButton extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: CustomTheme.background, width: 1),
                 ),
-                constraints: const BoxConstraints(
-                  minWidth: 18,
-                  minHeight: 18,
-                ),
+                constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
                 child: FxText.bodySmall(
                   '${cartController.cartItems.length}',
                   color: Colors.white,

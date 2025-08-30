@@ -17,7 +17,8 @@ class SimpleCheckoutScreen extends StatefulWidget {
   final OrderOnline order;
   final SimpleCartManager cartManager;
 
-  const SimpleCheckoutScreen(this.order, this.cartManager, {Key? key}) : super(key: key);
+  const SimpleCheckoutScreen(this.order, this.cartManager, {Key? key})
+    : super(key: key);
 
   @override
   _SimpleCheckoutScreenState createState() => _SimpleCheckoutScreenState();
@@ -36,16 +37,19 @@ class _SimpleCheckoutScreenState extends State<SimpleCheckoutScreen> {
 
   Future<void> _initializeOrder() async {
     await mainController.getLoggedInUser();
-    
+
     // Ensure user is properly set
     if (mainController.userModel.id > 0) {
       widget.order.user = mainController.userModel.id.toString();
       widget.order.mail = mainController.userModel.email;
-      widget.order.customer_name = '${mainController.userModel.first_name} ${mainController.userModel.last_name}';
-      widget.order.customer_phone_number_1 = mainController.userModel.phone_number;
-      widget.order.customer_phone_number_2 = mainController.userModel.phone_number_2;
+      widget.order.customer_name =
+          '${mainController.userModel.first_name} ${mainController.userModel.last_name}';
+      widget.order.customer_phone_number_1 =
+          mainController.userModel.phone_number;
+      widget.order.customer_phone_number_2 =
+          mainController.userModel.phone_number_2;
     }
-    
+
     setState(() {});
   }
 
@@ -185,28 +189,32 @@ class _SimpleCheckoutScreenState extends State<SimpleCheckoutScreen> {
                             _buildSummaryRow(
                               'Order Items Total',
                               'Total amount of all items in your cart',
-                              'UGX ${Utils.moneyFormat(widget.cartManager.subtotal.toString())}',
+                              '${AppConfig.CURRENCY} ${Utils.moneyFormat(widget.cartManager.subtotal.toString())}',
                               FeatherIcons.shoppingCart,
                             ),
                             const SizedBox(height: 16),
                             _buildSummaryRow(
                               'Tax',
                               '13% VAT',
-                              'UGX ${Utils.moneyFormat(widget.cartManager.tax.toString())}',
+                              '${AppConfig.CURRENCY} ${Utils.moneyFormat(widget.cartManager.tax.toString())}',
                               FeatherIcons.percent,
                             ),
                             const SizedBox(height: 16),
                             _buildSummaryRow(
-                              widget.order.delivery_method.toLowerCase() == "pickup"
+                              widget.order.delivery_method.toLowerCase() ==
+                                      "pickup"
                                   ? "Pickup Cost"
                                   : "Delivery Cost",
-                              widget.order.delivery_method.toLowerCase() == "pickup"
+                              widget.order.delivery_method.toLowerCase() ==
+                                      "pickup"
                                   ? "You will pick up the items yourself."
                                   : '${widget.order.delivery_address_text}.',
-                              widget.order.delivery_method.toLowerCase() == "pickup"
-                                  ? "UGX 0"
-                                  : "UGX ${Utils.moneyFormat(widget.order.delivery_amount)}",
-                              widget.order.delivery_method.toLowerCase() == "pickup"
+                              widget.order.delivery_method.toLowerCase() ==
+                                      "pickup"
+                                  ? "${AppConfig.CURRENCY} 0"
+                                  : "${AppConfig.CURRENCY} ${Utils.moneyFormat(widget.order.delivery_amount)}",
+                              widget.order.delivery_method.toLowerCase() ==
+                                      "pickup"
                                   ? FeatherIcons.mapPin
                                   : FeatherIcons.truck,
                             ),
@@ -217,18 +225,24 @@ class _SimpleCheckoutScreenState extends State<SimpleCheckoutScreen> {
                             Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: CustomTheme.primary.withValues(alpha: 0.1),
+                                color: CustomTheme.primary.withValues(
+                                  alpha: 0.1,
+                                ),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: CustomTheme.primary.withValues(alpha: 0.2),
+                                  color: CustomTheme.primary.withValues(
+                                    alpha: 0.2,
+                                  ),
                                   width: 1,
                                 ),
                               ),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       FxText.titleLarge(
                                         "Total Amount",
@@ -244,7 +258,7 @@ class _SimpleCheckoutScreenState extends State<SimpleCheckoutScreen> {
                                     ],
                                   ),
                                   FxText.titleLarge(
-                                    "UGX ${Utils.moneyFormat(widget.cartManager.totalAmount(widget.order.delivery_method).toString())}",
+                                    "${AppConfig.CURRENCY} ${Utils.moneyFormat(widget.cartManager.totalAmount(widget.order.delivery_method).toString())}",
                                     color: CustomTheme.primary,
                                     fontWeight: 900,
                                     fontSize: 20,
@@ -307,42 +321,43 @@ class _SimpleCheckoutScreenState extends State<SimpleCheckoutScreen> {
                       ),
                       elevation: 4,
                     ),
-                    child: isLoading
-                        ? Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
+                    child:
+                        isLoading
+                            ? Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 12),
-                              FxText.titleMedium(
-                                "Submitting Order...",
-                                color: Colors.white,
-                                fontWeight: 600,
-                              ),
-                            ],
-                          )
-                        : Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                FeatherIcons.creditCard,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                              const SizedBox(width: 12),
-                              FxText.titleMedium(
-                                "SUBMIT ORDER",
-                                color: Colors.white,
-                                fontWeight: 700,
-                              ),
-                            ],
-                          ),
+                                const SizedBox(width: 12),
+                                FxText.titleMedium(
+                                  "Submitting Order...",
+                                  color: Colors.white,
+                                  fontWeight: 600,
+                                ),
+                              ],
+                            )
+                            : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  FeatherIcons.creditCard,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 12),
+                                FxText.titleMedium(
+                                  "SUBMIT ORDER",
+                                  color: Colors.white,
+                                  fontWeight: 700,
+                                ),
+                              ],
+                            ),
                   ),
                 ),
 
@@ -355,7 +370,12 @@ class _SimpleCheckoutScreenState extends State<SimpleCheckoutScreen> {
     );
   }
 
-  Widget _buildSummaryRow(String title, String subtitle, String amount, IconData icon) {
+  Widget _buildSummaryRow(
+    String title,
+    String subtitle,
+    String amount,
+    IconData icon,
+  ) {
     return Row(
       children: [
         Container(
@@ -364,11 +384,7 @@ class _SimpleCheckoutScreenState extends State<SimpleCheckoutScreen> {
             color: CustomTheme.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(
-            icon,
-            color: CustomTheme.primary,
-            size: 20,
-          ),
+          child: Icon(icon, color: CustomTheme.primary, size: 20),
         ),
         const SizedBox(width: 16),
         Expanded(
@@ -389,11 +405,7 @@ class _SimpleCheckoutScreenState extends State<SimpleCheckoutScreen> {
             ],
           ),
         ),
-        FxText.bodyLarge(
-          amount,
-          color: CustomTheme.primary,
-          fontWeight: 700,
-        ),
+        FxText.bodyLarge(amount, color: CustomTheme.primary, fontWeight: 700),
       ],
     );
   }
@@ -406,25 +418,41 @@ class _SimpleCheckoutScreenState extends State<SimpleCheckoutScreen> {
 
     // Final user validation
     if (widget.order.user.isEmpty || mainController.userModel.id <= 0) {
+      print('=== USER VALIDATION DEBUG ===');
+      print('Current widget.order.user: ${widget.order.user}');
+      print(
+        'Current mainController.userModel.id: ${mainController.userModel.id}',
+      );
+
       await LoggedInUserModel.getLoggedInUser();
       await mainController.getLoggedInUser();
 
       LoggedInUserModel loggedUser = await LoggedInUserModel.getLoggedInUser();
       LoggedInUserModel userToUse =
-          mainController.userModel.id > 0 ? mainController.userModel : loggedUser;
+          mainController.userModel.id > 0
+              ? mainController.userModel
+              : loggedUser;
+
+      print('LoggedUser ID: ${loggedUser.id}');
+      print('MainController User ID: ${mainController.userModel.id}');
+      print('Selected User ID: ${userToUse.id}');
 
       if (userToUse.id > 0) {
         widget.order.user = userToUse.id.toString();
         widget.order.mail = userToUse.email;
-        widget.order.customer_name = '${userToUse.first_name} ${userToUse.last_name}';
+        widget.order.customer_name =
+            '${userToUse.first_name} ${userToUse.last_name}';
         widget.order.customer_phone_number_1 = userToUse.phone_number;
         widget.order.customer_phone_number_2 = userToUse.phone_number_2;
+        print('Updated widget.order.user to: ${widget.order.user}');
       }
+      print('=== END USER VALIDATION DEBUG ===');
     }
 
     if (widget.order.user.isEmpty) {
       setState(() {
-        errorMessage = "Unable to identify user. Please login again to submit your order.";
+        errorMessage =
+            "Unable to identify user. Please login again to submit your order.";
         isLoading = false;
       });
       return;
@@ -436,29 +464,44 @@ class _SimpleCheckoutScreenState extends State<SimpleCheckoutScreen> {
       delivery['user_id'] = widget.order.user;
       delivery['phone_number'] = widget.order.customer_phone_number_1;
       delivery['phone_number_1'] = widget.order.customer_phone_number_1;
-      delivery['phone_number_2'] = widget.order.customer_phone_number_2.isEmpty 
-          ? widget.order.customer_phone_number_1 
-          : widget.order.customer_phone_number_2;
+      delivery['phone_number_2'] =
+          widget.order.customer_phone_number_2.isEmpty
+              ? widget.order.customer_phone_number_1
+              : widget.order.customer_phone_number_2;
 
       // Debug logging
       print('=== ORDER SUBMISSION DEBUG ===');
       print('User ID: ${widget.order.user}');
       print('Customer Name: ${widget.order.customer_name}');
+      print('Customer Email: ${widget.order.mail}');
+      print('Customer Phone: ${widget.order.customer_phone_number_1}');
       print('Subtotal: ${widget.cartManager.subtotal}');
       print('Tax: ${widget.cartManager.tax}');
       print('Delivery Fee: ${widget.order.delivery_amount}');
-      print('Total: ${widget.cartManager.totalAmount(widget.order.delivery_method)}');
+      print('Delivery Method: ${widget.order.delivery_method}');
+      print(
+        'Total: ${widget.cartManager.totalAmount(widget.order.delivery_method)}',
+      );
+      print('Cart Items Count: ${widget.cartManager.cartItems.length}');
+      print('Delivery Data: ${jsonEncode(delivery)}');
+      print('=== END ORDER SUBMISSION DEBUG ===');
 
       // Submit order
       RespondModel resp = RespondModel(
         await Utils.http_post('orders-create', {
           'items': jsonEncode(widget.cartManager.cartItems),
           'delivery': jsonEncode(delivery),
+          'logged_in_user_id':
+              widget.order.user, // Add direct user ID parameter
+          'user_id': widget.order.user, // Also add as user_id for compatibility
         }),
       );
 
       if (resp.code == 1) {
         // Success
+        print('=== ORDER SUBMISSION SUCCESS ===');
+        print('Response: ${resp.message}');
+
         Get.snackbar(
           'Order Submitted Successfully!',
           'Your order has been placed and is being processed.',
@@ -478,10 +521,17 @@ class _SimpleCheckoutScreenState extends State<SimpleCheckoutScreen> {
         Get.offAllNamed('/'); // or however you navigate back to main screen
       } else {
         // Error
+        print('=== ORDER SUBMISSION FAILED ===');
+        print('Response Code: ${resp.code}');
+        print('Response Message: ${resp.message}');
+        print('Response Data: ${resp.data}');
+        print('=== END ERROR DEBUG ===');
+
         setState(() {
-          errorMessage = resp.message.isNotEmpty 
-              ? resp.message 
-              : 'Failed to submit order. Please try again.';
+          errorMessage =
+              resp.message.isNotEmpty
+                  ? resp.message
+                  : 'Failed to submit order. Please try again.';
           isLoading = false;
         });
 
@@ -502,7 +552,7 @@ class _SimpleCheckoutScreenState extends State<SimpleCheckoutScreen> {
         errorMessage = 'Network error: ${e.toString()}';
         isLoading = false;
       });
-      
+
       Get.snackbar(
         'Network Error',
         'Please check your internet connection and try again.',

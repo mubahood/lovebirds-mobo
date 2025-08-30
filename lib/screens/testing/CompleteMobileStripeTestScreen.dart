@@ -97,10 +97,7 @@ class _CompleteMobileStripeTestScreenState
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Colors.deepPurple.withOpacity(0.1),
-              Colors.white,
-            ],
+            colors: [Colors.deepPurple.withOpacity(0.1), Colors.white],
           ),
         ),
         child: Padding(
@@ -209,17 +206,20 @@ class _CompleteMobileStripeTestScreenState
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: isRunningTests ? null : _runAllTests,
-                  icon: isRunningTests
-                      ? SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation(Colors.white),
-                          ),
-                        )
-                      : Icon(Icons.play_arrow),
-                  label: Text(isRunningTests ? 'Running Tests...' : 'Run All Tests'),
+                  icon:
+                      isRunningTests
+                          ? SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation(Colors.white),
+                            ),
+                          )
+                          : Icon(Icons.play_arrow),
+                  label: Text(
+                    isRunningTests ? 'Running Tests...' : 'Run All Tests',
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.deepPurple,
                     foregroundColor: Colors.white,
@@ -284,7 +284,10 @@ class _CompleteMobileStripeTestScreenState
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                     ),
                   ),
                 ],
@@ -302,11 +305,7 @@ class _CompleteMobileStripeTestScreenState
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.science,
-              size: 64,
-              color: Colors.grey[400],
-            ),
+            Icon(Icons.science, size: 64, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
               'Ready to run tests',
@@ -319,10 +318,7 @@ class _CompleteMobileStripeTestScreenState
             const SizedBox(height: 8),
             Text(
               'Tap "Run All Tests" to start the complete integration test',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[500],
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[500]),
               textAlign: TextAlign.center,
             ),
           ],
@@ -354,9 +350,7 @@ class _CompleteMobileStripeTestScreenState
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         contentPadding: const EdgeInsets.all(16),
         leading: Container(
@@ -394,10 +388,7 @@ class _CompleteMobileStripeTestScreenState
               const SizedBox(height: 4),
               Text(
                 'Duration: ${result.duration}ms',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 11, color: Colors.grey[600]),
               ),
             ],
           ],
@@ -480,18 +471,18 @@ class _CompleteMobileStripeTestScreenState
               _buildStatItem('Passed', passed.toString(), Colors.green),
               _buildStatItem('Failed', failed.toString(), Colors.red),
               _buildStatItem('Total', total.toString(), Colors.blue),
-              _buildStatItem('Success Rate', '$successRate%', 
-                successRate >= 80 ? Colors.green : Colors.orange),
+              _buildStatItem(
+                'Success Rate',
+                '$successRate%',
+                successRate >= 80 ? Colors.green : Colors.orange,
+              ),
             ],
           ),
           if (testOrderId != null) ...[
             const SizedBox(height: 12),
             Text(
               'Test Order ID: $testOrderId',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
           ],
         ],
@@ -510,13 +501,7 @@ class _CompleteMobileStripeTestScreenState
             color: color,
           ),
         ),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
-        ),
+        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
       ],
     );
   }
@@ -532,13 +517,15 @@ class _CompleteMobileStripeTestScreenState
       currentTestIndex = i;
       setState(() {});
 
-      await Future.delayed(const Duration(milliseconds: 500)); // UI update delay
-      
+      await Future.delayed(
+        const Duration(milliseconds: 500),
+      ); // UI update delay
+
       final testCase = testCases[i];
       final startTime = DateTime.now().millisecondsSinceEpoch;
-      
+
       MobileTestResult result;
-      
+
       try {
         switch (testCase.testId) {
           case 'auth_test':
@@ -581,10 +568,10 @@ class _CompleteMobileStripeTestScreenState
           details: 'Error: ${e.toString()}',
         );
       }
-      
+
       final endTime = DateTime.now().millisecondsSinceEpoch;
       result.duration = endTime - startTime;
-      
+
       testResults.add(result);
       setState(() {});
     }
@@ -597,7 +584,7 @@ class _CompleteMobileStripeTestScreenState
     final passed = testResults.where((r) => r.passed).length;
     final total = testResults.length;
     final rate = (passed / total * 100).round();
-    
+
     Get.snackbar(
       'Tests Complete',
       '$passed/$total tests passed ($rate% success rate)',
@@ -625,7 +612,8 @@ class _CompleteMobileStripeTestScreenState
       name: 'User Authentication',
       description: 'Verify user is logged in and has valid token',
       passed: true,
-      details: 'User: ${currentUser!.first_name} ${currentUser!.last_name} (ID: ${currentUser!.id})',
+      details:
+          'User: ${currentUser!.first_name} ${currentUser!.last_name} (ID: ${currentUser!.id})',
     );
   }
 
@@ -637,21 +625,21 @@ class _CompleteMobileStripeTestScreenState
       };
 
       if (currentUser != null) {
-        headers['Tok'] = currentUser!.remember_token;
+        headers['Tok'] = currentUser!.token;
       }
 
-      RespondModel r = await Utilities.postData(
-        url: 'test-connection',
-        params: {'test': true},
-        requestTimeout: 10,
-        headers: headers,
+      RespondModel r = RespondModel(
+        await Utils.http_post('test-connection', {'test': true}),
       );
 
       return MobileTestResult(
         name: 'API Connection',
         description: 'Test connection to LoveBirds API server',
         passed: r.code == 1,
-        details: r.message.isNotEmpty ? r.message : 'API connection ${r.code == 1 ? 'successful' : 'failed'}',
+        details:
+            r.message.isNotEmpty
+                ? r.message
+                : 'API connection ${r.code == 1 ? 'successful' : 'failed'}',
       );
     } catch (e) {
       return MobileTestResult(
@@ -680,18 +668,21 @@ class _CompleteMobileStripeTestScreenState
             'product_id': 1,
             'quantity': 2,
             'price': 25.99,
-            'name': 'Mobile Test Product 1'
+            'name': 'Mobile Test Product 1',
           },
           {
             'product_id': 2,
             'quantity': 1,
             'price': 15.50,
-            'name': 'Mobile Test Product 2'
-          }
+            'name': 'Mobile Test Product 2',
+          },
         ],
         'customer_name': '${currentUser!.first_name} ${currentUser!.last_name}',
         'customer_phone_number_1': currentUser!.phone_number,
-        'customer_address': currentUser!.address.isNotEmpty ? currentUser!.address : '123 Test Street',
+        'customer_address':
+            currentUser!.address.isNotEmpty
+                ? currentUser!.address
+                : '123 Test Street',
         'delivery_method': 'pickup',
         'logged_in_user_id': currentUser!.id,
       };
@@ -719,9 +710,10 @@ class _CompleteMobileStripeTestScreenState
           name: 'Order Creation',
           description: 'Create a test order with sample products',
           passed: true,
-          details: testOrderId != null 
-              ? 'Order created successfully (ID: $testOrderId)'
-              : 'Order created successfully',
+          details:
+              testOrderId != null
+                  ? 'Order created successfully (ID: $testOrderId)'
+                  : 'Order created successfully',
         );
       } else {
         return MobileTestResult(
@@ -782,16 +774,20 @@ class _CompleteMobileStripeTestScreenState
           name: 'Payment Link Generation',
           description: 'Generate Stripe payment link for the test order',
           passed: true,
-          details: paymentUrl != null 
-              ? 'Payment link generated successfully'
-              : 'Payment link generation completed',
+          details:
+              paymentUrl != null
+                  ? 'Payment link generated successfully'
+                  : 'Payment link generation completed',
         );
       } else {
         return MobileTestResult(
           name: 'Payment Link Generation',
           description: 'Generate Stripe payment link for the test order',
           passed: false,
-          details: r.message.isNotEmpty ? r.message : 'Payment link generation failed',
+          details:
+              r.message.isNotEmpty
+                  ? r.message
+                  : 'Payment link generation failed',
         );
       }
     } catch (e) {
@@ -814,8 +810,9 @@ class _CompleteMobileStripeTestScreenState
       );
     }
 
-    bool isValidStripeUrl = paymentUrl!.contains('stripe.com') || 
-                           paymentUrl!.contains('checkout.stripe.com');
+    bool isValidStripeUrl =
+        paymentUrl!.contains('stripe.com') ||
+        paymentUrl!.contains('checkout.stripe.com');
 
     bool isHttps = paymentUrl!.startsWith('https://');
 
@@ -823,9 +820,10 @@ class _CompleteMobileStripeTestScreenState
       name: 'Payment URL Validation',
       description: 'Verify payment URL is valid Stripe link',
       passed: isValidStripeUrl && isHttps,
-      details: isValidStripeUrl && isHttps 
-          ? 'Valid HTTPS Stripe payment URL' 
-          : 'Invalid payment URL format',
+      details:
+          isValidStripeUrl && isHttps
+              ? 'Valid HTTPS Stripe payment URL'
+              : 'Invalid payment URL format',
     );
   }
 
@@ -848,10 +846,10 @@ class _CompleteMobileStripeTestScreenState
 
       if (r.code == 1 && r.data != null) {
         bool orderFound = false;
-        
+
         if (r.data is Map && r.data['orders'] != null) {
           List orders = r.data['orders'];
-          
+
           if (testOrderId != null) {
             for (var orderData in orders) {
               if (orderData['id'].toString() == testOrderId) {
@@ -860,17 +858,18 @@ class _CompleteMobileStripeTestScreenState
               }
             }
           }
-          
+
           return MobileTestResult(
             name: 'Order Status Check',
             description: 'Verify order appears in user order history',
             passed: orderFound || orders.isNotEmpty,
-            details: orderFound 
-                ? 'Test order found in user orders'
-                : 'User has ${orders.length} orders (test order may not be visible)',
+            details:
+                orderFound
+                    ? 'Test order found in user orders'
+                    : 'User has ${orders.length} orders (test order may not be visible)',
           );
         }
-        
+
         return MobileTestResult(
           name: 'Order Status Check',
           description: 'Verify order appears in user order history',
@@ -882,7 +881,8 @@ class _CompleteMobileStripeTestScreenState
           name: 'Order Status Check',
           description: 'Verify order appears in user order history',
           passed: false,
-          details: r.message.isNotEmpty ? r.message : 'Failed to fetch user orders',
+          details:
+              r.message.isNotEmpty ? r.message : 'Failed to fetch user orders',
         );
       }
     } catch (e) {
@@ -907,14 +907,15 @@ class _CompleteMobileStripeTestScreenState
 
     try {
       bool canLaunch = await canLaunchUrl(Uri.parse(paymentUrl!));
-      
+
       return MobileTestResult(
         name: 'Payment Flow Test',
         description: 'Test opening payment URL in browser',
         passed: canLaunch,
-        details: canLaunch 
-            ? 'Payment URL can be opened in browser'
-            : 'Cannot open payment URL in browser',
+        details:
+            canLaunch
+                ? 'Payment URL can be opened in browser'
+                : 'Cannot open payment URL in browser',
       );
     } catch (e) {
       return MobileTestResult(
@@ -940,7 +941,8 @@ class _CompleteMobileStripeTestScreenState
       Map<String, dynamic> updateData = {
         'order_id': testOrderId,
         'stripe_paid': 'Yes',
-        'payment_confirmation': 'test_payment_intent_mobile_${DateTime.now().millisecondsSinceEpoch}',
+        'payment_confirmation':
+            'test_payment_intent_mobile_${DateTime.now().millisecondsSinceEpoch}',
         'order_state': 1,
       };
 
@@ -963,7 +965,10 @@ class _CompleteMobileStripeTestScreenState
         name: 'Order Update Test',
         description: 'Test order status updates after payment',
         passed: r.code == 1,
-        details: r.message.isNotEmpty ? r.message : 'Order update ${r.code == 1 ? 'successful' : 'failed'}',
+        details:
+            r.message.isNotEmpty
+                ? r.message
+                : 'Order update ${r.code == 1 ? 'successful' : 'failed'}',
       );
     } catch (e) {
       return MobileTestResult(
@@ -999,7 +1004,7 @@ class _CompleteMobileStripeTestScreenState
     try {
       if (await canLaunchUrl(Uri.parse(url))) {
         await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-        
+
         Get.snackbar(
           'Payment Page Opened',
           'Use test card: 4242424242424242',

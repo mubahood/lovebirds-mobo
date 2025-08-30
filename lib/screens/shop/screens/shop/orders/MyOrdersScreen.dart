@@ -7,8 +7,9 @@ import '../../../../../../models/RespondModel.dart';
 import '../../../../../../utils/AppConfig.dart';
 import '../../../../../../utils/CustomTheme.dart';
 import '../../../../../../utils/Utilities.dart';
-import '../../models/Order.dart';
+import '../../../models/Order.dart';
 import 'OrderDetailsScreen.dart';
+import 'InAppPaymentScreen.dart';
 
 class MyOrdersScreen extends StatefulWidget {
   const MyOrdersScreen({Key? key}) : super(key: key);
@@ -35,9 +36,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
     });
 
     try {
-      RespondModel resp = RespondModel(
-        await Utils.http_get('my-orders', {}),
-      );
+      RespondModel resp = RespondModel(await Utils.http_get('my-orders', {}));
 
       if (resp.code == 1) {
         List<Order> loadedOrders = [];
@@ -46,16 +45,15 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
             loadedOrders.add(Order.fromJson(orderData));
           }
         }
-        
+
         setState(() {
           orders = loadedOrders;
           isLoading = false;
         });
       } else {
         setState(() {
-          errorMessage = resp.message.isNotEmpty 
-            ? resp.message 
-            : 'Failed to load orders';
+          errorMessage =
+              resp.message.isNotEmpty ? resp.message : 'Failed to load orders';
           isLoading = false;
         });
       }
@@ -129,9 +127,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
           ),
         ],
       ),
-      body: SafeArea(
-        child: _buildBody(),
-      ),
+      body: SafeArea(child: _buildBody()),
     );
   }
 
@@ -318,7 +314,9 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: _getStatusColor(order.orderState).withValues(alpha: 0.1),
+                          color: _getStatusColor(
+                            order.orderState,
+                          ).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(
@@ -346,9 +344,14 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                     ],
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
-                      color: _getStatusColor(order.orderState).withValues(alpha: 0.15),
+                      color: _getStatusColor(
+                        order.orderState,
+                      ).withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: FxText.bodySmall(
@@ -360,9 +363,9 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 12),
-              
+
               // Order Details
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -407,20 +410,23 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                     ),
                 ],
               ),
-              
+
               const SizedBox(height: 12),
-              
-              // Action Button
+
+              // Action Buttons
               Row(
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: () => Get.to(() => OrderDetailsScreen(order: order)),
+                      onPressed:
+                          () => Get.to(() => OrderDetailsScreen(order: order)),
                       icon: Icon(FeatherIcons.eye, size: 16),
                       label: Text("View Details"),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: CustomTheme.primary,
-                        side: BorderSide(color: CustomTheme.primary.withValues(alpha: 0.3)),
+                        side: BorderSide(
+                          color: CustomTheme.primary.withValues(alpha: 0.3),
+                        ),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -429,7 +435,43 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  if (order.orderState == 0 || order.orderState == 1)
+                  // PRIORITY 1: Show Payment button for unpaid orders with existing payment link
+                  if (order.stripePaid != "Yes" && order.stripeUrl.isNotEmpty)
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _openPayment(order),
+                        icon: Icon(FeatherIcons.creditCard, size: 16),
+                        label: Text("Pay Now"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                    )
+                  // PRIORITY 2: Show Generate Payment button for unpaid orders without payment link
+                  else if (order.stripePaid != "Yes" && order.stripeUrl.isEmpty)
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _generatePayment(order),
+                        icon: Icon(FeatherIcons.creditCard, size: 16),
+                        label: Text("Payment"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: CustomTheme.accent,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                    )
+                  // PRIORITY 3: Show Track button for paid orders that are processing
+                  else if (order.stripePaid == "Yes" &&
+                      (order.orderState == 0 || order.orderState == 1))
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: () => _trackOrder(order),
@@ -456,31 +498,46 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
 
   Color _getStatusColor(int status) {
     switch (status) {
-      case 0: return Colors.orange;
-      case 1: return Colors.blue;
-      case 2: return Colors.green;
-      case 3: return Colors.red;
-      default: return CustomTheme.color2;
+      case 0:
+        return Colors.orange;
+      case 1:
+        return Colors.blue;
+      case 2:
+        return Colors.green;
+      case 3:
+        return Colors.red;
+      default:
+        return CustomTheme.color2;
     }
   }
 
   IconData _getStatusIcon(int status) {
     switch (status) {
-      case 0: return FeatherIcons.clock;
-      case 1: return FeatherIcons.truck;
-      case 2: return FeatherIcons.checkCircle;
-      case 3: return FeatherIcons.xCircle;
-      default: return FeatherIcons.circle;
+      case 0:
+        return FeatherIcons.clock;
+      case 1:
+        return FeatherIcons.truck;
+      case 2:
+        return FeatherIcons.checkCircle;
+      case 3:
+        return FeatherIcons.xCircle;
+      default:
+        return FeatherIcons.circle;
     }
   }
 
   String _getStatusText(int status) {
     switch (status) {
-      case 0: return "PENDING";
-      case 1: return "PROCESSING";
-      case 2: return "COMPLETED";
-      case 3: return "CANCELLED";
-      default: return "UNKNOWN";
+      case 0:
+        return "PENDING";
+      case 1:
+        return "PROCESSING";
+      case 2:
+        return "COMPLETED";
+      case 3:
+        return "CANCELLED";
+      default:
+        return "UNKNOWN";
     }
   }
 
@@ -505,5 +562,15 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
       duration: const Duration(seconds: 3),
       icon: Icon(_getStatusIcon(order.orderState), color: Colors.white),
     );
+  }
+
+  void _openPayment(Order order) {
+    // Navigate to order details where payment can be processed
+    Get.to(() => OrderDetailsScreen(order: order));
+  }
+
+  void _generatePayment(Order order) {
+    // Navigate to in-app payment screen
+    Get.to(() => InAppPaymentScreen(order: order));
   }
 }

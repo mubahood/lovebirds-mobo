@@ -11,10 +11,7 @@ import '../../../models/Order.dart';
 class InAppPaymentScreen extends StatefulWidget {
   final Order order;
 
-  const InAppPaymentScreen({
-    Key? key,
-    required this.order,
-  }) : super(key: key);
+  const InAppPaymentScreen({Key? key, required this.order}) : super(key: key);
 
   @override
   State<InAppPaymentScreen> createState() => _InAppPaymentScreenState();
@@ -55,7 +52,11 @@ class _InAppPaymentScreenState extends State<InAppPaymentScreen> {
           throw Exception('No payment URL received');
         }
       } else {
-        throw Exception(resp.message.isEmpty ? 'Failed to generate payment link' : resp.message);
+        throw Exception(
+          resp.message.isEmpty
+              ? 'Failed to generate payment link'
+              : resp.message,
+        );
       }
     } catch (e) {
       setState(() {
@@ -92,15 +93,15 @@ class _InAppPaymentScreenState extends State<InAppPaymentScreen> {
     if (isGeneratingPayment) {
       return _buildLoadingScreen();
     }
-    
+
     if (errorMessage != null) {
       return _buildErrorScreen();
     }
-    
+
     if (paymentUrl == null) {
       return _buildNoUrlScreen();
     }
-    
+
     return _buildPaymentScreen();
   }
 
@@ -118,18 +119,12 @@ class _InAppPaymentScreenState extends State<InAppPaymentScreen> {
             const SizedBox(height: 24),
             const Text(
               'Generating Payment Link...',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 12),
             Text(
               'Setting up secure payment for Order #${widget.order.id}',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
           ],
@@ -145,26 +140,16 @@ class _InAppPaymentScreenState extends State<InAppPaymentScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              FeatherIcons.alertCircle,
-              size: 64,
-              color: Colors.red[400],
-            ),
+            Icon(FeatherIcons.alertCircle, size: 64, color: Colors.red[400]),
             const SizedBox(height: 24),
             const Text(
               'Payment Setup Failed',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             Text(
               errorMessage ?? 'Unknown error occurred',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
@@ -194,26 +179,16 @@ class _InAppPaymentScreenState extends State<InAppPaymentScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              FeatherIcons.creditCard,
-              size: 64,
-              color: Colors.grey[400],
-            ),
+            Icon(FeatherIcons.creditCard, size: 64, color: Colors.grey[400]),
             const SizedBox(height: 24),
             const Text(
               'No Payment URL Available',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             Text(
               'Unable to generate payment link for this order.',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
           ],
@@ -259,7 +234,7 @@ class _InAppPaymentScreenState extends State<InAppPaymentScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Title
                 Text(
                   "Complete Your Payment",
@@ -271,7 +246,7 @@ class _InAppPaymentScreenState extends State<InAppPaymentScreen> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Order info
                 Container(
                   padding: const EdgeInsets.all(16),
@@ -325,7 +300,7 @@ class _InAppPaymentScreenState extends State<InAppPaymentScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Payment instructions
                 const Text(
                   "You will be redirected to our secure payment page. Complete your payment safely with Stripe.",
@@ -337,7 +312,7 @@ class _InAppPaymentScreenState extends State<InAppPaymentScreen> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 32),
-                
+
                 // Payment buttons
                 Column(
                   children: [
@@ -369,7 +344,7 @@ class _InAppPaymentScreenState extends State<InAppPaymentScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Secondary button - external browser
                     SizedBox(
                       width: double.infinity,
@@ -399,7 +374,7 @@ class _InAppPaymentScreenState extends State<InAppPaymentScreen> {
                   ],
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Security notice
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -440,7 +415,7 @@ class _InAppPaymentScreenState extends State<InAppPaymentScreen> {
             enableDomStorage: true,
           ),
         );
-        
+
         if (launched) {
           Utils.toast('Payment page opened');
           // Check payment status after some time
@@ -463,7 +438,7 @@ class _InAppPaymentScreenState extends State<InAppPaymentScreen> {
           uri,
           mode: LaunchMode.externalApplication,
         );
-        
+
         if (launched) {
           Utils.toast('Payment page opened in external browser');
           _schedulePaymentStatusCheck();
@@ -509,16 +484,12 @@ class _InAppPaymentScreenState extends State<InAppPaymentScreen> {
     Get.defaultDialog(
       title: 'Payment Successful!',
       titleStyle: TextStyle(
-        color: Colors.green[700], 
+        color: Colors.green[700],
         fontWeight: FontWeight.bold,
       ),
       content: Column(
         children: [
-          Icon(
-            FeatherIcons.checkCircle,
-            size: 64,
-            color: Colors.green[600],
-          ),
+          Icon(FeatherIcons.checkCircle, size: 64, color: Colors.green[600]),
           const SizedBox(height: 16),
           const Text(
             'Your payment has been processed successfully.',
@@ -528,10 +499,7 @@ class _InAppPaymentScreenState extends State<InAppPaymentScreen> {
           const SizedBox(height: 8),
           Text(
             'Order #${widget.order.id}',
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
           ),
         ],
       ),

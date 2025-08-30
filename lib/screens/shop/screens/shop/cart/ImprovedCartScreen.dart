@@ -4,11 +4,13 @@ import 'package:flutx/flutx.dart';
 import 'package:get/get.dart';
 
 import '../../../../../controllers/CartController.dart';
+import '../../../../../models/DeliveryAddress.dart';
 import '../../../../../utils/CustomTheme.dart';
 import '../../../../../utils/Utilities.dart';
 import '../../../models/CartItem.dart';
+import '../../../models/OrderOnline.dart';
 import 'CheckoutScreen.dart';
-import 'DeliveryAddressScreen.dart';
+import 'DeliveryAddressPickerScreen.dart';
 
 class ImprovedCartScreen extends StatefulWidget {
   const ImprovedCartScreen({Key? key}) : super(key: key);
@@ -32,11 +34,14 @@ class _ImprovedCartScreenState extends State<ImprovedCartScreen> {
       backgroundColor: CustomTheme.background,
       appBar: _buildAppBar(),
       body: SafeArea(
-        child: Obx(() => cartController.isLoading.value
-            ? _buildLoadingState()
-            : cartController.isEmpty
-                ? _buildEmptyCart()
-                : _buildCartContent()),
+        child: Obx(
+          () =>
+              cartController.isLoading.value
+                  ? _buildLoadingState()
+                  : cartController.isEmpty
+                  ? _buildEmptyCart()
+                  : _buildCartContent(),
+        ),
       ),
     );
   }
@@ -78,26 +83,31 @@ class _ImprovedCartScreenState extends State<ImprovedCartScreen> {
                 fontWeight: 700,
                 color: CustomTheme.colorLight,
               ),
-              Obx(() => FxText.bodySmall(
-                "${cartController.itemCount} ${cartController.itemCount == 1 ? 'item' : 'items'}",
-                color: CustomTheme.color2,
-                fontWeight: 500,
-              )),
+              Obx(
+                () => FxText.bodySmall(
+                  "${cartController.itemCount} ${cartController.itemCount == 1 ? 'item' : 'items'}",
+                  color: CustomTheme.color2,
+                  fontWeight: 500,
+                ),
+              ),
             ],
           ),
         ],
       ),
       actions: [
-        Obx(() => cartController.isNotEmpty
-            ? IconButton(
-                onPressed: () => _showClearCartDialog(),
-                icon: Icon(
-                  FeatherIcons.trash2,
-                  color: CustomTheme.color2,
-                  size: 20,
-                ),
-              )
-            : const SizedBox()),
+        Obx(
+          () =>
+              cartController.isNotEmpty
+                  ? IconButton(
+                    onPressed: () => _showClearCartDialog(),
+                    icon: Icon(
+                      FeatherIcons.trash2,
+                      color: CustomTheme.color2,
+                      size: 20,
+                    ),
+                  )
+                  : const SizedBox(),
+        ),
       ],
     );
   }
@@ -111,10 +121,7 @@ class _ImprovedCartScreenState extends State<ImprovedCartScreen> {
             valueColor: AlwaysStoppedAnimation<Color>(CustomTheme.primary),
           ),
           const SizedBox(height: 16),
-          FxText.bodyMedium(
-            "Loading cart...",
-            color: CustomTheme.color2,
-          ),
+          FxText.bodyMedium("Loading cart...", color: CustomTheme.color2),
         ],
       ),
     );
@@ -161,7 +168,10 @@ class _ImprovedCartScreenState extends State<ImprovedCartScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
               ),
               icon: Icon(FeatherIcons.arrowLeft, size: 18),
               label: FxText.bodyMedium(
@@ -195,7 +205,7 @@ class _ImprovedCartScreenState extends State<ImprovedCartScreen> {
             ),
           ),
         ),
-        
+
         // Order Summary
         _buildOrderSummary(),
       ],
@@ -236,26 +246,30 @@ class _ImprovedCartScreenState extends State<ImprovedCartScreen> {
               child: Image.network(
                 Utils.img(item.product_feature_photo),
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  color: CustomTheme.color4.withOpacity(0.1),
-                  child: Icon(
-                    FeatherIcons.image,
-                    color: CustomTheme.color4,
-                    size: 32,
-                  ),
-                ),
+                errorBuilder:
+                    (context, error, stackTrace) => Container(
+                      color: CustomTheme.color4.withOpacity(0.1),
+                      child: Icon(
+                        FeatherIcons.image,
+                        color: CustomTheme.color4,
+                        size: 32,
+                      ),
+                    ),
                 loadingBuilder: (context, child, loadingProgress) {
                   if (loadingProgress == null) return child;
                   return Container(
                     color: CustomTheme.color4.withOpacity(0.1),
                     child: Center(
                       child: CircularProgressIndicator(
-                        value: loadingProgress.expectedTotalBytes != null
-                            ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes!
-                            : null,
+                        value:
+                            loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                                : null,
                         strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(CustomTheme.primary),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          CustomTheme.primary,
+                        ),
                       ),
                     ),
                   );
@@ -263,9 +277,9 @@ class _ImprovedCartScreenState extends State<ImprovedCartScreen> {
               ),
             ),
           ),
-          
+
           const SizedBox(width: 16),
-          
+
           // Product Details
           Expanded(
             child: Column(
@@ -297,7 +311,7 @@ class _ImprovedCartScreenState extends State<ImprovedCartScreen> {
                   ),
                   const SizedBox(height: 8),
                 ],
-                
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -307,7 +321,7 @@ class _ImprovedCartScreenState extends State<ImprovedCartScreen> {
                       fontWeight: 700,
                       color: CustomTheme.primary,
                     ),
-                    
+
                     // Quantity Controls
                     Row(
                       children: [
@@ -316,13 +330,19 @@ class _ImprovedCartScreenState extends State<ImprovedCartScreen> {
                           onPressed: () {
                             int qty = Utils.int_parse(item.product_quantity);
                             if (qty > 1) {
-                              cartController.updateQuantity(item.product_id, qty - 1);
+                              cartController.updateQuantity(
+                                item.product_id,
+                                qty - 1,
+                              );
                             }
                           },
                         ),
                         Container(
                           margin: const EdgeInsets.symmetric(horizontal: 12),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             border: Border.all(
                               color: CustomTheme.color4.withOpacity(0.3),
@@ -339,7 +359,10 @@ class _ImprovedCartScreenState extends State<ImprovedCartScreen> {
                           icon: FeatherIcons.plus,
                           onPressed: () {
                             int qty = Utils.int_parse(item.product_quantity);
-                            cartController.updateQuantity(item.product_id, qty + 1);
+                            cartController.updateQuantity(
+                              item.product_id,
+                              qty + 1,
+                            );
                           },
                         ),
                       ],
@@ -349,7 +372,7 @@ class _ImprovedCartScreenState extends State<ImprovedCartScreen> {
               ],
             ),
           ),
-          
+
           // Remove Button
           const SizedBox(width: 8),
           IconButton(
@@ -359,10 +382,7 @@ class _ImprovedCartScreenState extends State<ImprovedCartScreen> {
               color: Colors.red.withOpacity(0.7),
               size: 18,
             ),
-            constraints: const BoxConstraints(
-              minWidth: 32,
-              minHeight: 32,
-            ),
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             padding: EdgeInsets.zero,
           ),
         ],
@@ -370,7 +390,10 @@ class _ImprovedCartScreenState extends State<ImprovedCartScreen> {
     );
   }
 
-  Widget _buildQuantityButton({required IconData icon, required VoidCallback onPressed}) {
+  Widget _buildQuantityButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
     return InkWell(
       onTap: onPressed,
       borderRadius: BorderRadius.circular(6),
@@ -384,11 +407,7 @@ class _ImprovedCartScreenState extends State<ImprovedCartScreen> {
             width: 1,
           ),
         ),
-        child: Icon(
-          icon,
-          size: 16,
-          color: CustomTheme.primary,
-        ),
+        child: Icon(icon, size: 16, color: CustomTheme.primary),
       ),
     );
   }
@@ -451,37 +470,41 @@ class _ImprovedCartScreenState extends State<ImprovedCartScreen> {
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 16),
-                  
+
                   // Summary rows
                   _buildSummaryRow(
                     'Subtotal',
                     'UGX ${Utils.moneyFormat(cartController.subtotal.value.toString())}',
                   ),
                   const SizedBox(height: 8),
-                  
+
                   // Delivery Method Section
                   _buildDeliveryMethodSection(),
-                  
+
                   const SizedBox(height: 8),
                   _buildSummaryRow(
-                    cartController.deliveryMethod.value == 'pickup' ? 'Pickup Fee' : 'Delivery Fee',
-                    cartController.deliveryMethod.value == 'pickup' ? 'FREE' : 'UGX ${Utils.moneyFormat(cartController.actualDeliveryFee.toString())}',
+                    cartController.deliveryMethod.value == 'pickup'
+                        ? 'Pickup Fee'
+                        : 'Delivery Fee',
+                    cartController.deliveryMethod.value == 'pickup'
+                        ? 'FREE'
+                        : 'UGX ${Utils.moneyFormat(cartController.actualDeliveryFee.toString())}',
                   ),
                   const SizedBox(height: 8),
                   _buildSummaryRow(
                     'Tax (13%)',
                     'UGX ${Utils.moneyFormat(cartController.tax.toString())}',
                   ),
-                  
+
                   const SizedBox(height: 16),
                   Container(
                     height: 0.5,
                     color: CustomTheme.color4.withOpacity(0.3),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   _buildSummaryRow(
                     'Total',
                     'UGX ${Utils.moneyFormat(cartController.total.toString())}',
@@ -491,7 +514,7 @@ class _ImprovedCartScreenState extends State<ImprovedCartScreen> {
               );
             }),
           ),
-          
+
           // Checkout Button
           Container(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -552,102 +575,125 @@ class _ImprovedCartScreenState extends State<ImprovedCartScreen> {
             color: CustomTheme.colorLight,
           ),
           const SizedBox(height: 8),
-          
-          Obx(() => Row(
-            children: [
-              Expanded(
-                child: _buildDeliveryOption(
-                  'pickup',
-                  'Pickup',
-                  FeatherIcons.mapPin,
-                  cartController.deliveryMethod.value == 'pickup',
+
+          Obx(
+            () => Row(
+              children: [
+                Expanded(
+                  child: _buildDeliveryOption(
+                    'pickup',
+                    'Pickup',
+                    FeatherIcons.mapPin,
+                    cartController.deliveryMethod.value == 'pickup',
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildDeliveryOption(
-                  'delivery',
-                  'Delivery',
-                  FeatherIcons.truck,
-                  cartController.deliveryMethod.value == 'delivery',
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildDeliveryOption(
+                    'delivery',
+                    'Delivery',
+                    FeatherIcons.truck,
+                    cartController.deliveryMethod.value == 'delivery',
+                  ),
                 ),
-              ),
-            ],
-          )),
-          
+              ],
+            ),
+          ),
+
           // Address Selection (shown only when delivery is selected)
-          Obx(() => cartController.deliveryMethod.value == 'delivery'
-              ? Column(
-                  children: [
-                    const SizedBox(height: 12),
-                    GestureDetector(
-                      onTap: _selectDeliveryAddress,
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: cartController.selectedAddress.value.isNotEmpty
-                              ? CustomTheme.accent.withOpacity(0.1)
-                              : CustomTheme.color4.withOpacity(0.05),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: cartController.selectedAddress.value.isNotEmpty
-                                ? CustomTheme.accent.withOpacity(0.3)
-                                : CustomTheme.color4.withOpacity(0.2),
-                            width: 1,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              FeatherIcons.home,
-                              size: 16,
-                              color: cartController.selectedAddress.value.isNotEmpty
-                                  ? CustomTheme.accent
-                                  : CustomTheme.color2,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: FxText.bodySmall(
-                                cartController.selectedAddress.value.isEmpty
-                                    ? "Select delivery address"
-                                    : cartController.selectedAddress.value,
-                                color: cartController.selectedAddress.value.isNotEmpty
-                                    ? CustomTheme.colorLight
-                                    : CustomTheme.color2,
-                                fontWeight: cartController.selectedAddress.value.isNotEmpty ? 500 : 400,
+          Obx(
+            () =>
+                cartController.deliveryMethod.value == 'delivery'
+                    ? Column(
+                      children: [
+                        const SizedBox(height: 12),
+                        GestureDetector(
+                          onTap: _selectDeliveryAddress,
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color:
+                                  cartController.selectedAddress.isNotEmpty
+                                      ? CustomTheme.accent.withOpacity(0.1)
+                                      : CustomTheme.color4.withOpacity(0.05),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color:
+                                    cartController.selectedAddress.isNotEmpty
+                                        ? CustomTheme.accent.withOpacity(0.3)
+                                        : CustomTheme.color4.withOpacity(0.2),
+                                width: 1,
                               ),
                             ),
-                            Icon(
-                              FeatherIcons.chevronRight,
-                              size: 16,
-                              color: CustomTheme.color2,
+                            child: Row(
+                              children: [
+                                Icon(
+                                  FeatherIcons.home,
+                                  size: 16,
+                                  color:
+                                      cartController.selectedAddress.isNotEmpty
+                                          ? CustomTheme.accent
+                                          : CustomTheme.color2,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: FxText.bodySmall(
+                                    cartController.selectedAddress.isEmpty
+                                        ? "Select delivery address"
+                                        : cartController.selectedAddress,
+                                    color:
+                                        cartController
+                                                .selectedAddress
+                                                .isNotEmpty
+                                            ? CustomTheme.colorLight
+                                            : CustomTheme.color2,
+                                    fontWeight:
+                                        cartController
+                                                .selectedAddress
+                                                .isNotEmpty
+                                            ? 500
+                                            : 400,
+                                  ),
+                                ),
+                                Icon(
+                                  FeatherIcons.chevronRight,
+                                  size: 16,
+                                  color: CustomTheme.color2,
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
-                      ),
-                    ),
-                  ],
-                )
-              : const SizedBox()),
+                      ],
+                    )
+                    : const SizedBox(),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildDeliveryOption(String value, String label, IconData icon, bool isSelected) {
+  Widget _buildDeliveryOption(
+    String value,
+    String label,
+    IconData icon,
+    bool isSelected,
+  ) {
     return GestureDetector(
       onTap: () => cartController.setDeliveryMethod(value),
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: isSelected
-              ? CustomTheme.primary.withOpacity(0.1)
-              : Colors.transparent,
+          color:
+              isSelected
+                  ? CustomTheme.primary.withOpacity(0.1)
+                  : Colors.transparent,
           borderRadius: BorderRadius.circular(6),
           border: Border.all(
-            color: isSelected
-                ? CustomTheme.primary
-                : CustomTheme.color4.withOpacity(0.3),
+            color:
+                isSelected
+                    ? CustomTheme.primary
+                    : CustomTheme.color4.withOpacity(0.3),
             width: 1.5,
           ),
         ),
@@ -691,16 +737,17 @@ class _ImprovedCartScreenState extends State<ImprovedCartScreen> {
 
   void _selectDeliveryAddress() async {
     try {
-      OrderOnline tempOrder = await cartController.createOrder();
-      final result = await Get.to(() => DeliveryAddressScreen(tempOrder));
-      if (result != null && result is Map<String, dynamic>) {
-        cartController.setDeliveryAddress(
-          result['address'] ?? '',
-          result['id'] ?? '',
-        );
+      final DeliveryAddress? selectedAddress = await Get.to(
+        () => const DeliveryAddressPickerScreen(),
+      );
+      if (selectedAddress != null) {
+        cartController.setDeliveryAddress(selectedAddress);
       }
     } catch (e) {
-      cartController.showMessage('Error opening address selection: ${e.toString()}', isError: true);
+      cartController.showMessage(
+        'Error opening address selection: ${e.toString()}',
+        isError: true,
+      );
     }
   }
 
@@ -713,7 +760,10 @@ class _ImprovedCartScreenState extends State<ImprovedCartScreen> {
       OrderOnline order = await cartController.createOrder();
       Get.to(() => CheckoutScreen(order));
     } catch (e) {
-      cartController.showMessage('Error creating order: ${e.toString()}', isError: true);
+      cartController.showMessage(
+        'Error creating order: ${e.toString()}',
+        isError: true,
+      );
     }
   }
 
@@ -721,9 +771,7 @@ class _ImprovedCartScreenState extends State<ImprovedCartScreen> {
     Get.dialog(
       AlertDialog(
         backgroundColor: CustomTheme.background,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         contentPadding: EdgeInsets.zero,
         content: Container(
           padding: const EdgeInsets.all(24),
@@ -740,11 +788,7 @@ class _ImprovedCartScreenState extends State<ImprovedCartScreen> {
                   color: Colors.red.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(50),
                 ),
-                child: Icon(
-                  FeatherIcons.trash2,
-                  color: Colors.red,
-                  size: 32,
-                ),
+                child: Icon(FeatherIcons.trash2, color: Colors.red, size: 32),
               ),
               const SizedBox(height: 20),
               FxText.titleMedium(

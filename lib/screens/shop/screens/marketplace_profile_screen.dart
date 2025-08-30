@@ -9,8 +9,8 @@ import '../../../utils/AppConfig.dart';
 import '../../../utils/CustomTheme.dart';
 import '../../../utils/Utilities.dart';
 import '../../auth/login_screen.dart';
-import 'order_history_screen.dart';
 import 'marketplace_settings_screen.dart';
+import 'shop/orders/MyOrdersScreen.dart';
 
 class MarketplaceProfileScreen extends StatefulWidget {
   const MarketplaceProfileScreen({Key? key}) : super(key: key);
@@ -180,7 +180,7 @@ class _MarketplaceProfileScreenState extends State<MarketplaceProfileScreen> {
           icon: FeatherIcons.shoppingBag,
           title: 'Order History',
           subtitle: 'View your past orders and track current ones',
-          onTap: () => Get.to(() => const OrderHistoryScreen()),
+          onTap: () => Get.to(() => const MyOrdersScreen()),
         ),
         _buildMenuItem(
           icon: FeatherIcons.heart,

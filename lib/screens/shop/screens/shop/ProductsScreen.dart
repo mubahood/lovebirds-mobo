@@ -6,6 +6,7 @@ import 'package:flutx/flutx.dart';
 import 'package:get/get.dart';
 
 import '../../../../controllers/MainController.dart';
+import '../../../../controllers/SimpleCartManager.dart';
 import '../../../../utils/AppConfig.dart';
 import '../../../../utils/CustomTheme.dart';
 import '../../../../utils/Utilities.dart';
@@ -14,6 +15,8 @@ import '../../models/ProductCategory.dart';
 import 'MyProductsScreen.dart';
 import 'ProductScreen.dart';
 import 'ProductSearchScreen.dart';
+import 'cart/SimpleCartScreen.dart';
+import 'orders/MyOrdersScreen.dart';
 
 class ProductsScreen extends StatefulWidget {
   final Map<String, dynamic> params;
@@ -29,6 +32,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   List<Product> products = [];
   ProductCategory category = ProductCategory();
   final MainController mainController = Get.find<MainController>();
+  final SimpleCartManager cartManager = Get.put(SimpleCartManager());
   String _sortBy = 'newest'; // newest, price_low, price_high
   List<Product> _filteredProducts = [];
   bool _isGridView = true;
@@ -38,6 +42,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     super.initState();
     final p = widget.params["category"];
     if (p is ProductCategory) category = p;
+    cartManager.loadCartItems(); // Load cart items
     _refresh();
   }
 
@@ -95,83 +100,301 @@ class _ProductsScreenState extends State<ProductsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: CustomTheme.background,
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: CustomTheme.accent,
-        icon: const Icon(FeatherIcons.tag, color: Colors.black),
-        label: FxText.bodySmall(
-          'My Shop',
-          color: Colors.black,
-          fontWeight: 700,
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          gradient: LinearGradient(
+            colors: [CustomTheme.primary, CustomTheme.primaryDark],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: CustomTheme.primary.withOpacity(0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
-        onPressed: () async {
-          await Get.to(() => MyProductsScreen(mainController));
-          _refresh();
-          _refresh();
-        },
+        child: InkWell(
+          onTap: () async {
+            // Show different options based on user ID
+            if (mainController.loggedInUser.id == 1) {
+              await Get.to(() => MyProductsScreen(mainController));
+              _refresh();
+            } else {
+              // Navigate to My Orders screen for other users
+              await Get.to(() => MyOrdersScreen());
+              // No need to refresh as orders are handled separately
+            }
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  mainController.loggedInUser.id == 1
+                      ? FeatherIcons.plus
+                      : FeatherIcons.shoppingBag,
+                  color: Colors.white,
+                  size: 16,
+                ),
+                const SizedBox(width: 6),
+                FxText.bodySmall(
+                  mainController.loggedInUser.id == 1 ? 'My Shop' : 'My Orders',
+                  color: Colors.white,
+                  fontWeight: 600,
+                  fontSize: 12,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.miniEndDocked,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: CustomTheme.background,
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: Align(
-          alignment: Alignment.centerLeft,
-          child: FxText.titleLarge(
-            category.id > 0
-                ? category.category
-                : "${AppConfig.MARKETPLACE_NAME}",
-            color: CustomTheme.accent,
-            maxLines: 1,
+        surfaceTintColor: Colors.transparent,
+        centerTitle: false,
+        iconTheme: const IconThemeData(color: Colors.white, size: 22),
+        title: Container(
+          padding: const EdgeInsets.only(left: 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              FxText.titleMedium(
+                category.id > 0
+                    ? category.category
+                    : "${AppConfig.MARKETPLACE_NAME}",
+                color: Colors.white,
+                fontWeight: 600,
+                maxLines: 1,
+              ),
+              if (_filteredProducts.isNotEmpty)
+                FxText.bodySmall(
+                  '${_filteredProducts.length} products',
+                  color: CustomTheme.color3,
+                  fontSize: 11,
+                ),
+            ],
           ),
         ),
         actions: [
-          IconButton(
-            icon: Icon(
-              _isGridView ? FeatherIcons.list : FeatherIcons.grid,
-              color: CustomTheme.accent,
-              size: 24,
+          // View Toggle
+          Container(
+            margin: const EdgeInsets.only(right: 4),
+            decoration: BoxDecoration(
+              color: CustomTheme.card,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: CustomTheme.color4.withOpacity(0.3),
+                width: 0.5,
+              ),
             ),
-            onPressed: () => setState(() => _isGridView = !_isGridView),
+            child: IconButton(
+              icon: Icon(
+                _isGridView ? FeatherIcons.list : FeatherIcons.grid,
+                color: CustomTheme.accent,
+                size: 20,
+              ),
+              onPressed: () => setState(() => _isGridView = !_isGridView),
+              padding: const EdgeInsets.all(8),
+              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            ),
           ),
-          PopupMenuButton<String>(
-            icon: const Icon(
-              FeatherIcons.moreVertical,
-              color: CustomTheme.accent,
-              size: 24,
+
+          // Sort Menu
+          Container(
+            margin: const EdgeInsets.only(right: 4),
+            decoration: BoxDecoration(
+              color: CustomTheme.card,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: CustomTheme.color4.withOpacity(0.3),
+                width: 0.5,
+              ),
             ),
-            onSelected: (value) {
-              setState(() => _sortBy = value);
-              _applySortAndFilter();
-            },
-            itemBuilder:
-                (context) => [
-                  const PopupMenuItem(value: 'newest', child: Text('Newest')),
-                  const PopupMenuItem(
-                    value: 'price_low',
-                    child: Text('Price: Low to High'),
+            child: PopupMenuButton<String>(
+              icon: Icon(
+                FeatherIcons.filter,
+                color: CustomTheme.accent,
+                size: 20,
+              ),
+              color: CustomTheme.card,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              onSelected: (value) {
+                setState(() => _sortBy = value);
+                _applySortAndFilter();
+              },
+              itemBuilder:
+                  (context) => [
+                    PopupMenuItem(
+                      value: 'newest',
+                      child: Row(
+                        children: [
+                          Icon(
+                            FeatherIcons.clock,
+                            size: 16,
+                            color: CustomTheme.color2,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Newest',
+                            style: TextStyle(color: CustomTheme.colorLight),
+                          ),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'price_low',
+                      child: Row(
+                        children: [
+                          Icon(
+                            FeatherIcons.trendingUp,
+                            size: 16,
+                            color: CustomTheme.color2,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Price: Low to High',
+                            style: TextStyle(color: CustomTheme.colorLight),
+                          ),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'price_high',
+                      child: Row(
+                        children: [
+                          Icon(
+                            FeatherIcons.trendingDown,
+                            size: 16,
+                            color: CustomTheme.color2,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Price: High to Low',
+                            style: TextStyle(color: CustomTheme.colorLight),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+              padding: const EdgeInsets.all(8),
+            ),
+          ),
+
+          // Filter Categories
+          Container(
+            margin: const EdgeInsets.only(right: 4),
+            decoration: BoxDecoration(
+              color: CustomTheme.card,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: CustomTheme.color4.withOpacity(0.3),
+                width: 0.5,
+              ),
+            ),
+            child: IconButton(
+              icon: Icon(
+                FeatherIcons.layers,
+                color: CustomTheme.accent,
+                size: 20,
+              ),
+              onPressed: _showFilterSheet,
+              padding: const EdgeInsets.all(8),
+              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            ),
+          ),
+
+          // Search
+          Container(
+            margin: const EdgeInsets.only(right: 4),
+            decoration: BoxDecoration(
+              color: CustomTheme.card,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: CustomTheme.color4.withOpacity(0.3),
+                width: 0.5,
+              ),
+            ),
+            child: IconButton(
+              icon: Icon(
+                FeatherIcons.search,
+                color: CustomTheme.accent,
+                size: 20,
+              ),
+              onPressed: () => Get.to(() => const ProductSearchScreen2()),
+              padding: const EdgeInsets.all(8),
+              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            ),
+          ),
+
+          // Cart
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              color: CustomTheme.card,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: CustomTheme.color4.withOpacity(0.3),
+                width: 0.5,
+              ),
+            ),
+            child: Stack(
+              children: [
+                IconButton(
+                  icon: Icon(
+                    FeatherIcons.shoppingCart,
+                    color: CustomTheme.accent,
+                    size: 20,
                   ),
-                  const PopupMenuItem(
-                    value: 'price_high',
-                    child: Text('Price: High to Low'),
+                  onPressed: () => Get.to(() => const SimpleCartScreen()),
+                  padding: const EdgeInsets.all(8),
+                  constraints: const BoxConstraints(
+                    minWidth: 36,
+                    minHeight: 36,
                   ),
-                ],
-          ),
-          IconButton(
-            icon: const Icon(
-              FeatherIcons.alignRight,
-              color: CustomTheme.accent,
-              size: 24,
+                ),
+                // Cart Badge
+                Obx(() {
+                  if (cartManager.cartItems.isEmpty) return const SizedBox();
+                  return Positioned(
+                    right: 4,
+                    top: 4,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: CustomTheme.primary,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: CustomTheme.background,
+                          width: 1,
+                        ),
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 18,
+                        minHeight: 18,
+                      ),
+                      child: FxText.bodySmall(
+                        '${cartManager.cartItems.length}',
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: 700,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  );
+                }),
+              ],
             ),
-            onPressed: _showFilterSheet,
           ),
-          IconButton(
-            icon: const Icon(
-              FeatherIcons.search,
-              color: CustomTheme.accent,
-              size: 24,
-            ),
-            onPressed: () => Get.to(() => const ProductSearchScreen2()),
-          ),
-          const SizedBox(width: 8),
         ],
       ),
       body: FutureBuilder(
@@ -189,42 +412,89 @@ class _ProductsScreenState extends State<ProductsScreen> {
   Widget _buildGrid() {
     return RefreshIndicator(
       color: CustomTheme.primary,
+      backgroundColor: CustomTheme.card,
       onRefresh: _refresh,
       child:
           _filteredProducts.isEmpty
               ? Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      FeatherIcons.shoppingBag,
-                      size: 64,
-                      color: Colors.grey[400],
-                    ),
-                    const SizedBox(height: 16),
-                    FxText.bodyLarge(
-                      'No products in this category.',
-                      color: CustomTheme.color,
-                      fontWeight: 700,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 12),
-                    FxButton.text(
-                      onPressed: _showFilterSheet,
-                      backgroundColor: CustomTheme.primary.withValues(
-                        alpha: 0.1,
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: CustomTheme.card,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: CustomTheme.color4.withOpacity(0.3),
+                            width: 0.5,
+                          ),
+                        ),
+                        child: Icon(
+                          FeatherIcons.shoppingBag,
+                          size: 48,
+                          color: CustomTheme.color3,
+                        ),
                       ),
-                      child: FxText.bodyMedium(
-                        'CHANGE FILTER',
-                        color: CustomTheme.primary,
-                        fontWeight: 700,
+                      const SizedBox(height: 20),
+                      FxText.titleMedium(
+                        'No Products Found',
+                        color: CustomTheme.colorLight,
+                        fontWeight: 600,
+                        textAlign: TextAlign.center,
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      FxText.bodyMedium(
+                        category.id > 0
+                            ? 'No products available in this category yet.'
+                            : 'No products available at the moment.',
+                        color: CustomTheme.color2,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                      ),
+                      const SizedBox(height: 20),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: CustomTheme.primary.withOpacity(0.3),
+                          ),
+                        ),
+                        child: InkWell(
+                          onTap: _showFilterSheet,
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  FeatherIcons.layers,
+                                  color: CustomTheme.primary,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 8),
+                                FxText.bodyMedium(
+                                  'Browse Categories',
+                                  color: CustomTheme.primary,
+                                  fontWeight: 600,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               )
               : Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.fromLTRB(6, 60, 6, 6),
                 child: _isGridView ? _buildStaggeredGrid() : _buildListView(),
               ),
     );
@@ -233,8 +503,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
   Widget _buildStaggeredGrid() {
     return MasonryGridView.count(
       crossAxisCount: 2,
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 12,
+      mainAxisSpacing: 6,
+      crossAxisSpacing: 6,
       itemCount: _filteredProducts.length,
       itemBuilder: (context, index) {
         return _buildEnhancedProductCard(_filteredProducts[index]);
@@ -245,7 +515,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   Widget _buildListView() {
     return ListView.separated(
       itemCount: _filteredProducts.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 12),
+      separatorBuilder: (context, index) => const SizedBox(height: 6),
       itemBuilder: (context, index) {
         return _buildListProductCard(_filteredProducts[index]);
       },
@@ -263,23 +533,24 @@ class _ProductsScreenState extends State<ProductsScreen> {
             ? originalPrice * (1 - discountPercentage / 100)
             : originalPrice;
     final imageHeight =
-        160.0 + (pro.id % 3) * 20; // Varied heights for staggered effect
+        180.0 + (pro.id % 3) * 20; // Taller heights for portrait aspect ratio
 
-    return GestureDetector(
+    return InkWell(
       onTap: () => Get.to(() => ProductScreen(pro)),
+      borderRadius: BorderRadius.circular(10),
       child: Container(
         decoration: BoxDecoration(
           color: CustomTheme.card,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: CustomTheme.color4.withValues(alpha: 0.3),
+            color: CustomTheme.color4.withOpacity(0.2),
             width: 0.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -289,7 +560,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
             // Image with discount badge
             ClipRRect(
               borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16),
+                top: Radius.circular(10),
               ),
               child: Stack(
                 children: [
@@ -302,7 +573,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                       placeholder:
                           (context, url) => Container(
                             color: CustomTheme.cardDark,
-                            child: const Center(
+                            child: Center(
                               child: CircularProgressIndicator(
                                 color: CustomTheme.primary,
                                 strokeWidth: 2,
@@ -315,21 +586,21 @@ class _ProductsScreenState extends State<ProductsScreen> {
                             child: Icon(
                               FeatherIcons.image,
                               color: CustomTheme.color3,
-                              size: 40,
+                              size: 32,
                             ),
                           ),
                     ),
                   ),
 
-                  // Discount badge (replaces wishlist)
+                  // Discount badge
                   if (hasDiscount)
                     Positioned(
-                      top: 12,
-                      right: 12,
+                      top: 6,
+                      right: 6,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
+                          horizontal: 6,
+                          vertical: 3,
                         ),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
@@ -337,21 +608,23 @@ class _ProductsScreenState extends State<ProductsScreen> {
                               CustomTheme.primary,
                               CustomTheme.primaryDark,
                             ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: CustomTheme.primary.withValues(alpha: 0.4),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
+                              color: CustomTheme.primary.withOpacity(0.3),
+                              blurRadius: 4,
+                              offset: const Offset(0, 1),
                             ),
                           ],
                         ),
                         child: FxText.bodySmall(
-                          '$discountPercentage% OFF',
+                          '${discountPercentage}% OFF',
                           color: Colors.white,
-                          fontWeight: 700,
-                          fontSize: 11,
+                          fontWeight: 600,
+                          fontSize: 9,
                         ),
                       ),
                     ),
@@ -361,42 +634,43 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
             // Product information
             Padding(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Product name
+                  // Product name - Single line only
                   FxText.bodyMedium(
                     pro.name,
-                    fontWeight: 700,
+                    fontWeight: 600,
                     color: CustomTheme.colorLight,
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    fontSize: 15,
+                    fontSize: 13,
+                    height: 1.2,
                   ),
 
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 6),
 
-                  // Price section with crossed out original price
+                  // Price section
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Current price
                       FxText.bodyLarge(
-                        '${AppConfig.CURRENCY} \$${Utils.moneyFormat(discountedPrice.toStringAsFixed(0))}',
+                        '${AppConfig.CURRENCY} ${Utils.moneyFormat(discountedPrice.toStringAsFixed(0))}',
                         color: CustomTheme.primary,
                         fontWeight: 700,
-                        fontSize: 18,
+                        fontSize: 15,
                       ),
 
                       if (hasDiscount) ...[
-                        const SizedBox(height: 3),
+                        const SizedBox(height: 1),
                         // Original price (crossed out)
                         FxText.bodySmall(
-                          '${AppConfig.CURRENCY} \$${originalPrice.toStringAsFixed(0)}',
+                          '${AppConfig.CURRENCY} ${originalPrice.toStringAsFixed(0)}',
                           color: CustomTheme.color3,
                           decoration: TextDecoration.lineThrough,
-                          fontSize: 13,
+                          fontSize: 10,
                         ),
                       ],
                     ],
@@ -424,41 +698,41 @@ class _ProductsScreenState extends State<ProductsScreen> {
     return Container(
       decoration: BoxDecoration(
         color: CustomTheme.card,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: CustomTheme.color4.withValues(alpha: 0.3),
+          color: CustomTheme.color4.withOpacity(0.2),
           width: 0.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
       child: InkWell(
         onTap: () => Get.to(() => ProductScreen(pro)),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(10),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(10),
           child: Row(
             children: [
               // Product image with discount badge
               Stack(
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(6),
                     child: SizedBox(
-                      width: 90,
-                      height: 90,
+                      width: 70,
+                      height: 70,
                       child: CachedNetworkImage(
                         imageUrl: Utils.img(pro.feature_photo),
                         fit: BoxFit.cover,
                         placeholder:
                             (_, __) => Container(
                               color: CustomTheme.cardDark,
-                              child: const Center(
+                              child: Center(
                                 child: CircularProgressIndicator(
                                   color: CustomTheme.primary,
                                   strokeWidth: 2,
@@ -471,7 +745,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                               child: Icon(
                                 FeatherIcons.image,
                                 color: CustomTheme.color3,
-                                size: 30,
+                                size: 24,
                               ),
                             ),
                       ),
@@ -485,15 +759,15 @@ class _ProductsScreenState extends State<ProductsScreen> {
                       right: -2,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
+                          horizontal: 4,
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
                           color: CustomTheme.primary,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(6),
                           boxShadow: [
                             BoxShadow(
-                              color: CustomTheme.primary.withValues(alpha: 0.3),
+                              color: CustomTheme.primary.withOpacity(0.3),
                               blurRadius: 4,
                               offset: const Offset(0, 1),
                             ),
@@ -502,32 +776,33 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         child: FxText.bodySmall(
                           '$discountPercentage%',
                           color: Colors.white,
-                          fontWeight: 700,
-                          fontSize: 9,
+                          fontWeight: 600,
+                          fontSize: 8,
                         ),
                       ),
                     ),
                 ],
               ),
 
-              const SizedBox(width: 16),
+              const SizedBox(width: 10),
 
               // Product info
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Product name
+                    // Product name - Single line only
                     FxText.bodyMedium(
                       pro.name,
-                      fontWeight: 700,
+                      fontWeight: 600,
                       color: CustomTheme.colorLight,
-                      maxLines: 2,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      fontSize: 15,
+                      fontSize: 13,
+                      height: 1.2,
                     ),
 
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
 
                     // Price section
                     Column(
@@ -535,26 +810,33 @@ class _ProductsScreenState extends State<ProductsScreen> {
                       children: [
                         // Current price
                         FxText.bodyLarge(
-                          '${AppConfig.CURRENCY} \$${discountedPrice.toStringAsFixed(0)}',
+                          '${AppConfig.CURRENCY} ${Utils.moneyFormat(discountedPrice.toStringAsFixed(0))}',
                           color: CustomTheme.primary,
                           fontWeight: 700,
-                          fontSize: 16,
+                          fontSize: 14,
                         ),
 
                         if (hasDiscount) ...[
-                          const SizedBox(height: 2),
+                          const SizedBox(height: 1),
                           // Original price (crossed out)
                           FxText.bodySmall(
-                            '${AppConfig.CURRENCY} \$${originalPrice.toStringAsFixed(0)}',
+                            '${AppConfig.CURRENCY} ${originalPrice.toStringAsFixed(0)}',
                             color: CustomTheme.color3,
                             decoration: TextDecoration.lineThrough,
-                            fontSize: 12,
+                            fontSize: 10,
                           ),
                         ],
                       ],
                     ),
                   ],
                 ),
+              ),
+
+              // Arrow indicator
+              Icon(
+                FeatherIcons.chevronRight,
+                color: CustomTheme.color3,
+                size: 16,
               ),
             ],
           ),
@@ -567,61 +849,165 @@ class _ProductsScreenState extends State<ProductsScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      barrierColor: CustomTheme.primary.withValues(alpha: .3),
-      backgroundColor: CustomTheme.card,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
+      backgroundColor: Colors.transparent,
       builder:
-          (_) => DraggableScrollableSheet(
-            expand: false,
-            initialChildSize: 0.5,
-            minChildSize: 0.3,
-            maxChildSize: 0.9,
-            builder: (context, scrollCtrl) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 12,
-                  horizontal: 0,
-                ),
-                child: Column(
+          (_) => Container(
+            decoration: BoxDecoration(
+              color: CustomTheme.background,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
+              border: Border.all(
+                color: CustomTheme.color4.withOpacity(0.3),
+                width: 0.5,
+              ),
+            ),
+            child: DraggableScrollableSheet(
+              expand: false,
+              initialChildSize: 0.5,
+              minChildSize: 0.3,
+              maxChildSize: 0.8,
+              builder: (context, scrollCtrl) {
+                return Column(
                   children: [
-                    FxText.titleMedium('Filter by Category', fontWeight: 700),
-                    const Divider(),
-                    Expanded(
-                      child: ListView(
-                        controller: scrollCtrl,
-                        children:
-                            mainController.categories.map((cat) {
-                              final selected = cat.id == category.id;
-                              return ListTile(
-                                title: FxText.bodyLarge(
-                                  cat.category,
-                                  color:
-                                      selected
-                                          ? CustomTheme.primary
-                                          : CustomTheme.color,
+                    // Handle bar
+                    Container(
+                      margin: const EdgeInsets.only(top: 8),
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: CustomTheme.color3,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+
+                    // Header
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Row(
+                        children: [
+                          Icon(
+                            FeatherIcons.layers,
+                            color: CustomTheme.accent,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 12),
+                          FxText.titleMedium(
+                            'Browse Categories',
+                            color: CustomTheme.colorLight,
+                            fontWeight: 600,
+                          ),
+                          const Spacer(),
+                          if (category.id > 0)
+                            InkWell(
+                              onTap: () {
+                                category = ProductCategory();
+                                Navigator.pop(context);
+                                _refresh();
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
                                 ),
-                                trailing:
-                                    selected
-                                        ? Icon(
-                                          Icons.check_circle,
-                                          color: CustomTheme.primary,
-                                        )
-                                        : null,
-                                onTap: () {
-                                  category = cat;
-                                  Navigator.pop(context);
-                                  _refresh();
-                                },
-                              );
-                            }).toList(),
+                                decoration: BoxDecoration(
+                                  color: CustomTheme.color4.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: FxText.bodySmall(
+                                  'Clear',
+                                  color: CustomTheme.color2,
+                                  fontWeight: 500,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+
+                    // Divider
+                    Container(
+                      height: 0.5,
+                      color: CustomTheme.color4.withOpacity(0.3),
+                    ),
+
+                    // Categories list
+                    Expanded(
+                      child: ListView.builder(
+                        controller: scrollCtrl,
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        itemCount: mainController.categories.length,
+                        itemBuilder: (context, index) {
+                          final cat = mainController.categories[index];
+                          final selected = cat.id == category.id;
+
+                          return InkWell(
+                            onTap: () {
+                              category = cat;
+                              Navigator.pop(context);
+                              _refresh();
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 2,
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              decoration:
+                                  selected
+                                      ? BoxDecoration(
+                                        color: CustomTheme.primary.withOpacity(
+                                          0.1,
+                                        ),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: CustomTheme.primary
+                                              .withOpacity(0.3),
+                                          width: 1,
+                                        ),
+                                      )
+                                      : null,
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    FeatherIcons.tag,
+                                    size: 16,
+                                    color:
+                                        selected
+                                            ? CustomTheme.primary
+                                            : CustomTheme.color2,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: FxText.bodyMedium(
+                                      cat.category,
+                                      color:
+                                          selected
+                                              ? CustomTheme.primary
+                                              : CustomTheme.colorLight,
+                                      fontWeight: selected ? 600 : 500,
+                                    ),
+                                  ),
+                                  if (selected)
+                                    Icon(
+                                      FeatherIcons.check,
+                                      color: CustomTheme.primary,
+                                      size: 16,
+                                    ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ],
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutx/flutx.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 
 import '../../../../../../models/RespondModel.dart';
@@ -9,10 +10,11 @@ import '../../../../../../utils/AppConfig.dart';
 import '../../../../../../utils/CustomTheme.dart';
 import '../../../../../../utils/Utilities.dart';
 import '../../../models/Order.dart';
+import 'InAppPaymentScreen.dart';
 
 class OrderDetailsScreen extends StatefulWidget {
   final Order order;
-  
+
   const OrderDetailsScreen({Key? key, required this.order}) : super(key: key);
 
   @override
@@ -50,7 +52,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
     try {
       RespondModel resp = RespondModel(
-        await Utils.http_get('order-details', {'order_id': order.id.toString()}),
+        await Utils.http_get('order-details', {
+          'order_id': order.id.toString(),
+        }),
       );
 
       if (resp.code == 1 && resp.data != null) {
@@ -135,52 +139,53 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         ],
       ),
       body: SafeArea(
-        child: isLoading 
-          ? Center(
-              child: CircularProgressIndicator(
-                color: CustomTheme.primary,
-                strokeWidth: 2,
-              ),
-            )
-          : SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Order Status Card
-                    _buildOrderStatusCard(),
-                    
-                    const SizedBox(height: 20),
-                    
-                    // Order Summary Card
-                    _buildOrderSummaryCard(),
-                    
-                    const SizedBox(height: 20),
-                    
-                    // Order Items
-                    _buildOrderItemsCard(),
-                    
-                    const SizedBox(height: 20),
-                    
-                    // Customer Details
-                    _buildCustomerDetailsCard(),
-                    
-                    const SizedBox(height: 20),
-                    
-                    // Delivery Information
-                    _buildDeliveryInfoCard(),
-                    
-                    if (order.stripeUrl.isNotEmpty) ...[
-                      const SizedBox(height: 20),
-                      _buildPaymentCard(),
-                    ],
-                    
-                    const SizedBox(height: 32),
-                  ],
+        child:
+            isLoading
+                ? Center(
+                  child: CircularProgressIndicator(
+                    color: CustomTheme.primary,
+                    strokeWidth: 2,
+                  ),
+                )
+                : SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Order Status Card
+                        _buildOrderStatusCard(),
+
+                        const SizedBox(height: 20),
+
+                        // Order Summary Card
+                        _buildOrderSummaryCard(),
+
+                        const SizedBox(height: 20),
+
+                        // Order Items
+                        _buildOrderItemsCard(),
+
+                        const SizedBox(height: 20),
+
+                        // Customer Details
+                        _buildCustomerDetailsCard(),
+
+                        const SizedBox(height: 20),
+
+                        // Delivery Information
+                        _buildDeliveryInfoCard(),
+
+                        if (order.stripeUrl.isNotEmpty) ...[
+                          const SizedBox(height: 20),
+                          _buildPaymentCard(),
+                        ],
+
+                        const SizedBox(height: 32),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ),
       ),
     );
   }
@@ -203,7 +208,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: _getStatusColor(order.orderState).withValues(alpha: 0.15),
+                color: _getStatusColor(
+                  order.orderState,
+                ).withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -212,26 +219,26 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 size: 32,
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             FxText.titleLarge(
               order.getStatusText(),
               color: _getStatusColor(order.orderState),
               fontWeight: 800,
             ),
-            
+
             const SizedBox(height: 8),
-            
+
             FxText.bodyMedium(
               _getStatusDescription(order.orderState),
               color: CustomTheme.color2,
               textAlign: TextAlign.center,
               height: 1.4,
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Order Date
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -301,7 +308,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               ],
             ),
           ),
-          
+
           // Summary Details
           Padding(
             padding: const EdgeInsets.all(16),
@@ -380,17 +387,18 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               ],
             ),
           ),
-          
+
           // Items List
           if (order.items.isNotEmpty)
             ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: order.items.length,
-              separatorBuilder: (context, index) => Divider(
-                height: 1,
-                color: CustomTheme.color4.withValues(alpha: 0.3),
-              ),
+              separatorBuilder:
+                  (context, index) => Divider(
+                    height: 1,
+                    color: CustomTheme.color4.withValues(alpha: 0.3),
+                  ),
               itemBuilder: (context, index) {
                 return _buildOrderItemRow(order.items[index]);
               },
@@ -442,18 +450,18 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               size: 24,
             ),
           ),
-          
+
           const SizedBox(width: 16),
-          
+
           // Product Details
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 FxText.bodyMedium(
-                  item.productName.isNotEmpty 
-                    ? item.productName 
-                    : "Product #${item.product}",
+                  item.productName.isNotEmpty
+                      ? item.productName
+                      : "Product #${item.product}",
                   color: CustomTheme.colorLight,
                   fontWeight: 600,
                   maxLines: 2,
@@ -488,7 +496,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               ],
             ),
           ),
-          
+
           // Price
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -536,11 +544,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             ),
             child: Row(
               children: [
-                Icon(
-                  FeatherIcons.user,
-                  color: CustomTheme.primary,
-                  size: 20,
-                ),
+                Icon(FeatherIcons.user, color: CustomTheme.primary, size: 20),
                 const SizedBox(width: 12),
                 FxText.titleMedium(
                   "Customer Details",
@@ -550,7 +554,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               ],
             ),
           ),
-          
+
           // Customer Info
           Padding(
             padding: const EdgeInsets.all(16),
@@ -564,11 +568,19 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 ],
                 if (order.customerPhoneNumber1.isNotEmpty) ...[
                   const SizedBox(height: 12),
-                  _buildInfoRow(FeatherIcons.phone, "Phone", order.customerPhoneNumber1),
+                  _buildInfoRow(
+                    FeatherIcons.phone,
+                    "Phone",
+                    order.customerPhoneNumber1,
+                  ),
                 ],
                 if (order.customerAddress.isNotEmpty) ...[
                   const SizedBox(height: 12),
-                  _buildInfoRow(FeatherIcons.mapPin, "Address", order.customerAddress),
+                  _buildInfoRow(
+                    FeatherIcons.mapPin,
+                    "Address",
+                    order.customerAddress,
+                  ),
                 ],
               ],
             ),
@@ -581,7 +593,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   Widget _buildDeliveryInfoCard() {
     String deliveryMethod = orderDetailsData['delivery_method'] ?? 'Unknown';
     String deliveryAddress = orderDetailsData['delivery_address_text'] ?? '';
-    
+
     return Container(
       decoration: BoxDecoration(
         color: CustomTheme.card,
@@ -607,9 +619,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             child: Row(
               children: [
                 Icon(
-                  deliveryMethod.toLowerCase() == 'pickup' 
-                    ? FeatherIcons.mapPin 
-                    : FeatherIcons.truck,
+                  deliveryMethod.toLowerCase() == 'pickup'
+                      ? FeatherIcons.mapPin
+                      : FeatherIcons.truck,
                   color: CustomTheme.primary,
                   size: 20,
                 ),
@@ -622,32 +634,32 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               ],
             ),
           ),
-          
+
           // Delivery Info
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
                 _buildInfoRow(
-                  FeatherIcons.truck, 
-                  "Delivery Method", 
-                  deliveryMethod.toUpperCase()
+                  FeatherIcons.truck,
+                  "Delivery Method",
+                  deliveryMethod.toUpperCase(),
                 ),
                 if (deliveryAddress.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   _buildInfoRow(
-                    FeatherIcons.mapPin, 
-                    "Delivery Address", 
-                    deliveryAddress
+                    FeatherIcons.mapPin,
+                    "Delivery Address",
+                    deliveryAddress,
                   ),
                 ],
                 const SizedBox(height: 12),
                 _buildInfoRow(
-                  FeatherIcons.dollarSign, 
-                  "Delivery Fee", 
-                  deliveryMethod.toLowerCase() == 'pickup' 
-                    ? 'FREE' 
-                    : "${AppConfig.CURRENCY} ${Utils.moneyFormat(_getDeliveryFee())}"
+                  FeatherIcons.dollarSign,
+                  "Delivery Fee",
+                  deliveryMethod.toLowerCase() == 'pickup'
+                      ? 'FREE'
+                      : "${AppConfig.CURRENCY} ${Utils.moneyFormat(_getDeliveryFee())}",
                 ),
               ],
             ),
@@ -696,38 +708,62 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               ],
             ),
           ),
-          
+
           // Payment Info
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
                 _buildInfoRow(
-                  FeatherIcons.creditCard, 
-                  "Payment Status", 
-                  order.stripePaid == "Yes" ? "PAID" : "PENDING"
+                  FeatherIcons.creditCard,
+                  "Payment Status",
+                  order.stripePaid == "Yes" ? "PAID" : "PENDING",
                 ),
                 if (order.stripeId.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   _buildInfoRow(
-                    FeatherIcons.hash, 
-                    "Payment ID", 
-                    order.stripeId
+                    FeatherIcons.hash,
+                    "Payment ID",
+                    order.stripeId,
                   ),
                 ],
-                if (order.stripeUrl.isNotEmpty) ...[
+                // PRIORITY 1: Show Pay Now button if payment URL exists and not paid
+                if (order.stripeUrl.isNotEmpty &&
+                    order.stripePaid != "Yes") ...[
                   const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: () {
-                        // Open payment URL
-                        Utils.toast("Payment URL: ${order.stripeUrl}");
+                      onPressed: () async {
+                        // Open payment URL in browser
+                        await _openPaymentUrl(order.stripeUrl);
                       },
                       icon: Icon(FeatherIcons.externalLink, size: 16),
-                      label: Text("View Payment"),
+                      label: Text("Pay Now"),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: CustomTheme.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ),
+                ]
+                // PRIORITY 2: Show Generate Payment Link button for unpaid orders without payment URL
+                else if (order.stripePaid != "Yes") ...[
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        Get.to(() => InAppPaymentScreen(order: order));
+                      },
+                      icon: Icon(FeatherIcons.creditCard, size: 16),
+                      label: Text("Payment"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: CustomTheme.accent,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
@@ -749,11 +785,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        FxText.bodyMedium(
-          label,
-          color: CustomTheme.color2,
-          fontWeight: 500,
-        ),
+        FxText.bodyMedium(label, color: CustomTheme.color2, fontWeight: 500),
         FxText.bodyMedium(
           "${AppConfig.CURRENCY} ${Utils.moneyFormat(amount)}",
           color: CustomTheme.colorLight,
@@ -767,11 +799,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(
-          icon,
-          color: CustomTheme.primary,
-          size: 16,
-        ),
+        Icon(icon, color: CustomTheme.primary, size: 16),
         const SizedBox(width: 12),
         Expanded(
           flex: 2,
@@ -797,31 +825,46 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
   Color _getStatusColor(int status) {
     switch (status) {
-      case 0: return Colors.orange;
-      case 1: return Colors.blue;
-      case 2: return Colors.green;
-      case 3: return Colors.red;
-      default: return CustomTheme.color2;
+      case 0:
+        return Colors.orange;
+      case 1:
+        return Colors.blue;
+      case 2:
+        return Colors.green;
+      case 3:
+        return Colors.red;
+      default:
+        return CustomTheme.color2;
     }
   }
 
   IconData _getStatusIcon(int status) {
     switch (status) {
-      case 0: return FeatherIcons.clock;
-      case 1: return FeatherIcons.truck;
-      case 2: return FeatherIcons.checkCircle;
-      case 3: return FeatherIcons.xCircle;
-      default: return FeatherIcons.circle;
+      case 0:
+        return FeatherIcons.clock;
+      case 1:
+        return FeatherIcons.truck;
+      case 2:
+        return FeatherIcons.checkCircle;
+      case 3:
+        return FeatherIcons.xCircle;
+      default:
+        return FeatherIcons.circle;
     }
   }
 
   String _getStatusDescription(int status) {
     switch (status) {
-      case 0: return "Your order has been received and is pending processing.";
-      case 1: return "Your order is being processed and will be shipped soon.";
-      case 2: return "Your order has been completed and delivered successfully.";
-      case 3: return "Your order has been cancelled.";
-      default: return "Order status is unknown.";
+      case 0:
+        return "Your order has been received and is pending processing.";
+      case 1:
+        return "Your order is being processed and will be shipped soon.";
+      case 2:
+        return "Your order has been completed and delivered successfully.";
+      case 3:
+        return "Your order has been cancelled.";
+      default:
+        return "Order status is unknown.";
     }
   }
 
@@ -845,8 +888,24 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     if (deliveryMethod.toLowerCase() == 'pickup') {
       return "0.00";
     }
-    
+
     String deliveryAmount = orderDetailsData['delivery_amount'] ?? '0';
     return deliveryAmount;
+  }
+
+  Future<void> _openPaymentUrl(String url) async {
+    try {
+      final Uri uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        Utils.toast("Unable to open payment link", color: Colors.red);
+      }
+    } catch (e) {
+      Utils.toast(
+        "Unable to open payment link. Please try again.",
+        color: Colors.red,
+      );
+    }
   }
 }

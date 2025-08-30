@@ -453,7 +453,7 @@ class _DeliveryAddressScreenState extends State<DeliveryAddressScreen>
                       );
                       return;
                     }
-                    if (widget.order.delivery_address_details.length < 5) {
+                    if (widget.order.delivery_address_details.length < 2) {
                       Utils.toast(
                         "Please enter a clear address.",
                         color: CustomTheme.primary,
@@ -477,16 +477,17 @@ class _DeliveryAddressScreenState extends State<DeliveryAddressScreen>
                       );
                       return;
                     }
-                    //check if phone starts with +
-                    if (!widget.order.customer_phone_number_1.startsWith("+")) {
-                      Utils.toast(
-                        "Phone number should not start with +",
-                        color: CustomTheme.primary,
-                      );
-                      return;
-                    }
 
-                    Get.back();
+                    // Return the address data to CartScreen
+                    Get.back(
+                      result: {
+                        'address': widget.order.delivery_address_text,
+                        'id':
+                            int.tryParse(widget.order.delivery_address_id) ?? 0,
+                        'shipping_cost': widget.order.delivery_amount,
+                        'details': widget.order.delivery_address_details,
+                      },
+                    );
                   },
                   child: FxText.titleLarge(
                     'DONE',

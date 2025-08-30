@@ -3,25 +3,62 @@ import '../models/UserModel.dart';
 import '../utils/Utilities.dart';
 
 class SwipeService {
-  // Get batch of users for orbital swipe
-  static Future<List<UserModel>> getBatchSwipeUsers({int count = 8}) async {
+  // Get batch of users for orbital swipe - REDUCED for cleaner UI
+  static Future<List<UserModel>> getBatchSwipeUsers({int count = 6}) async {
     try {
       final response = await Utils.http_get('swipe-discovery-batch', {
         'count': count.toString(),
       });
-      print(response.toString());
-      final resp = RespondModel(response);
+      print('Raw API Response: ${response.toString()}');
 
-      if (resp.code == 1 && resp.data != null && resp.data['users'] is List) {
-        final users =
-            (resp.data['users'] as List)
-                .map((userData) => UserModel.fromJson(userData))
-                .toList();
-        return users;
+      if (response == null) {
+        print('Response is null');
+        return [];
+      }
+
+      final resp = RespondModel(response);
+      print('RespondModel code: ${resp.code}, data: ${resp.data}');
+
+      if (resp.code == 1 && resp.data != null) {
+        // Check if users key exists and is a List
+        if (resp.data!.containsKey('users') && resp.data!['users'] is List) {
+          final usersList = resp.data!['users'] as List;
+          print('Found ${usersList.length} users in response');
+
+          final users =
+              usersList
+                  .where(
+                    (userData) => userData != null,
+                  ) // Filter out null entries
+                  .map((userData) {
+                    try {
+                      // FIXED: Parse the nested 'user' object, not the whole userData
+                      if (userData is Map && userData.containsKey('user')) {
+                        return UserModel.fromJson(userData['user']);
+                      } else {
+                        // Fallback: if data structure is different, try parsing directly
+                        return UserModel.fromJson(userData);
+                      }
+                    } catch (e) {
+                      print('Error parsing user data: $e, userData: $userData');
+                      return null;
+                    }
+                  })
+                  .where((user) => user != null) // Filter out failed parses
+                  .cast<UserModel>()
+                  .toList();
+
+          print('Successfully parsed ${users.length} users');
+          return users;
+        } else {
+          print('Users key not found or not a List in response data');
+        }
+      } else {
+        print('Invalid response code or null data: code=${resp.code}');
       }
       return [];
     } catch (e) {
-      print('Error getting batch swipe users: $e');
+      print('Exception in getBatchSwipeUsers: $e');
       return [];
     }
   }

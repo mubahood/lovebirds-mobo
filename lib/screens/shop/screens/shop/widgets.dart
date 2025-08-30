@@ -376,7 +376,7 @@ Widget productWidget2(Product u) {
                 borderRadiusAll: 0,
                 color: CustomTheme.primary,
                 child: FxText.bodyLarge(
-                  "UGX ${Utils.moneyFormat(u.price_1).toString().toUpperCase()}",
+                  "${AppConfig.CURRENCY} ${Utils.moneyFormat(u.price_1).toString().toUpperCase()}",
                   fontWeight: 800,
                   color: Colors.white,
                 ),

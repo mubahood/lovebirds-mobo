@@ -4,27 +4,13 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
-import 'package:flutx/flutx.dart';
-import 'package:lovebirds_app/utils/AppConfig.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
-import '../../config/debug_config.dart';
-import '../../middleware/paywall_middleware.dart';
 import '../../models/UserModel.dart';
-import '../../services/BoostService.dart';
 import '../../services/swipe_service.dart';
-import '../../services/upgrade_prompt_service.dart';
 import '../../utils/CustomTheme.dart';
-import '../../utils/SubscriptionManager.dart';
-import '../../utils/Utilities.dart';
-import '../../widgets/dating/boost_dialog.dart';
-import '../../widgets/dating/celebration_animation.dart';
 import '../../widgets/dating/match_celebration_widget.dart';
-import '../../widgets/dating/super_like_dialog.dart';
 import '../../widgets/dating/swipe_card.dart';
 import '../../widgets/dating/swipe_shimmer.dart';
-import 'AnalyticsScreen.dart';
-import 'ProfileViewScreen.dart';
 
 class SwipeScreen extends StatefulWidget {
   const SwipeScreen({Key? key}) : super(key: key);
@@ -124,8 +110,8 @@ class _SwipeScreenState extends State<SwipeScreen>
     try {
       final stats = await SwipeService.getSwipeStats();
       setState(() {
-        likesRemaining = stats.likesRemaining;
-        superLikesRemaining = stats.superLikesRemaining;
+        likesRemaining = stats!.likesRemaining;
+        superLikesRemaining = stats!.superLikesRemaining;
       });
     } catch (e) {
       // Use default values if loading fails

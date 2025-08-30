@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 
 import '../../../../../controllers/SimpleCartManager.dart';
 import '../../../../../controllers/MainController.dart';
+import '../../../../../utils/AppConfig.dart';
 import '../../../../../utils/CustomTheme.dart';
 import '../../../../../utils/Utilities.dart';
 import '../../../models/CartItem.dart';
@@ -23,7 +24,7 @@ class SimpleCartScreen extends StatefulWidget {
 class _SimpleCartScreenState extends State<SimpleCartScreen> {
   final SimpleCartManager cartManager = Get.put(SimpleCartManager());
   final MainController mainController = Get.put(MainController());
-  
+
   String selectedDeliveryMethod = 'pickup';
   String? selectedAddress;
   int? selectedAddressId;
@@ -43,15 +44,16 @@ class _SimpleCartScreenState extends State<SimpleCartScreen> {
 
   Future<void> _initializeOrder() async {
     await mainController.getLoggedInUser();
-    
+
     // Set user details in order
     order.user = mainController.userModel.id.toString();
     order.mail = mainController.userModel.email;
-    order.customer_name = '${mainController.userModel.first_name} ${mainController.userModel.last_name}';
+    order.customer_name =
+        '${mainController.userModel.first_name} ${mainController.userModel.last_name}';
     order.customer_phone_number_1 = mainController.userModel.phone_number;
     order.customer_phone_number_2 = mainController.userModel.phone_number_2;
     order.delivery_method = selectedDeliveryMethod;
-    
+
     setState(() {});
   }
 
@@ -107,7 +109,9 @@ class _SimpleCartScreenState extends State<SimpleCartScreen> {
         ],
       ),
       body: SafeArea(
-        child: Obx(() => cartManager.isEmpty ? _buildEmptyCart() : _buildCartWithItems()),
+        child: Obx(
+          () => cartManager.isEmpty ? _buildEmptyCart() : _buildCartWithItems(),
+        ),
       ),
     );
   }
@@ -160,7 +164,10 @@ class _SimpleCartScreenState extends State<SimpleCartScreen> {
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: CustomTheme.primary,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -258,19 +265,21 @@ class _SimpleCartScreenState extends State<SimpleCartScreen> {
               children: [
                 _buildSummaryRow(
                   'Subtotal',
-                  'UGX ${Utils.moneyFormat(cartManager.subtotal.toString())}',
+                  '${AppConfig.CURRENCY} ${Utils.moneyFormat(cartManager.subtotal.toString())}',
                 ),
                 const SizedBox(height: 8),
                 _buildSummaryRow(
                   'Tax (13% VAT)',
-                  'UGX ${Utils.moneyFormat(cartManager.tax.toString())}',
+                  '${AppConfig.CURRENCY} ${Utils.moneyFormat(cartManager.tax.toString())}',
                 ),
                 const SizedBox(height: 8),
                 _buildSummaryRow(
-                  selectedDeliveryMethod == 'pickup' ? 'Pickup Fee' : 'Delivery Fee',
-                  selectedDeliveryMethod == 'pickup' 
-                    ? 'FREE' 
-                    : 'UGX ${Utils.moneyFormat(selectedDeliveryFee.toString())}',
+                  selectedDeliveryMethod == 'pickup'
+                      ? 'Pickup Fee'
+                      : 'Delivery Fee',
+                  selectedDeliveryMethod == 'pickup'
+                      ? 'FREE'
+                      : '${AppConfig.CURRENCY} ${Utils.moneyFormat(selectedDeliveryFee.toString())}',
                 ),
                 const SizedBox(height: 8),
                 Container(
@@ -280,7 +289,7 @@ class _SimpleCartScreenState extends State<SimpleCartScreen> {
                 const SizedBox(height: 8),
                 _buildSummaryRow(
                   'Total',
-                  'UGX ${Utils.moneyFormat(cartManager.totalAmount(selectedDeliveryMethod).toString())}',
+                  '${AppConfig.CURRENCY} ${Utils.moneyFormat(cartManager.totalAmount(selectedDeliveryMethod).toString())}',
                   isTotal: true,
                 ),
                 const SizedBox(height: 20),
@@ -313,14 +322,20 @@ class _SimpleCartScreenState extends State<SimpleCartScreen> {
                               child: Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: selectedDeliveryMethod == 'pickup'
-                                      ? CustomTheme.primary.withValues(alpha: 0.1)
-                                      : Colors.transparent,
+                                  color:
+                                      selectedDeliveryMethod == 'pickup'
+                                          ? CustomTheme.primary.withValues(
+                                            alpha: 0.1,
+                                          )
+                                          : Colors.transparent,
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
-                                    color: selectedDeliveryMethod == 'pickup'
-                                        ? CustomTheme.primary
-                                        : CustomTheme.color4.withValues(alpha: 0.3),
+                                    color:
+                                        selectedDeliveryMethod == 'pickup'
+                                            ? CustomTheme.primary
+                                            : CustomTheme.color4.withValues(
+                                              alpha: 0.3,
+                                            ),
                                     width: 1.5,
                                   ),
                                 ),
@@ -329,17 +344,22 @@ class _SimpleCartScreenState extends State<SimpleCartScreen> {
                                     Icon(
                                       FeatherIcons.mapPin,
                                       size: 16,
-                                      color: selectedDeliveryMethod == 'pickup'
-                                          ? CustomTheme.primary
-                                          : CustomTheme.color2,
+                                      color:
+                                          selectedDeliveryMethod == 'pickup'
+                                              ? CustomTheme.primary
+                                              : CustomTheme.color2,
                                     ),
                                     const SizedBox(width: 8),
                                     FxText.bodySmall(
                                       "Pickup",
-                                      color: selectedDeliveryMethod == 'pickup'
-                                          ? CustomTheme.primary
-                                          : CustomTheme.color2,
-                                      fontWeight: selectedDeliveryMethod == 'pickup' ? 600 : 500,
+                                      color:
+                                          selectedDeliveryMethod == 'pickup'
+                                              ? CustomTheme.primary
+                                              : CustomTheme.color2,
+                                      fontWeight:
+                                          selectedDeliveryMethod == 'pickup'
+                                              ? 600
+                                              : 500,
                                     ),
                                   ],
                                 ),
@@ -353,14 +373,20 @@ class _SimpleCartScreenState extends State<SimpleCartScreen> {
                               child: Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: selectedDeliveryMethod == 'delivery'
-                                      ? CustomTheme.primary.withValues(alpha: 0.1)
-                                      : Colors.transparent,
+                                  color:
+                                      selectedDeliveryMethod == 'delivery'
+                                          ? CustomTheme.primary.withValues(
+                                            alpha: 0.1,
+                                          )
+                                          : Colors.transparent,
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
-                                    color: selectedDeliveryMethod == 'delivery'
-                                        ? CustomTheme.primary
-                                        : CustomTheme.color4.withValues(alpha: 0.3),
+                                    color:
+                                        selectedDeliveryMethod == 'delivery'
+                                            ? CustomTheme.primary
+                                            : CustomTheme.color4.withValues(
+                                              alpha: 0.3,
+                                            ),
                                     width: 1.5,
                                   ),
                                 ),
@@ -369,17 +395,22 @@ class _SimpleCartScreenState extends State<SimpleCartScreen> {
                                     Icon(
                                       FeatherIcons.truck,
                                       size: 16,
-                                      color: selectedDeliveryMethod == 'delivery'
-                                          ? CustomTheme.primary
-                                          : CustomTheme.color2,
+                                      color:
+                                          selectedDeliveryMethod == 'delivery'
+                                              ? CustomTheme.primary
+                                              : CustomTheme.color2,
                                     ),
                                     const SizedBox(width: 8),
                                     FxText.bodySmall(
                                       "Delivery",
-                                      color: selectedDeliveryMethod == 'delivery'
-                                          ? CustomTheme.primary
-                                          : CustomTheme.color2,
-                                      fontWeight: selectedDeliveryMethod == 'delivery' ? 600 : 500,
+                                      color:
+                                          selectedDeliveryMethod == 'delivery'
+                                              ? CustomTheme.primary
+                                              : CustomTheme.color2,
+                                      fontWeight:
+                                          selectedDeliveryMethod == 'delivery'
+                                              ? 600
+                                              : 500,
                                     ),
                                   ],
                                 ),
@@ -397,14 +428,24 @@ class _SimpleCartScreenState extends State<SimpleCartScreen> {
                           child: Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: selectedAddress != null
-                                  ? CustomTheme.accent.withValues(alpha: 0.1)
-                                  : CustomTheme.color4.withValues(alpha: 0.05),
+                              color:
+                                  selectedAddress != null
+                                      ? CustomTheme.accent.withValues(
+                                        alpha: 0.1,
+                                      )
+                                      : CustomTheme.color4.withValues(
+                                        alpha: 0.05,
+                                      ),
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: selectedAddress != null
-                                    ? CustomTheme.accent.withValues(alpha: 0.3)
-                                    : CustomTheme.color4.withValues(alpha: 0.2),
+                                color:
+                                    selectedAddress != null
+                                        ? CustomTheme.accent.withValues(
+                                          alpha: 0.3,
+                                        )
+                                        : CustomTheme.color4.withValues(
+                                          alpha: 0.2,
+                                        ),
                                 width: 1,
                               ),
                             ),
@@ -413,18 +454,22 @@ class _SimpleCartScreenState extends State<SimpleCartScreen> {
                                 Icon(
                                   FeatherIcons.home,
                                   size: 16,
-                                  color: selectedAddress != null
-                                      ? CustomTheme.accent
-                                      : CustomTheme.color2,
+                                  color:
+                                      selectedAddress != null
+                                          ? CustomTheme.accent
+                                          : CustomTheme.color2,
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: FxText.bodySmall(
-                                    selectedAddress ?? "Select delivery address",
-                                    color: selectedAddress != null
-                                        ? CustomTheme.colorLight
-                                        : CustomTheme.color2,
-                                    fontWeight: selectedAddress != null ? 500 : 400,
+                                    selectedAddress ??
+                                        "Select delivery address",
+                                    color:
+                                        selectedAddress != null
+                                            ? CustomTheme.colorLight
+                                            : CustomTheme.color2,
+                                    fontWeight:
+                                        selectedAddress != null ? 500 : 400,
                                   ),
                                 ),
                                 Icon(
@@ -553,7 +598,8 @@ class _SimpleCartScreenState extends State<SimpleCartScreen> {
     }
 
     // Set calculated amounts
-    order.payable_amount = cartManager.totalAmount(selectedDeliveryMethod).toString();
+    order.payable_amount =
+        cartManager.totalAmount(selectedDeliveryMethod).toString();
 
     // Proceed to checkout
     Get.to(() => SimpleCheckoutScreen(order, cartManager));

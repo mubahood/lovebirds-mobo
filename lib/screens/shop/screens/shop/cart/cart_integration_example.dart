@@ -7,10 +7,10 @@ import '../../../models/CartItem.dart';
 import 'ImprovedCartScreen.dart';
 
 /// CART SYSTEM INTEGRATION GUIDE
-/// 
+///
 /// This file demonstrates how to integrate the new improved cart system
 /// into your existing app with proper state management and modern UI.
-/// 
+///
 /// KEY FEATURES:
 /// - Reactive cart state management with GetX
 /// - Modern UI with proper error handling
@@ -19,7 +19,7 @@ import 'ImprovedCartScreen.dart';
 /// - Address management for delivery orders
 /// - Order validation and submission
 /// - Cart persistence with SQLite
-/// 
+///
 /// USAGE EXAMPLES:
 
 class CartIntegrationExample extends StatelessWidget {
@@ -37,23 +37,23 @@ class CartIntegrationExample extends StatelessWidget {
             _buildSectionTitle('1. Initialize Cart Controller'),
             _buildCodeExample(_getInitializationExample()),
             const SizedBox(height: 24),
-            
+
             _buildSectionTitle('2. Add Items to Cart'),
             _buildCodeExample(_getAddToCartExample()),
             const SizedBox(height: 24),
-            
+
             _buildSectionTitle('3. Navigate to Cart Screen'),
             _buildCodeExample(_getNavigationExample()),
             const SizedBox(height: 24),
-            
+
             _buildSectionTitle('4. Cart State Management'),
             _buildCodeExample(_getStateManagementExample()),
             const SizedBox(height: 24),
-            
+
             _buildSectionTitle('5. Checkout Process'),
             _buildCodeExample(_getCheckoutExample()),
             const SizedBox(height: 24),
-            
+
             _buildSectionTitle('Live Demo Buttons'),
             _buildDemoButtons(),
           ],
@@ -67,10 +67,7 @@ class CartIntegrationExample extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12),
       child: Text(
         title,
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-        ),
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -86,10 +83,7 @@ class CartIntegrationExample extends StatelessWidget {
       ),
       child: Text(
         code,
-        style: const TextStyle(
-          fontFamily: 'monospace',
-          fontSize: 12,
-        ),
+        style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
       ),
     );
   }
@@ -98,7 +92,7 @@ class CartIntegrationExample extends StatelessWidget {
     return Column(
       children: [
         const SizedBox(height: 16),
-        
+
         // Initialize Cart Controller Button
         SizedBox(
           width: double.infinity,
@@ -108,7 +102,7 @@ class CartIntegrationExample extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        
+
         // View Cart Button
         SizedBox(
           width: double.infinity,
@@ -118,7 +112,7 @@ class CartIntegrationExample extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        
+
         // Add Sample Item Button
         SizedBox(
           width: double.infinity,
@@ -128,7 +122,7 @@ class CartIntegrationExample extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        
+
         // Clear Cart Button
         SizedBox(
           width: double.infinity,
@@ -267,8 +261,8 @@ void proceedToCheckout() async {
   
   // Set delivery details
   if (cartController.deliveryMethod.value == 'delivery') {
-    order.delivery_address_id = cartController.selectedAddressId.value;
-    order.delivery_address_text = cartController.selectedAddress.value;
+    order.delivery_address_id = cartController.selectedAddressId;
+    order.delivery_address_text = cartController.selectedAddress;
   }
   
   // Navigate to checkout
@@ -304,7 +298,7 @@ void proceedToCheckout() async {
       if (!Get.isRegistered<CartController>()) {
         Get.put(CartController());
       }
-      
+
       Get.to(() => const ImprovedCartScreen());
     } catch (e) {
       Get.snackbar(
@@ -322,9 +316,9 @@ void proceedToCheckout() async {
       if (!Get.isRegistered<CartController>()) {
         Get.put(CartController());
       }
-      
+
       final CartController cartController = Get.find<CartController>();
-      
+
       // Create a sample cart item with proper field assignments
       CartItem sampleItem = CartItem();
       sampleItem.product_id = "999"; // Sample product ID
@@ -334,11 +328,11 @@ void proceedToCheckout() async {
       sampleItem.product_feature_photo = "";
       sampleItem.color = "";
       sampleItem.size = "";
-      
+
       // Save and reload
       await sampleItem.save();
       await cartController.loadCartItems();
-      
+
       Get.snackbar(
         'Success',
         'Sample item added to cart',
@@ -359,13 +353,13 @@ void proceedToCheckout() async {
     try {
       // Clear all cart items
       await CartItem.deleteAll();
-      
+
       // Reload cart if controller exists
       if (Get.isRegistered<CartController>()) {
         final CartController cartController = Get.find<CartController>();
         await cartController.loadCartItems();
       }
-      
+
       Get.snackbar(
         'Success',
         'Cart cleared successfully',

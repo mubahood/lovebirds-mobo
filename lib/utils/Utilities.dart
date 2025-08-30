@@ -813,8 +813,8 @@ class Utils {
 
     // Add logged‐in user ID
     LoggedInUserModel userModel = await LoggedInUserModel.getLoggedInUser();
-    payload['logged_in_user_id'] = userModel.id.toString();
-    print("${AppConfig.API_BASE_URL}/$path");
+/*    payload['logged_in_user_id'] = userModel.id.toString();
+    print("${AppConfig.API_BASE_URL}/$path");*/
     /*
     print("============START CONNECTION==============");
 
@@ -943,6 +943,7 @@ class Utils {
     final prefs = await SharedPreferences.getInstance();
     final String token = prefs.getString('token') ?? '';
 
+    // print(token);
     // Make Dio client with bad-cert callback
     final dioClient = dio.Dio();
     (dioClient.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate = (

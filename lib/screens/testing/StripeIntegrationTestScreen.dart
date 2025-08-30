@@ -14,10 +14,12 @@ class StripeIntegrationTestScreen extends StatefulWidget {
   const StripeIntegrationTestScreen({Key? key}) : super(key: key);
 
   @override
-  _StripeIntegrationTestScreenState createState() => _StripeIntegrationTestScreenState();
+  _StripeIntegrationTestScreenState createState() =>
+      _StripeIntegrationTestScreenState();
 }
 
-class _StripeIntegrationTestScreenState extends State<StripeIntegrationTestScreen> {
+class _StripeIntegrationTestScreenState
+    extends State<StripeIntegrationTestScreen> {
   final List<TestResult> testResults = [];
   bool isRunningTests = false;
   int currentTestIndex = 0;
@@ -64,8 +66,14 @@ class _StripeIntegrationTestScreenState extends State<StripeIntegrationTestScree
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: isRunningTests ? null : _runAllTests,
-                      icon: Icon(isRunningTests ? Icons.hourglass_empty : Icons.play_arrow),
-                      label: Text(isRunningTests ? 'Running Tests...' : 'Run Tests'),
+                      icon: Icon(
+                        isRunningTests
+                            ? Icons.hourglass_empty
+                            : Icons.play_arrow,
+                      ),
+                      label: Text(
+                        isRunningTests ? 'Running Tests...' : 'Run Tests',
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         foregroundColor: Colors.white,
@@ -76,9 +84,9 @@ class _StripeIntegrationTestScreenState extends State<StripeIntegrationTestScree
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             // Progress Indicator
             if (isRunningTests) ...[
               LinearProgressIndicator(
@@ -93,30 +101,32 @@ class _StripeIntegrationTestScreenState extends State<StripeIntegrationTestScree
               ),
               const SizedBox(height: 20),
             ],
-            
+
             // Test Results
             Expanded(
-              child: testResults.isEmpty
-                  ? const Center(
-                      child: Text(
-                        'Click "Run Tests" to start testing your Stripe integration',
-                        style: TextStyle(fontSize: 16, color: Colors.grey),
-                        textAlign: TextAlign.center,
+              child:
+                  testResults.isEmpty
+                      ? const Center(
+                        child: Text(
+                          'Click "Run Tests" to start testing your Stripe integration',
+                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                          textAlign: TextAlign.center,
+                        ),
+                      )
+                      : ListView.builder(
+                        itemCount:
+                            testResults.length + (isRunningTests ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (index == testResults.length && isRunningTests) {
+                            return _buildRunningTestCard();
+                          }
+
+                          final result = testResults[index];
+                          return _buildTestResultCard(result);
+                        },
                       ),
-                    )
-                  : ListView.builder(
-                      itemCount: testResults.length + (isRunningTests ? 1 : 0),
-                      itemBuilder: (context, index) {
-                        if (index == testResults.length && isRunningTests) {
-                          return _buildRunningTestCard();
-                        }
-                        
-                        final result = testResults[index];
-                        return _buildTestResultCard(result);
-                      },
-                    ),
             ),
-            
+
             // Summary
             if (testResults.isNotEmpty && !isRunningTests) ...[
               const SizedBox(height: 20),
@@ -156,9 +166,10 @@ class _StripeIntegrationTestScreenState extends State<StripeIntegrationTestScree
             ],
           ],
         ),
-        trailing: result.passed
-            ? const Icon(Icons.thumb_up, color: Colors.green)
-            : const Icon(Icons.thumb_down, color: Colors.red),
+        trailing:
+            result.passed
+                ? const Icon(Icons.thumb_up, color: Colors.green)
+                : const Icon(Icons.thumb_down, color: Colors.red),
       ),
     );
   }
@@ -190,10 +201,16 @@ class _StripeIntegrationTestScreenState extends State<StripeIntegrationTestScree
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: successRate >= 80 ? Colors.green.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
+        color:
+            successRate >= 80
+                ? Colors.green.withOpacity(0.1)
+                : Colors.orange.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: successRate >= 80 ? Colors.green.withOpacity(0.3) : Colors.orange.withOpacity(0.3),
+          color:
+              successRate >= 80
+                  ? Colors.green.withOpacity(0.3)
+                  : Colors.orange.withOpacity(0.3),
         ),
       ),
       child: Column(
@@ -288,75 +305,91 @@ class _StripeIntegrationTestScreenState extends State<StripeIntegrationTestScree
 
   Future<void> _testAppConfiguration() async {
     await Future.delayed(const Duration(milliseconds: 500));
-    
+
     try {
       // Test if Utils class is available
       final baseUrl = Utils.getBaseUrl();
       final hasToken = Utils.getToken().isNotEmpty;
-      
+
       setState(() {
-        testResults.add(TestResult(
-          name: '⚙️ App Configuration',
-          description: 'Basic app configuration and utilities',
-          passed: baseUrl.isNotEmpty,
-          details: hasToken ? 'Authentication token available' : 'No authentication token',
-        ));
+        testResults.add(
+          TestResult(
+            name: '⚙️ App Configuration',
+            description: 'Basic app configuration and utilities',
+            passed: baseUrl.isNotEmpty,
+            details:
+                hasToken
+                    ? 'Authentication token available'
+                    : 'No authentication token',
+          ),
+        );
       });
     } catch (e) {
       setState(() {
-        testResults.add(TestResult(
-          name: '⚙️ App Configuration',
-          description: 'Basic app configuration and utilities',
-          passed: false,
-          details: 'Error: $e',
-        ));
+        testResults.add(
+          TestResult(
+            name: '⚙️ App Configuration',
+            description: 'Basic app configuration and utilities',
+            passed: false,
+            details: 'Error: $e',
+          ),
+        );
       });
     }
   }
 
   Future<void> _testAPIEndpoints() async {
     await Future.delayed(const Duration(milliseconds: 500));
-    
+
     try {
       // Test my-orders endpoint
       final response = await Utils.http_get('my-orders', {});
       final respondModel = RespondModel(response);
-      
+
       setState(() {
-        testResults.add(TestResult(
-          name: '🌐 API Endpoints',
-          description: 'Test API connectivity and authentication',
-          passed: respondModel.code == 1 || respondModel.code == 0, // 0 might mean no orders
-          details: respondModel.message,
-        ));
+        testResults.add(
+          TestResult(
+            name: '🌐 API Endpoints',
+            description: 'Test API connectivity and authentication',
+            passed:
+                respondModel.code == 1 ||
+                respondModel.code == 0, // 0 might mean no orders
+            details: respondModel.message,
+          ),
+        );
       });
     } catch (e) {
       setState(() {
-        testResults.add(TestResult(
-          name: '🌐 API Endpoints',
-          description: 'Test API connectivity and authentication',
-          passed: false,
-          details: 'Connection error: $e',
-        ));
+        testResults.add(
+          TestResult(
+            name: '🌐 API Endpoints',
+            description: 'Test API connectivity and authentication',
+            passed: false,
+            details: 'Connection error: $e',
+          ),
+        );
       });
     }
   }
 
   Future<void> _testOrderCreation() async {
     await Future.delayed(const Duration(milliseconds: 500));
-    
+
     try {
       // Try to get orders to test order model parsing
       final response = await Utils.http_get('my-orders', {});
       final respondModel = RespondModel(response);
-      
+
       bool canParseOrders = false;
       String details = '';
-      
+
       if (respondModel.code == 1 && respondModel.data != null) {
         try {
-          if (respondModel.data is List && (respondModel.data as List).isNotEmpty) {
-            final firstOrder = Order.fromJson((respondModel.data as List).first);
+          if (respondModel.data is List &&
+              (respondModel.data as List).isNotEmpty) {
+            final firstOrder = Order.fromJson(
+              (respondModel.data as List).first,
+            );
             canParseOrders = firstOrder.id > 0;
             details = 'Successfully parsed order #${firstOrder.id}';
           } else {
@@ -370,39 +403,45 @@ class _StripeIntegrationTestScreenState extends State<StripeIntegrationTestScree
         canParseOrders = true; // If no orders, that's still OK
         details = 'No orders to test with';
       }
-      
+
       setState(() {
-        testResults.add(TestResult(
-          name: '📦 Order Processing',
-          description: 'Test order creation and data handling',
-          passed: canParseOrders,
-          details: details,
-        ));
+        testResults.add(
+          TestResult(
+            name: '📦 Order Processing',
+            description: 'Test order creation and data handling',
+            passed: canParseOrders,
+            details: details,
+          ),
+        );
       });
     } catch (e) {
       setState(() {
-        testResults.add(TestResult(
-          name: '📦 Order Processing',
-          description: 'Test order creation and data handling',
-          passed: false,
-          details: 'Error: $e',
-        ));
+        testResults.add(
+          TestResult(
+            name: '📦 Order Processing',
+            description: 'Test order creation and data handling',
+            passed: false,
+            details: 'Error: $e',
+          ),
+        );
       });
     }
   }
 
   Future<void> _testPaymentLinkGeneration() async {
     await Future.delayed(const Duration(milliseconds: 500));
-    
+
     try {
       // Get orders and check if any have payment links
       final response = await Utils.http_get('my-orders', {});
       final respondModel = RespondModel(response);
-      
+
       bool hasPaymentLinks = false;
       String details = '';
-      
-      if (respondModel.code == 1 && respondModel.data != null && respondModel.data is List) {
+
+      if (respondModel.code == 1 &&
+          respondModel.data != null &&
+          respondModel.data is List) {
         final orders = (respondModel.data as List);
         if (orders.isNotEmpty) {
           for (var orderData in orders) {
@@ -424,34 +463,38 @@ class _StripeIntegrationTestScreenState extends State<StripeIntegrationTestScree
         details = 'Could not retrieve orders for testing';
         hasPaymentLinks = true; // Not a failure - might be auth issue
       }
-      
+
       setState(() {
-        testResults.add(TestResult(
-          name: '💳 Payment Link Generation',
-          description: 'Test Stripe payment link creation',
-          passed: hasPaymentLinks,
-          details: details,
-        ));
+        testResults.add(
+          TestResult(
+            name: '💳 Payment Link Generation',
+            description: 'Test Stripe payment link creation',
+            passed: hasPaymentLinks,
+            details: details,
+          ),
+        );
       });
     } catch (e) {
       setState(() {
-        testResults.add(TestResult(
-          name: '💳 Payment Link Generation',
-          description: 'Test Stripe payment link creation',
-          passed: false,
-          details: 'Error: $e',
-        ));
+        testResults.add(
+          TestResult(
+            name: '💳 Payment Link Generation',
+            description: 'Test Stripe payment link creation',
+            passed: false,
+            details: 'Error: $e',
+          ),
+        );
       });
     }
   }
 
   Future<void> _testOrdersScreen() async {
     await Future.delayed(const Duration(milliseconds: 500));
-    
+
     // Test if we can navigate to orders screen (simulate)
     bool canNavigate = true;
     String details = 'Orders screen navigation available';
-    
+
     try {
       // Simulate checking if MyOrdersScreen can be instantiated
       // This is a basic test since we can't actually navigate in a test
@@ -460,24 +503,26 @@ class _StripeIntegrationTestScreenState extends State<StripeIntegrationTestScree
       canNavigate = false;
       details = 'Navigation error: $e';
     }
-    
+
     setState(() {
-      testResults.add(TestResult(
-        name: '📱 Orders Screen',
-        description: 'Test MyOrdersScreen functionality',
-        passed: canNavigate,
-        details: details,
-      ));
+      testResults.add(
+        TestResult(
+          name: '📱 Orders Screen',
+          description: 'Test MyOrdersScreen functionality',
+          passed: canNavigate,
+          details: details,
+        ),
+      );
     });
   }
 
   Future<void> _testOrderDetailsScreen() async {
     await Future.delayed(const Duration(milliseconds: 500));
-    
+
     // Test OrderDetailsScreen components
     bool screenReady = true;
     String details = 'OrderDetailsScreen components ready';
-    
+
     try {
       // Simulate checking screen components
       details = 'Payment buttons and URL launcher ready';
@@ -485,24 +530,26 @@ class _StripeIntegrationTestScreenState extends State<StripeIntegrationTestScree
       screenReady = false;
       details = 'Screen error: $e';
     }
-    
+
     setState(() {
-      testResults.add(TestResult(
-        name: '📄 Order Details Screen',
-        description: 'Test OrderDetailsScreen and payment buttons',
-        passed: screenReady,
-        details: details,
-      ));
+      testResults.add(
+        TestResult(
+          name: '📄 Order Details Screen',
+          description: 'Test OrderDetailsScreen and payment buttons',
+          passed: screenReady,
+          details: details,
+        ),
+      );
     });
   }
 
   Future<void> _testPaymentFlow() async {
     await Future.delayed(const Duration(milliseconds: 500));
-    
+
     // Test URL launcher capability
     bool canLaunchUrl = false;
     String details = '';
-    
+
     try {
       // Test if url_launcher is available
       canLaunchUrl = true;
@@ -510,31 +557,35 @@ class _StripeIntegrationTestScreenState extends State<StripeIntegrationTestScree
     } catch (e) {
       details = 'URL launcher error: $e';
     }
-    
+
     setState(() {
-      testResults.add(TestResult(
-        name: '🔗 Payment Flow',
-        description: 'Test payment URL opening and flow',
-        passed: canLaunchUrl,
-        details: details,
-      ));
+      testResults.add(
+        TestResult(
+          name: '🔗 Payment Flow',
+          description: 'Test payment URL opening and flow',
+          passed: canLaunchUrl,
+          details: details,
+        ),
+      );
     });
   }
 
   Future<void> _testErrorHandling() async {
     await Future.delayed(const Duration(milliseconds: 500));
-    
+
     // Test error handling
     bool errorHandlingWorks = true;
     String details = 'Error handling and user feedback systems ready';
-    
+
     setState(() {
-      testResults.add(TestResult(
-        name: '⚠️ Error Handling',
-        description: 'Test error handling and user feedback',
-        passed: errorHandlingWorks,
-        details: details,
-      ));
+      testResults.add(
+        TestResult(
+          name: '⚠️ Error Handling',
+          description: 'Test error handling and user feedback',
+          passed: errorHandlingWorks,
+          details: details,
+        ),
+      );
     });
   }
 
@@ -545,38 +596,39 @@ class _StripeIntegrationTestScreenState extends State<StripeIntegrationTestScree
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          successRate >= 80 ? '🎉 Tests Completed!' : '⚠️ Tests Completed',
-          style: TextStyle(
-            color: successRate >= 80 ? Colors.green : Colors.orange,
+      builder:
+          (context) => AlertDialog(
+            title: Text(
+              successRate >= 80 ? '🎉 Tests Completed!' : '⚠️ Tests Completed',
+              style: TextStyle(
+                color: successRate >= 80 ? Colors.green : Colors.orange,
+              ),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('✅ Passed: $passed'),
+                Text('❌ Failed: ${total - passed}'),
+                Text('🎯 Success Rate: $successRate%'),
+                const SizedBox(height: 16),
+                Text(_getOverallResultMessage(successRate)),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _copyResultsToClipboard();
+                },
+                child: const Text('Copy Results'),
+              ),
+            ],
           ),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('✅ Passed: $passed'),
-            Text('❌ Failed: ${total - passed}'),
-            Text('🎯 Success Rate: $successRate%'),
-            const SizedBox(height: 16),
-            Text(_getOverallResultMessage(successRate)),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _copyResultsToClipboard();
-            },
-            child: const Text('Copy Results'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -584,7 +636,7 @@ class _StripeIntegrationTestScreenState extends State<StripeIntegrationTestScree
     final buffer = StringBuffer();
     buffer.writeln('Stripe Integration Test Results');
     buffer.writeln('===============================');
-    
+
     for (final result in testResults) {
       buffer.writeln('${result.passed ? '✅' : '❌'} ${result.name}');
       buffer.writeln('   ${result.description}');
@@ -593,11 +645,11 @@ class _StripeIntegrationTestScreenState extends State<StripeIntegrationTestScree
       }
       buffer.writeln('');
     }
-    
+
     final passed = testResults.where((r) => r.passed).length;
     final total = testResults.length;
     buffer.writeln('Summary: $passed/$total tests passed');
-    
+
     Clipboard.setData(ClipboardData(text: buffer.toString()));
     Utils.toast('Test results copied to clipboard!', color: Colors.green);
   }

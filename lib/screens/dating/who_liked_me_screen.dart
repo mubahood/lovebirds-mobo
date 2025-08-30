@@ -191,8 +191,6 @@ class _WhoLikedMeScreenState extends State<WhoLikedMeScreen> {
                         child: ElevatedButton(
                           onPressed: () {
                             Navigator.pop(context);
-                            // Navigate to chat - implement later
-                            _showSuccessSnackBar('Chat feature coming soon!');
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white,

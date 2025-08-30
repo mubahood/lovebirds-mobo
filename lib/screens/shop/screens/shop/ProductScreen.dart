@@ -34,24 +34,19 @@ class ProductScreen extends StatefulWidget {
 
 final MainController mainController = Get.find<MainController>();
 
-class _ProductScreenState extends State<ProductScreen>
-    with SingleTickerProviderStateMixin {
+class _ProductScreenState extends State<ProductScreen> {
   Product item;
   List<String> downloadedPics = [];
   String tempPath = '';
-  late TabController _tabController;
   CarouselSliderController _carouselController = CarouselSliderController();
   int _currentImageIndex = 0;
   int _quantity = 1;
-  String? _selectedSize;
-  String? _selectedColor;
 
   _ProductScreenState(this.item);
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
     item.getAttributes();
     _initialize();
   }
@@ -182,7 +177,7 @@ class _ProductScreenState extends State<ProductScreen>
             child: Column(
               children: [
                 _buildProductInfo(),
-                _buildTabSection(),
+                _buildDescriptionSection(),
                 _buildRelatedProducts(),
               ],
             ),
@@ -656,358 +651,135 @@ class _ProductScreenState extends State<ProductScreen>
     );
   }
 
-  Widget _buildTabSection() {
-    return Column(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            border: Border(bottom: BorderSide(color: Colors.grey[600]!)),
-          ),
-          child: TabBar(
-            controller: _tabController,
-            labelColor: CustomTheme.primary,
-            unselectedLabelColor: Colors.grey[600],
-            indicatorColor: CustomTheme.primary,
-            tabs: const [
-              Tab(text: 'Description'),
-              Tab(text: 'Shipping & Returns'),
-            ],
-          ),
-        ),
-        SizedBox(
-          height: 300,
-          child: TabBarView(
-            controller: _tabController,
-            children: [_buildDescriptionTab(), _buildShippingAndReturnsTab()],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDescriptionTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          FxText.bodyMedium(
-            item.description.isNotEmpty
-                ? item.description
-                : 'This is a high-quality product with excellent features. Perfect for daily use and comes with a satisfaction guarantee.',
-            color: CustomTheme.color,
-            height: 1.5,
-          ),
-          const SizedBox(height: 20),
-          /*  FxText.bodyLarge('Specifications', fontWeight: 600),
-          const SizedBox(height: 12),
-          _buildSpecificationRow('Brand', 'Premium Brand'),
-          _buildSpecificationRow('Model', 'PB-${item.id}'),
-          _buildSpecificationRow('Weight', '${0.5 + (item.id % 10) * 0.1} kg'),
-          _buildSpecificationRow(
-            'Dimensions',
-            '${20 + item.id % 10} x ${15 + item.id % 5} x ${10 + item.id % 3} cm',
-          ),
-          _buildSpecificationRow('Material', 'High-quality materials'),
-          _buildSpecificationRow('Warranty', '1 Year'),*/
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSpecificationRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 100,
-            child: FxText.bodyMedium(label, color: Colors.grey[600]),
-          ),
-          FxText.bodyMedium(value, fontWeight: 600),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildShippingAndReturnsTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Shipping Section
-          FxText.titleMedium(
-            'Shipping Options',
-            fontWeight: 700,
-            color: CustomTheme.colorLight,
-          ),
-          const SizedBox(height: 16),
-
-          _buildShippingOption(
-            'Standard Shipping',
-            'CAD 9.99',
-            '5-7 business days',
-          ),
-          _buildShippingOption(
-            'Express Shipping',
-            'CAD 19.99',
-            '2-3 business days',
-          ),
-          _buildShippingOption(
-            'Free Shipping',
-            'FREE',
-            '7-10 business days (Orders over CAD 50)',
-          ),
-
-          const SizedBox(height: 24),
-
-          // Shipping Information
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  CustomTheme.primary.withValues(alpha: 0.1),
-                  CustomTheme.primaryDark.withValues(alpha: 0.05),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: CustomTheme.primary.withValues(alpha: 0.3),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      FeatherIcons.truck,
-                      color: CustomTheme.primary,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    FxText.bodyLarge(
-                      'Shipping Information',
-                      fontWeight: 600,
-                      color: CustomTheme.primary,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                FxText.bodyMedium(
-                  '• Ships from ${AppConfig.MARKETPLACE_NAME} warehouse in Toronto, ON\n'
-                  '• All orders are processed within 1-2 business days\n'
-                  '• Tracking information provided for all shipments\n'
-                  '• Signature required for orders over CAD \$200\n'
-                  '• Free shipping on all orders over CAD \$50',
-                  color: CustomTheme.colorLight,
-                  height: 1.5,
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 32),
-
-          // Returns Section
-          FxText.titleMedium(
-            'Returns & Refunds',
-            fontWeight: 700,
-            color: CustomTheme.colorLight,
-          ),
-          const SizedBox(height: 16),
-
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  CustomTheme.successGreen.withValues(alpha: 0.1),
-                  CustomTheme.successGreen.withValues(alpha: 0.05),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: CustomTheme.successGreen.withValues(alpha: 0.3),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      FeatherIcons.rotateCcw,
-                      color: CustomTheme.successGreen,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    FxText.bodyLarge(
-                      '30-Day Return Policy',
-                      fontWeight: 600,
-                      color: CustomTheme.successGreen,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                FxText.bodyMedium(
-                  'Return any item within 30 days of delivery for a full refund. Items must be in original condition with tags attached.',
-                  color: CustomTheme.colorLight,
-                  height: 1.4,
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          FxText.bodyLarge(
-            'Return Process',
-            fontWeight: 600,
-            color: CustomTheme.colorLight,
-          ),
-          const SizedBox(height: 12),
-
-          ...List.generate(4, (index) {
-            final steps = [
-              'Contact ${AppConfig.MARKETPLACE_NAME} support to initiate return',
-              'Package item securely with original packaging',
-              'Use the provided prepaid return label',
-              'Receive refund within 5-7 business days',
-            ];
-
-            return Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 24,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      color: CustomTheme.primary,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: FxText.bodySmall(
-                        '${index + 1}',
-                        color: Colors.white,
-                        fontWeight: 600,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: FxText.bodyMedium(
-                      steps[index],
-                      color: CustomTheme.colorLight,
-                      height: 1.4,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }),
-
-          const SizedBox(height: 20),
-
-          // Contact Information
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: CustomTheme.card,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: CustomTheme.color4),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      FeatherIcons.messageCircle,
-                      color: CustomTheme.accent,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    FxText.bodyLarge(
-                      'Need Help?',
-                      fontWeight: 600,
-                      color: CustomTheme.accent,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                FxText.bodyMedium(
-                  'Contact our customer support team for any questions about shipping or returns.',
-                  color: CustomTheme.color,
-                  height: 1.4,
-                ),
-                const SizedBox(height: 8),
-                FxText.bodySmall(
-                  'Support hours: Monday-Friday 9AM-6PM EST',
-                  color: CustomTheme.color3,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildShippingOption(String title, String price, String duration) {
-    final bool isFree = price == 'FREE';
-
+  Widget _buildDescriptionSection() {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient:
-            isFree
-                ? LinearGradient(
-                  colors: [
-                    CustomTheme.successGreen.withValues(alpha: 0.1),
-                    CustomTheme.successGreen.withValues(alpha: 0.05),
-                  ],
-                )
-                : null,
-        color: isFree ? null : CustomTheme.card,
+        color: CustomTheme.card,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color:
-              isFree
-                  ? CustomTheme.successGreen.withValues(alpha: 0.3)
-                  : CustomTheme.color4,
+          color: CustomTheme.color4.withOpacity(0.3),
+          width: 0.5,
         ),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            FeatherIcons.truck,
-            color: isFree ? CustomTheme.successGreen : CustomTheme.primary,
-            size: 20,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                FxText.bodyLarge(
-                  title,
-                  fontWeight: 600,
-                  color: CustomTheme.colorLight,
+          // Header
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: CustomTheme.color4.withOpacity(0.3),
+                  width: 0.5,
                 ),
-                FxText.bodySmall(duration, color: CustomTheme.color3),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  FeatherIcons.fileText,
+                  color: CustomTheme.primary,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                FxText.titleMedium(
+                  'Product Description',
+                  color: CustomTheme.colorLight,
+                  fontWeight: 700,
+                ),
               ],
             ),
           ),
-          FxText.bodyLarge(
-            price,
-            fontWeight: 600,
-            color: isFree ? CustomTheme.successGreen : CustomTheme.primary,
+
+          // Description Content
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                FxText.bodyMedium(
+                  item.description.isNotEmpty
+                      ? item.description
+                      : 'This is a high-quality product with excellent features and craftsmanship. Perfect for daily use and designed to meet your needs with style and functionality. Comes with our satisfaction guarantee and premium customer support.',
+                  color: CustomTheme.color,
+                  height: 1.6,
+                ),
+
+                if (item.description.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+
+                  // Additional product highlights
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: CustomTheme.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: CustomTheme.primary.withOpacity(0.2),
+                        width: 0.5,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              FeatherIcons.checkCircle,
+                              color: CustomTheme.primary,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 8),
+                            FxText.bodyMedium(
+                              'Product Highlights',
+                              color: CustomTheme.primary,
+                              fontWeight: 600,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        _buildHighlightItem(
+                          'Premium quality materials and construction',
+                        ),
+                        _buildHighlightItem('Satisfaction guarantee included'),
+                        _buildHighlightItem('Professional customer support'),
+                        _buildHighlightItem('Fast and secure delivery'),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHighlightItem(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(top: 6),
+            width: 4,
+            height: 4,
+            decoration: BoxDecoration(
+              color: CustomTheme.primary,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: FxText.bodySmall(
+              text,
+              color: CustomTheme.color2,
+              height: 1.4,
+            ),
           ),
         ],
       ),
@@ -1243,7 +1015,11 @@ ${AppConfig.PLAYSTORE_LINK}
                           side: BorderSide(color: CustomTheme.primary),
                         ),
                         icon: Icon(FeatherIcons.copy, size: 16),
-                        label: FxText.bodySmall('Copy', fontWeight: 600),
+                        label: FxText.bodySmall('Copy'
+                            , fontWeight: 600,
+                            color: CustomTheme.primary
+
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -1286,7 +1062,6 @@ ${AppConfig.PLAYSTORE_LINK}
 
   @override
   void dispose() {
-    _tabController.dispose();
     super.dispose();
   }
 }

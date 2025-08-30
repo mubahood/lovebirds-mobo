@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutx/flutx.dart';
 import 'package:get/get.dart';
-import 'package:lovebirds_app/screens/shop/screens/shop/widgets.dart';
 
 import '../../../../controllers/MainController.dart';
 import '../../../../models/LoggedInUserModel.dart';
@@ -53,32 +52,96 @@ class _MyProductsScreenState extends State<MyProductsScreen> {
 
     showModalBottomSheet(
       context: context,
-      barrierColor: CustomTheme.background.withValues(alpha: .5),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
+      backgroundColor: Colors.transparent,
       builder:
           (_) => Container(
-            padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: CustomTheme.card,
+              color: CustomTheme.background,
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(16),
               ),
-            ),
-            child: ListTile(
-              leading: Icon(FeatherIcons.plus, color: CustomTheme.primary),
-              title: FxText.titleMedium(
-                "Post new product",
-                fontWeight: 800,
-                color: CustomTheme.accent,
+              border: Border.all(
+                color: CustomTheme.color4.withOpacity(0.3),
+                width: 0.5,
               ),
-              onTap: () async {
-                Navigator.pop(context);
-                await Get.to(() => const ProductCreateScreen({}));
-                await doRefresh();
-                doRefresh();
-              },
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Handle bar
+                Container(
+                  margin: const EdgeInsets.only(top: 8),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: CustomTheme.color3,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  child: InkWell(
+                    onTap: () async {
+                      Navigator.pop(context);
+                      await Get.to(() => const ProductCreateScreen({}));
+                      await doRefresh();
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: CustomTheme.card,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: CustomTheme.primary.withOpacity(0.2),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: CustomTheme.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              FeatherIcons.plus,
+                              color: CustomTheme.primary,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                FxText.bodyLarge(
+                                  "Add New Product",
+                                  fontWeight: 600,
+                                  color: CustomTheme.colorLight,
+                                ),
+                                const SizedBox(height: 2),
+                                FxText.bodySmall(
+                                  "Create a new product listing",
+                                  color: CustomTheme.color2,
+                                  fontSize: 11,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            FeatherIcons.chevronRight,
+                            color: CustomTheme.color3,
+                            size: 16,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
     );
@@ -88,22 +151,33 @@ class _MyProductsScreenState extends State<MyProductsScreen> {
     Get.defaultDialog(
       title: "Admin Access Required",
       titleStyle: TextStyle(
-        color: CustomTheme.primary,
+        color: CustomTheme.colorLight,
         fontWeight: FontWeight.bold,
       ),
       middleText:
           "Only administrators can post products.\n\nContact support for seller verification.",
-      middleTextStyle: TextStyle(color: CustomTheme.color, fontSize: 16),
+      middleTextStyle: TextStyle(color: CustomTheme.color2, fontSize: 14),
       backgroundColor: CustomTheme.card,
-      radius: 16,
+      radius: 12,
       actions: [
-        FxButton(
-          backgroundColor: CustomTheme.primary,
-          onPressed: () => Get.back(),
-          child: FxText.bodyMedium(
-            "Understood",
-            color: Colors.white,
-            fontWeight: 600,
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [CustomTheme.primary, CustomTheme.primaryDark],
+            ),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: InkWell(
+            onTap: () => Get.back(),
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              child: FxText.bodyMedium(
+                "Understood",
+                color: Colors.white,
+                fontWeight: 600,
+              ),
+            ),
           ),
         ),
       ],
@@ -113,121 +187,431 @@ class _MyProductsScreenState extends State<MyProductsScreen> {
   void _showProductOptions(Product m) {
     showModalBottomSheet(
       context: context,
-      barrierColor: CustomTheme.background.withValues(alpha: .5),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
+      backgroundColor: Colors.transparent,
       builder:
           (_) => Container(
-            padding: const EdgeInsets.symmetric(vertical: 8),
             decoration: BoxDecoration(
-              color: CustomTheme.card,
+              color: CustomTheme.background,
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(16),
+              ),
+              border: Border.all(
+                color: CustomTheme.color4.withOpacity(0.3),
+                width: 0.5,
               ),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                ListTile(
-                  leading: Icon(FeatherIcons.eye, color: CustomTheme.primary),
-                  title: FxText.bodyLarge("View Product"),
-                  trailing: Icon(
-                    FeatherIcons.chevronRight,
-                    color: CustomTheme.primary,
+                // Handle bar
+                Container(
+                  margin: const EdgeInsets.only(top: 8),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: CustomTheme.color3,
+                    borderRadius: BorderRadius.circular(2),
                   ),
+                ),
+
+                // Header
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Icon(
+                        FeatherIcons.package,
+                        color: CustomTheme.accent,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      FxText.titleMedium(
+                        'Product Options',
+                        color: CustomTheme.colorLight,
+                        fontWeight: 600,
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Divider
+                Container(
+                  height: 0.5,
+                  color: CustomTheme.color4.withOpacity(0.3),
+                ),
+
+                const SizedBox(height: 8),
+
+                // Options
+                _buildOptionItem(
+                  icon: FeatherIcons.eye,
+                  title: "View Product",
+                  subtitle: "See product details",
                   onTap: () {
                     Navigator.pop(context);
                     Get.to(() => ProductScreen(m));
                   },
                 ),
+
                 if (currentUser.id == 1) ...[
-                  ListTile(
-                    leading: Icon(
-                      FeatherIcons.edit2,
-                      color: CustomTheme.primary,
-                    ),
-                    title: FxText.bodyLarge("Edit Product"),
-                    trailing: Icon(
-                      FeatherIcons.chevronRight,
-                      color: CustomTheme.primary,
-                    ),
+                  _buildOptionItem(
+                    icon: FeatherIcons.edit2,
+                    title: "Edit Product",
+                    subtitle: "Update product information",
                     onTap: () {
                       Navigator.pop(context);
                       Get.to(() => ProductCreateScreen({'item': m}));
                     },
                   ),
-                  ListTile(
-                    leading: Icon(FeatherIcons.trash2, color: Colors.redAccent),
-                    title: FxText.bodyLarge("Delete Product"),
-                    trailing: Icon(
-                      FeatherIcons.chevronRight,
-                      color: Colors.redAccent,
-                    ),
+                  _buildOptionItem(
+                    icon: FeatherIcons.trash2,
+                    title: "Delete Product",
+                    subtitle: "Remove from your shop",
+                    color: Colors.redAccent,
                     onTap: () async {
                       Navigator.pop(context);
-                      final confirm = await Get.defaultDialog<bool>(
-                        title: "Delete this product?",
-                        middleText: "Are you sure?",
-                        actions: [
-                          FxButton.outlined(
-                            onPressed: () => Get.back(result: false),
-                            borderColor: CustomTheme.primary,
-                            child: FxText.bodySmall(
-                              "CANCEL",
-                              color: CustomTheme.primary,
-                            ),
-                          ),
-                          FxButton(
-                            backgroundColor: Colors.redAccent,
-                            onPressed: () => Get.back(result: true),
-                            child: FxText.bodySmall(
-                              "DELETE",
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      );
-
+                      final confirm = await _showDeleteConfirmation();
                       if (confirm == true) {
-                        setState(() => is_loading = true);
-                        try {
-                          await Product.deleteProduct(m.id);
-                          Utils.toast(
-                            "Product deleted successfully.",
-                            color: Colors.green,
-                          );
-                          await doRefresh();
-                        } catch (e) {
-                          Utils.toast(
-                            "Failed to delete product: $e",
-                            color: Colors.red,
-                          );
-                        }
-                        setState(() => is_loading = false);
+                        await _deleteProduct(m);
                       }
                     },
                   ),
                 ] else ...[
-                  ListTile(
-                    leading: Icon(FeatherIcons.lock, color: Colors.grey),
-                    title: FxText.bodyLarge(
-                      "Admin Access Required",
-                      color: Colors.grey,
+                  Container(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
                     ),
-                    subtitle: FxText.bodySmall(
-                      "Only administrators can edit or delete products",
-                      color: Colors.grey[600],
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: CustomTheme.card.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: CustomTheme.color4.withOpacity(0.2),
+                        width: 0.5,
+                      ),
                     ),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _showAdminOnlyDialog();
-                    },
+                    child: Row(
+                      children: [
+                        Icon(
+                          FeatherIcons.lock,
+                          color: CustomTheme.color3,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              FxText.bodyMedium(
+                                "Admin Access Required",
+                                color: CustomTheme.color2,
+                                fontWeight: 600,
+                              ),
+                              FxText.bodySmall(
+                                "Only administrators can edit or delete products",
+                                color: CustomTheme.color3,
+                                fontSize: 11,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
+
+                const SizedBox(height: 16),
               ],
             ),
           ),
+    );
+  }
+
+  Widget _buildOptionItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    Color? color,
+  }) {
+    final itemColor = color ?? CustomTheme.primary;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: itemColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Icon(icon, color: itemColor, size: 16),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    FxText.bodyMedium(
+                      title,
+                      color: CustomTheme.colorLight,
+                      fontWeight: 600,
+                    ),
+                    FxText.bodySmall(
+                      subtitle,
+                      color: CustomTheme.color2,
+                      fontSize: 11,
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                FeatherIcons.chevronRight,
+                color: CustomTheme.color3,
+                size: 16,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<bool?> _showDeleteConfirmation() {
+    return Get.defaultDialog<bool>(
+      title: "Delete Product",
+      titleStyle: TextStyle(
+        color: CustomTheme.colorLight,
+        fontWeight: FontWeight.bold,
+      ),
+      middleText:
+          "Are you sure you want to delete this product? This action cannot be undone.",
+      middleTextStyle: TextStyle(color: CustomTheme.color2, fontSize: 14),
+      backgroundColor: CustomTheme.card,
+      radius: 12,
+      actions: [
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: CustomTheme.color4.withOpacity(0.3),
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: InkWell(
+                  onTap: () => Get.back(result: false),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: FxText.bodyMedium(
+                      "Cancel",
+                      color: CustomTheme.color2,
+                      fontWeight: 600,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.redAccent,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: InkWell(
+                  onTap: () => Get.back(result: true),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: FxText.bodyMedium(
+                      "Delete",
+                      color: Colors.white,
+                      fontWeight: 600,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> _deleteProduct(Product m) async {
+    setState(() => is_loading = true);
+    try {
+      await Product.deleteProduct(m.id);
+      Utils.toast("Product deleted successfully.", color: Colors.green);
+      await doRefresh();
+    } catch (e) {
+      Utils.toast("Failed to delete product: $e", color: Colors.red);
+    }
+    setState(() => is_loading = false);
+  }
+
+  Widget _buildProductCard(Product product) {
+    return Container(
+      decoration: BoxDecoration(
+        color: CustomTheme.card,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: CustomTheme.color4.withOpacity(0.2),
+          width: 0.5,
+        ),
+      ),
+      child: InkWell(
+        onTap: () => _showProductOptions(product),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Product Image
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: CustomTheme.color4.withOpacity(0.3),
+                    width: 0.5,
+                  ),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child:
+                      product.feature_photo.isNotEmpty
+                          ? Image.network(
+                            "${Utils.img(product.feature_photo)}",
+                            fit: BoxFit.cover,
+                            errorBuilder:
+                                (context, error, stackTrace) => Container(
+                                  color: CustomTheme.color4.withOpacity(0.1),
+                                  child: Icon(
+                                    FeatherIcons.package,
+                                    color: CustomTheme.color3,
+                                    size: 32,
+                                  ),
+                                ),
+                          )
+                          : Container(
+                            color: CustomTheme.color4.withOpacity(0.1),
+                            child: Icon(
+                              FeatherIcons.package,
+                              color: CustomTheme.color3,
+                              size: 32,
+                            ),
+                          ),
+                ),
+              ),
+
+              const SizedBox(width: 12),
+
+              // Product Details
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Product Name
+                    FxText.titleMedium(
+                      product.name,
+                      maxLines: 2,
+                      fontWeight: 700,
+                      color: CustomTheme.colorLight,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+
+                    const SizedBox(height: 6),
+
+                    // Price
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: CustomTheme.primary,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: FxText.bodySmall(
+                        "UGX ${Utils.moneyFormat(product.price_1).toString().toUpperCase()}",
+                        fontWeight: 700,
+                        color: Colors.white,
+                        fontSize: 12,
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    // Category and Date Row
+                    Row(
+                      children: [
+                        Icon(
+                          FeatherIcons.tag,
+                          size: 12,
+                          color: CustomTheme.color3,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: FxText.bodySmall(
+                            product.category.toUpperCase(),
+                            color: CustomTheme.color2,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            fontSize: 10,
+                            fontWeight: 600,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Icon(
+                          FeatherIcons.clock,
+                          size: 12,
+                          color: CustomTheme.color3,
+                        ),
+                        const SizedBox(width: 4),
+                        FxText.bodySmall(
+                          Utils.to_date_1(product.date_added),
+                          color: CustomTheme.color2,
+                          fontSize: 10,
+                          fontWeight: 500,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // Action Indicator
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: CustomTheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Icon(
+                  FeatherIcons.moreVertical,
+                  size: 16,
+                  color: CustomTheme.primary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -263,16 +647,12 @@ class _MyProductsScreenState extends State<MyProductsScreen> {
       color: CustomTheme.primary,
       onRefresh: doRefresh,
       child: ListView.separated(
-        padding: const EdgeInsets.only(left: 12, right: 12, top: 12),
+        padding: const EdgeInsets.all(12),
         itemCount: products.length,
-        separatorBuilder:
-            (_, __) => Divider(color: CustomTheme.color4, height: 0),
+        separatorBuilder: (_, __) => const SizedBox(height: 8),
         itemBuilder: (_, i) {
           final m = products[i];
-          return InkWell(
-            onTap: () => _showProductOptions(m),
-            child: productWidget2(m),
-          );
+          return _buildProductCard(m);
         },
       ),
     );
@@ -295,10 +675,30 @@ class _MyProductsScreenState extends State<MyProductsScreen> {
       ),
       floatingActionButton:
           currentUser.id == 1
-              ? FloatingActionButton(
-                backgroundColor: CustomTheme.primary,
-                onPressed: _showNewProductSheet,
-                child: const Icon(FeatherIcons.plus),
+              ? Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: CustomTheme.primary.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: FloatingActionButton(
+                  backgroundColor: CustomTheme.primary,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  onPressed: _showNewProductSheet,
+                  child: const Icon(
+                    FeatherIcons.plus,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
               )
               : null,
       body: FutureBuilder<void>(

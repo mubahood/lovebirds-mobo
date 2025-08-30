@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutx/flutx.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../controllers/MainController.dart';
 import '../../models/UserModel.dart';
 import '../../services/swipe_service.dart';
-import '../../utils/CustomTheme.dart';
 import '../../utils/lovebirds_theme.dart';
 import '../../widgets/dating/send_gift_widget.dart';
 import '../../widgets/dating/date_planning_widget.dart';
 import '../../widgets/dating/couple_shopping_widget.dart';
 import '../../widgets/dating/milestone_gift_suggestions_widget.dart';
-import 'who_liked_me_screen.dart';
 import '../shop/screens/shop/chat/chat_screen.dart';
 
 class MatchesScreen extends StatefulWidget {
@@ -21,9 +19,15 @@ class MatchesScreen extends StatefulWidget {
 }
 
 class _MatchesScreenState extends State<MatchesScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late TabController _tabController;
+  late AnimationController _headerAnimationController;
+  late AnimationController _cardAnimationController;
+  late Animation<double> _headerAnimation;
+  late Animation<double> _cardAnimation;
+
   final MainController _mainC = Get.find<MainController>();
+  final PageController _pageController = PageController(viewportFraction: 0.85);
 
   List<MatchModel> _allMatches = [];
   List<MatchModel> _filteredMatches = [];
@@ -32,30 +36,72 @@ class _MatchesScreenState extends State<MatchesScreen>
   String _currentFilter = 'all';
   int _currentPage = 1;
   bool _hasMorePages = true;
-  final ScrollController _scrollController = ScrollController();
+  int _currentMatchIndex = 0;
 
   final List<String> _filters = ['all', 'new', 'recent', 'unread'];
   final Map<String, String> _filterLabels = {
     'all': 'All Matches',
-    'new': 'New',
-    'recent': 'Recent',
+    'new': 'Fresh',
+    'recent': 'Active',
     'unread': 'Unread',
   };
+
+  final List<Color> _gradientColors = [
+    Color(0xFF667eea),
+    Color(0xFF764ba2),
+    Color(0xFFf093fb),
+    Color(0xFFf5576c),
+    Color(0xFF4facfe),
+    Color(0xFF00f2fe),
+  ];
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+
+    _headerAnimationController = AnimationController(
+      duration: Duration(milliseconds: 1200),
+      vsync: this,
+    );
+
+    _cardAnimationController = AnimationController(
+      duration: Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _headerAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _headerAnimationController,
+        curve: Curves.easeOutBack,
+      ),
+    );
+
+    _cardAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _cardAnimationController,
+        curve: Curves.elasticOut,
+      ),
+    );
+
     _loadMatches();
-    _scrollController.addListener(_onScroll);
+
+    // Start animations
+    _headerAnimationController.forward();
+    Future.delayed(Duration(milliseconds: 300), () {
+      _cardAnimationController.forward();
+    });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
-    _scrollController.dispose();
+    _headerAnimationController.dispose();
+    _cardAnimationController.dispose();
+    _pageController.dispose();
     super.dispose();
   }
+
 
   void _loadMatches() async {
     try {
@@ -85,14 +131,14 @@ class _MatchesScreenState extends State<MatchesScreen>
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >=
+    /*if (_scrollController.position.pixels >=
             _scrollController.position.maxScrollExtent - 200 &&
         _hasMorePages &&
         !_isLoading) {
       _currentPage++;
       _isLoading = true;
       _loadMatches();
-    }
+    }*/
   }
 
   void _changeFilter(String filter) {
@@ -108,7 +154,6 @@ class _MatchesScreenState extends State<MatchesScreen>
   }
 
   void _openChat(MatchModel match) {
-    // Navigate to enhanced chat screen with dating parameters
     Get.to(
       () => ChatScreen({
         'chatHead': {
@@ -116,18 +161,15 @@ class _MatchesScreenState extends State<MatchesScreen>
           'product_owner_id': _mainC.userModel.id.toString(),
         },
         'matchedUser': match.user,
-        'compatibilityScore': match.compatibilityScore,
+        'compatibilityScore': match.compatibilityScore.toInt(),
         'isNewMatch': _isNewMatch(match),
-        'isDatingMode': true, // Flag to enable dating features
+        'isDatingMode': true,
       }),
     );
   }
 
   bool _isNewMatch(MatchModel match) {
-    // Check if this match is from today (new)
-    final now = DateTime.now();
-    final matchDate = DateTime.parse(match.matchedAt);
-    return now.difference(matchDate).inDays == 0;
+    return match.isNew;
   }
 
   void _showErrorSnackBar(String message) {
@@ -138,6 +180,1066 @@ class _MatchesScreenState extends State<MatchesScreen>
       colorText: Colors.white,
       snackPosition: SnackPosition.BOTTOM,
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[50],
+      body: CustomScrollView(
+        // controller: _scrollController,
+        slivers: [
+          _buildStunningAppBar(),
+          SliverToBoxAdapter(child: SizedBox(height: 8)),
+          SliverToBoxAdapter(child: _buildModernFilterChips()),
+          SliverToBoxAdapter(child: SizedBox(height: 12)),
+          _buildBeautifulMatchesList(),
+        ],
+      ),
+      floatingActionButton: _buildPremiumFloatingActionButton(),
+    );
+  }
+
+  Widget _buildStunningAppBar() {
+    return SliverAppBar(
+      expandedHeight: 180,
+      floating: false,
+      pinned: true,
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      iconTheme: IconThemeData(color: Colors.white),
+      flexibleSpace: FlexibleSpaceBar(
+        titlePadding: EdgeInsets.only(left: 20, bottom: 20),
+        title: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Your Matches',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                letterSpacing: -0.5,
+              ),
+            ),
+            SizedBox(height: 2),
+            Text(
+              '${_filteredMatches.length} connections waiting',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.85),
+                fontSize: 12,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ],
+        ),
+        background: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                LovebirdsTheme.primary,
+                LovebirdsTheme.accent,
+                Colors.pink.shade300,
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              stops: [0.0, 0.7, 1.0],
+            ),
+          ),
+          child: Stack(
+            children: [
+              // Subtle decorative elements
+              Positioned(
+                top: 40,
+                right: -30,
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.08),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 60,
+                left: 30,
+                child: Icon(
+                  Icons.favorite,
+                  color: Colors.white.withValues(alpha: 0.12),
+                  size: 20,
+                ),
+              ),
+              Positioned(
+                top: 30,
+                right: 100,
+                child: Icon(
+                  Icons.favorite,
+                  color: Colors.white.withValues(alpha: 0.08),
+                  size: 16,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        Container(
+          margin: EdgeInsets.only(right: 16, top: 8),
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withValues(alpha: 0.2),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+            ),
+            child: IconButton(
+              icon: Icon(Icons.tune_rounded, color: Colors.white, size: 20),
+              onPressed: () => _showFilterOptions(),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildModernFilterChips() {
+    return Container(
+      height: 50,
+      padding: EdgeInsets.symmetric(vertical: 4),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.symmetric(horizontal: 16),
+        itemCount: _filters.length,
+        itemBuilder: (context, index) {
+          final filter = _filters[index];
+          final label = _filterLabels[filter]!;
+          final count = _filterCounts[filter] ?? 0;
+          final isSelected = filter == _currentFilter;
+
+          return Container(
+            margin: EdgeInsets.only(right: 10),
+            child: FilterChip(
+              label: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : LovebirdsTheme.primary,
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.w500,
+                      fontSize: 13,
+                    ),
+                  ),
+                  if (count > 0) ...[
+                    SizedBox(width: 6),
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color:
+                            isSelected
+                                ? Colors.white.withValues(alpha: 0.3)
+                                : LovebirdsTheme.accent,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        count.toString(),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              selected: isSelected,
+              onSelected: (_) => _changeFilter(filter),
+              selectedColor: LovebirdsTheme.primary,
+              backgroundColor: Colors.white,
+              elevation: isSelected ? 6 : 2,
+              shadowColor:
+                  isSelected
+                      ? LovebirdsTheme.primary.withValues(alpha: 0.3)
+                      : Colors.grey.withValues(alpha: 0.2),
+              padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(25),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildBeautifulMatchesList() {
+    if (_isLoading && _currentPage == 1) {
+      return SliverFillRemaining(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [LovebirdsTheme.primary, LovebirdsTheme.accent],
+                  ),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    strokeWidth: 3,
+                  ),
+                ),
+              ),
+              SizedBox(height: 20),
+              Text(
+                'Finding your perfect matches...',
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_filteredMatches.isEmpty) {
+      return SliverFillRemaining(child: _buildStunningEmptyState());
+    }
+
+    return SliverList(
+      delegate: SliverChildBuilderDelegate((context, index) {
+        if (index >= _filteredMatches.length) {
+          return Container(
+            padding: EdgeInsets.all(20),
+            child: Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  LovebirdsTheme.primary,
+                ),
+              ),
+            ),
+          );
+        }
+        return _buildPremiumMatchCard(_filteredMatches[index], index);
+      }, childCount: _filteredMatches.length + (_hasMorePages ? 1 : 0)),
+    );
+  }
+
+  Widget _buildPremiumMatchCard(MatchModel match, int index) {
+    final timeDiff = DateTime.now().difference(DateTime.parse(match.matchedAt));
+    final timeAgo = _formatTimeAgo(timeDiff);
+
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: Card(
+        elevation: 12,
+        shadowColor: LovebirdsTheme.primary.withValues(alpha: 0.15),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            gradient: LinearGradient(
+              colors: [Colors.white, Colors.grey.shade50],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(24),
+            onTap: () => _openChat(match),
+            child: Padding(
+              padding: EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  _buildGorgeousAvatar(match.user),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                match.user.name,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey.shade800,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            _buildBeautifulCompatibilityBadge(
+                              match.compatibilityScore.toInt(),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 6),
+                        Text(
+                          '${match.user.age} years old',
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            match.conversationStarter.isNotEmpty
+                                ? match.conversationStarter
+                                : 'Say hello to ${match.user.name}! 👋',
+                            style: TextStyle(
+                              color: Colors.grey.shade700,
+                              fontSize: 13,
+                              fontStyle: FontStyle.italic,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.schedule_rounded,
+                              size: 14,
+                              color: Colors.grey.shade500,
+                            ),
+                            SizedBox(width: 4),
+                            Text(
+                              'Matched $timeAgo',
+                              style: TextStyle(
+                                color: Colors.grey.shade500,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                            Spacer(),
+                            if (match.isNew)
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange.shade400,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  'NEW',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    children: [
+                      _buildPremiumActionButton(
+                        Icons.chat_bubble_rounded,
+                        LovebirdsTheme.primary,
+                        () => _openChat(match),
+                      ),
+                      SizedBox(height: 8),
+                      _buildPremiumActionButton(
+                        Icons.more_horiz_rounded,
+                        Colors.grey.shade400,
+                        () => _showMatchActions(match),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGorgeousAvatar(UserModel user) {
+    return Container(
+      width: 70,
+      height: 70,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          colors: [
+            LovebirdsTheme.primary,
+            LovebirdsTheme.accent,
+            Colors.pink.shade300,
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: LovebirdsTheme.primary.withValues(alpha: 0.3),
+            blurRadius: 12,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(3),
+        child: ClipOval(
+          child:
+              user.avatar.isNotEmpty
+                  ? CachedNetworkImage(
+                    imageUrl: user.avatar,
+                    fit: BoxFit.cover,
+                    placeholder:
+                        (context, url) => Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.person,
+                            color: Colors.grey.shade400,
+                            size: 30,
+                          ),
+                        ),
+                    errorWidget:
+                        (context, url, error) => _buildFallbackAvatar(user),
+                  )
+                  : _buildFallbackAvatar(user),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFallbackAvatar(UserModel user) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        shape: BoxShape.circle,
+      ),
+      child: Center(
+        child: Text(
+          _getInitials(user.name),
+          style: TextStyle(
+            color: LovebirdsTheme.primary,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBeautifulCompatibilityBadge(int score) {
+    Color badgeColor;
+
+    if (score >= 80) {
+      badgeColor = Colors.green.shade400;
+    } else if (score >= 60) {
+      badgeColor = LovebirdsTheme.accent;
+    } else if (score >= 40) {
+      badgeColor = Colors.orange.shade400;
+    } else {
+      badgeColor = Colors.grey.shade400;
+    }
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: badgeColor,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: badgeColor.withValues(alpha: 0.3),
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.favorite, size: 12, color: Colors.white),
+          SizedBox(width: 4),
+          Text(
+            '$score%',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPremiumActionButton(
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.2),
+            blurRadius: 6,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: onTap,
+          child: Center(child: Icon(icon, color: color, size: 18)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStunningEmptyState() {
+    String title;
+    String subtitle;
+    IconData icon;
+
+    switch (_currentFilter) {
+      case 'new':
+        title = 'No new matches yet';
+        subtitle = 'Keep swiping to find fresh connections!';
+        icon = Icons.favorite_border_rounded;
+        break;
+      case 'recent':
+        title = 'No recent activity';
+        subtitle = 'Start conversations with your matches!';
+        icon = Icons.chat_bubble_outline_rounded;
+        break;
+      case 'unread':
+        title = 'All caught up!';
+        subtitle = 'No unread messages from matches.';
+        icon = Icons.mark_email_read_rounded;
+        break;
+      default:
+        title = 'No matches yet';
+        subtitle = 'Start swiping to find your perfect match!';
+        icon = Icons.search_rounded;
+    }
+
+    return Container(
+      padding: EdgeInsets.all(40),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [
+                  LovebirdsTheme.primary.withValues(alpha: 0.1),
+                  LovebirdsTheme.accent.withValues(alpha: 0.1),
+                ],
+              ),
+              border: Border.all(
+                color: LovebirdsTheme.primary.withValues(alpha: 0.2),
+                width: 2,
+              ),
+            ),
+            child: Icon(
+              icon,
+              size: 50,
+              color: LovebirdsTheme.primary.withValues(alpha: 0.7),
+            ),
+          ),
+          SizedBox(height: 24),
+          Text(
+            title,
+            style: TextStyle(
+              color: Colors.grey.shade700,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 12),
+          Text(
+            subtitle,
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontSize: 16,
+              fontWeight: FontWeight.w400,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 32),
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [LovebirdsTheme.primary, LovebirdsTheme.accent],
+              ),
+              borderRadius: BorderRadius.circular(30),
+              boxShadow: [
+                BoxShadow(
+                  color: LovebirdsTheme.primary.withValues(alpha: 0.3),
+                  blurRadius: 12,
+                  offset: Offset(0, 6),
+                ),
+              ],
+            ),
+            child: ElevatedButton.icon(
+              onPressed: () => Navigator.pop(context),
+              icon: Icon(Icons.swipe_rounded, color: Colors.white),
+              label: Text(
+                'Start Swiping',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPremiumFloatingActionButton() {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30),
+        gradient: LinearGradient(
+          colors: [
+            LovebirdsTheme.primary,
+            LovebirdsTheme.accent,
+            Colors.pink.shade300,
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: LovebirdsTheme.primary.withValues(alpha: 0.4),
+            blurRadius: 20,
+            offset: Offset(0, 10),
+          ),
+        ],
+      ),
+      child: FloatingActionButton.extended(
+        onPressed: () => _showDatingFeaturesMenu(),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        icon: Icon(Icons.favorite_rounded, color: Colors.white, size: 22),
+        label: Text(
+          'Features',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: 15,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showFilterOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder:
+          (context) => Container(
+            padding: EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 20,
+                  offset: Offset(0, -5),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Filter Your Matches',
+                  style: TextStyle(
+                    color: Colors.grey.shade800,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 20),
+                ...['all', 'new', 'recent', 'unread'].map((filter) {
+                  final isSelected = filter == _currentFilter;
+                  return Container(
+                    margin: EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color:
+                          isSelected
+                              ? LovebirdsTheme.primary.withValues(alpha: 0.1)
+                              : Colors.transparent,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color:
+                            isSelected
+                                ? LovebirdsTheme.primary.withValues(alpha: 0.3)
+                                : Colors.transparent,
+                      ),
+                    ),
+                    child: ListTile(
+                      leading: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color:
+                              isSelected
+                                  ? LovebirdsTheme.primary
+                                  : Colors.grey.shade200,
+                        ),
+                        child: Icon(
+                          isSelected
+                              ? Icons.radio_button_checked
+                              : Icons.radio_button_off,
+                          color:
+                              isSelected ? Colors.white : Colors.grey.shade600,
+                          size: 20,
+                        ),
+                      ),
+                      title: Text(
+                        _filterLabels[filter]!,
+                        style: TextStyle(
+                          color:
+                              isSelected
+                                  ? LovebirdsTheme.primary
+                                  : Colors.grey.shade700,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.w500,
+                          fontSize: 16,
+                        ),
+                      ),
+                      trailing:
+                          _filterCounts[filter] != null &&
+                                  _filterCounts[filter]! > 0
+                              ? Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: LovebirdsTheme.primary,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  _filterCounts[filter].toString(),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              )
+                              : null,
+                      onTap: () {
+                        Navigator.pop(context);
+                        _changeFilter(filter);
+                      },
+                    ),
+                  );
+                }).toList(),
+              ],
+            ),
+          ),
+    );
+  }
+
+  void _showMatchActions(MatchModel match) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder:
+          (context) => Container(
+            padding: EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Actions for ${match.user.name}',
+                  style: TextStyle(
+                    color: Colors.grey.shade800,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 20),
+                ...[
+                  {
+                    'icon': Icons.chat_rounded,
+                    'title': 'Send Message',
+                    'action': 'chat',
+                    'color': LovebirdsTheme.primary,
+                  },
+                  {
+                    'icon': Icons.card_giftcard_rounded,
+                    'title': 'Send Gift',
+                    'action': 'gift',
+                    'color': Colors.orange.shade400,
+                  },
+                  {
+                    'icon': Icons.calendar_today_rounded,
+                    'title': 'Plan Date',
+                    'action': 'date',
+                    'color': Colors.green.shade400,
+                  },
+                  {
+                    'icon': Icons.shopping_cart_rounded,
+                    'title': 'Shop Together',
+                    'action': 'shop',
+                    'color': Colors.purple.shade400,
+                  },
+                ].map((item) {
+                  return Container(
+                    margin: EdgeInsets.only(bottom: 12),
+                    child: ListTile(
+                      leading: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: (item['color'] as Color).withValues(
+                            alpha: 0.15,
+                          ),
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Icon(
+                          item['icon'] as IconData,
+                          color: item['color'] as Color,
+                          size: 24,
+                        ),
+                      ),
+                      title: Text(
+                        item['title'] as String,
+                        style: TextStyle(
+                          color: Colors.grey.shade800,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                        ),
+                      ),
+                      trailing: Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        color: Colors.grey.shade400,
+                        size: 16,
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        _handleMatchAction(item['action'] as String, match);
+                      },
+                    ),
+                  );
+                }).toList(),
+              ],
+            ),
+          ),
+    );
+  }
+
+  void _showDatingFeaturesMenu() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder:
+          (context) => Container(
+            padding: EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Dating Features',
+                  style: TextStyle(
+                    color: Colors.grey.shade800,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 20),
+                ...[
+                  {
+                    'icon': Icons.calendar_today_rounded,
+                    'title': 'Plan a Date',
+                    'subtitle': 'Find amazing date ideas',
+                    'action': 'date_planning',
+                    'color': Colors.green.shade400,
+                  },
+                  {
+                    'icon': Icons.card_giftcard_rounded,
+                    'title': 'Send Gifts',
+                    'subtitle': 'Surprise your matches',
+                    'action': 'send_gifts',
+                    'color': Colors.orange.shade400,
+                  },
+                  {
+                    'icon': Icons.shopping_cart_rounded,
+                    'title': 'Shop Together',
+                    'subtitle': 'Browse items as a couple',
+                    'action': 'couple_shopping',
+                    'color': Colors.purple.shade400,
+                  },
+                  {
+                    'icon': Icons.celebration_rounded,
+                    'title': 'Milestone Gifts',
+                    'subtitle': 'Celebrate special moments',
+                    'action': 'milestone_gifts',
+                    'color': Colors.pink.shade400,
+                  },
+                ].map((item) {
+                  return Container(
+                    margin: EdgeInsets.only(bottom: 12),
+                    child: ListTile(
+                      leading: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              item['color'] as Color,
+                              (item['color'] as Color).withValues(alpha: 0.7),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Icon(
+                          item['icon'] as IconData,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                      title: Text(
+                        item['title'] as String,
+                        style: TextStyle(
+                          color: Colors.grey.shade800,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                        ),
+                      ),
+                      subtitle: Text(
+                        item['subtitle'] as String,
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 14,
+                        ),
+                      ),
+                      trailing: Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        color: Colors.grey.shade400,
+                        size: 16,
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        _handleMenuAction(item['action'] as String);
+                      },
+                    ),
+                  );
+                }).toList(),
+              ],
+            ),
+          ),
+    );
+  }
+
+  void _handleMatchAction(String action, MatchModel match) {
+    switch (action) {
+      case 'chat':
+        _openChat(match);
+        break;
+      case 'gift':
+        _openSendGiftForMatch(match);
+        break;
+      case 'date':
+        _openDatePlanningForMatch(match);
+        break;
+      case 'shop':
+        _openCoupleShoppingForMatch(match);
+        break;
+    }
   }
 
   void _handleMenuAction(String action) {
@@ -157,144 +1259,7 @@ class _MatchesScreenState extends State<MatchesScreen>
     }
   }
 
-  Widget _buildMenuItem(IconData icon, String title, String subtitle) {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.white, size: 20),
-          SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                FxText.bodyMedium(title, color: Colors.white, fontWeight: 600),
-                FxText.bodySmall(subtitle, color: Colors.white70),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showDatingFeaturesMenu() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: CustomTheme.background,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder:
-          (context) => Container(
-            padding: EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.white30,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                SizedBox(height: 20),
-                FxText.titleMedium(
-                  'Dating & Marketplace Features',
-                  color: Colors.white,
-                  fontWeight: 700,
-                ),
-                SizedBox(height: 20),
-                _buildFeatureButton(
-                  Icons.calendar_today,
-                  'Plan a Date',
-                  'Discover restaurants and activities',
-                  () => _showDatePlanningDemo(),
-                ),
-                _buildFeatureButton(
-                  Icons.card_giftcard,
-                  'Send Gifts',
-                  'Surprise your matches with thoughtful gifts',
-                  () => _showSendGiftsDemo(),
-                ),
-                _buildFeatureButton(
-                  Icons.shopping_cart,
-                  'Shop Together',
-                  'Browse and buy items as a couple',
-                  () => _showCoupleShoppingDemo(),
-                ),
-                _buildFeatureButton(
-                  Icons.celebration,
-                  'Milestone Gifts',
-                  'Special gifts for relationship milestones',
-                  () => _showMilestoneGiftsDemo(),
-                ),
-                SizedBox(height: 20),
-              ],
-            ),
-          ),
-    );
-  }
-
-  Widget _buildFeatureButton(
-    IconData icon,
-    String title,
-    String subtitle,
-    VoidCallback onTap,
-  ) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 16),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: () {
-            Navigator.pop(context);
-            onTap();
-          },
-          child: Container(
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: CustomTheme.primary.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(icon, color: CustomTheme.primary, size: 24),
-                ),
-                SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      FxText.bodyMedium(
-                        title,
-                        color: Colors.white,
-                        fontWeight: 600,
-                      ),
-                      SizedBox(height: 4),
-                      FxText.bodySmall(subtitle, color: Colors.white70),
-                    ],
-                  ),
-                ),
-                Icon(Icons.arrow_forward_ios, color: Colors.white30, size: 16),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   void _showDatePlanningDemo() {
-    // Create demo user models
     final demoCurrentUser = UserModel();
     demoCurrentUser.id = 1;
     demoCurrentUser.name = 'Current User';
@@ -314,7 +1279,7 @@ class _MatchesScreenState extends State<MatchesScreen>
           Get.snackbar(
             'Date Idea Selected',
             idea,
-            backgroundColor: CustomTheme.primary.withValues(alpha: 0.9),
+            backgroundColor: LovebirdsTheme.primary.withValues(alpha: 0.9),
             colorText: Colors.white,
           );
         },
@@ -323,7 +1288,6 @@ class _MatchesScreenState extends State<MatchesScreen>
   }
 
   void _showSendGiftsDemo() {
-    // Create demo user models
     final demoCurrentUser = UserModel();
     demoCurrentUser.id = 1;
     demoCurrentUser.name = 'Current User';
@@ -343,7 +1307,7 @@ class _MatchesScreenState extends State<MatchesScreen>
           Get.snackbar(
             'Gift Sent',
             'Gift sent successfully to ${demoMatchedUser.name}!',
-            backgroundColor: CustomTheme.primary.withValues(alpha: 0.9),
+            backgroundColor: LovebirdsTheme.primary.withValues(alpha: 0.9),
             colorText: Colors.white,
           );
         },
@@ -371,35 +1335,7 @@ class _MatchesScreenState extends State<MatchesScreen>
     );
   }
 
-  void _handleMatchAction(String action, MatchModel match) {
-    switch (action) {
-      case 'send_gift':
-        _openSendGiftForMatch(match);
-        break;
-      case 'plan_date':
-        _openDatePlanningForMatch(match);
-        break;
-      case 'shop_together':
-        _openCoupleShoppingForMatch(match);
-        break;
-      case 'milestone_gifts':
-        _openMilestoneGiftsForMatch(match);
-        break;
-    }
-  }
-
-  Widget _buildMatchMenuItem(IconData icon, String title) {
-    return Row(
-      children: [
-        Icon(icon, color: Colors.white, size: 18),
-        SizedBox(width: 12),
-        FxText.bodyMedium(title, color: Colors.white),
-      ],
-    );
-  }
-
   void _openSendGiftForMatch(MatchModel match) {
-    // Create demo user models
     final demoCurrentUser = UserModel();
     demoCurrentUser.id = 1;
     demoCurrentUser.name = 'Current User';
@@ -419,7 +1355,7 @@ class _MatchesScreenState extends State<MatchesScreen>
           Get.snackbar(
             'Gift Sent',
             'Gift sent successfully to ${match.user.name}!',
-            backgroundColor: CustomTheme.primary.withValues(alpha: 0.9),
+            backgroundColor: LovebirdsTheme.primary.withValues(alpha: 0.9),
             colorText: Colors.white,
           );
         },
@@ -447,7 +1383,7 @@ class _MatchesScreenState extends State<MatchesScreen>
           Get.snackbar(
             'Date Planned',
             'Date idea selected for ${match.user.name}: $idea',
-            backgroundColor: CustomTheme.primary.withValues(alpha: 0.9),
+            backgroundColor: LovebirdsTheme.primary.withValues(alpha: 0.9),
             colorText: Colors.white,
           );
         },
@@ -464,482 +1400,6 @@ class _MatchesScreenState extends State<MatchesScreen>
     );
   }
 
-  void _openMilestoneGiftsForMatch(MatchModel match) {
-    Get.to(
-      () => MilestoneGiftSuggestionsWidget(
-        partnerId: match.user.id.toString(),
-        partnerName: match.user.name,
-        relationshipStartDate: match.matchedAt,
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: CustomTheme.background,
-      appBar: AppBar(
-        backgroundColor: CustomTheme.background,
-        elevation: 0,
-        title: FxText.titleLarge(
-          'Matches',
-          fontWeight: 700,
-          color: Colors.white,
-        ),
-        iconTheme: IconThemeData(color: Colors.white),
-        actions: [
-          // Quick access to dating features
-          PopupMenuButton<String>(
-            icon: Icon(Icons.more_vert, color: Colors.white),
-            color: CustomTheme.background,
-            onSelected: (value) => _handleMenuAction(value),
-            itemBuilder:
-                (context) => [
-                  PopupMenuItem(
-                    value: 'date_planning',
-                    child: _buildMenuItem(
-                      Icons.calendar_today,
-                      'Plan a Date',
-                      'Discover and book date activities',
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'send_gifts',
-                    child: _buildMenuItem(
-                      Icons.card_giftcard,
-                      'Send Gifts',
-                      'Surprise your matches with gifts',
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'couple_shopping',
-                    child: _buildMenuItem(
-                      Icons.shopping_cart,
-                      'Shop Together',
-                      'Browse and buy items together',
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'milestone_gifts',
-                    child: _buildMenuItem(
-                      Icons.celebration,
-                      'Milestone Gifts',
-                      'Gifts for special occasions',
-                    ),
-                  ),
-                ],
-          ),
-        ],
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(50),
-          child: Container(
-            height: 50,
-            margin: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(25),
-            ),
-            child: TabBar(
-              controller: _tabController,
-              indicator: BoxDecoration(
-                borderRadius: BorderRadius.circular(25),
-                color: LovebirdsTheme.primary,
-              ),
-              indicatorSize: TabBarIndicatorSize.tab,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white70,
-              labelStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-              unselectedLabelStyle: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-              ),
-              tabs: [
-                Tab(
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: Text('My Matches'),
-                  ),
-                ),
-                Tab(
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: Text('Who Liked Me'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [_buildMatchesTab(), WhoLikedMeScreen()],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showDatingFeaturesMenu(),
-        backgroundColor: CustomTheme.primary,
-        icon: Icon(Icons.favorite, color: Colors.white),
-        label: FxText.bodyMedium(
-          'Dating Features',
-          color: Colors.white,
-          fontWeight: 600,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMatchesTab() {
-    return Column(
-      children: [
-        // Filter tabs
-        _buildFilterTabs(),
-
-        // Matches content
-        Expanded(child: _buildMatchesContent()),
-      ],
-    );
-  }
-
-  Widget _buildFilterTabs() {
-    return Container(
-      height: 60,
-      padding: EdgeInsets.symmetric(vertical: 8),
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(horizontal: 16),
-        itemCount: _filters.length,
-        itemBuilder: (context, index) {
-          final filter = _filters[index];
-          final label = _filterLabels[filter]!;
-          final count = _filterCounts[filter] ?? 0;
-          final isSelected = filter == _currentFilter;
-
-          return Container(
-            margin: EdgeInsets.only(right: 12),
-            child: GestureDetector(
-              onTap: () => _changeFilter(filter),
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: isSelected ? CustomTheme.primary : Colors.transparent,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isSelected ? CustomTheme.primary : Colors.white30,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    FxText.bodyMedium(
-                      label,
-                      color: isSelected ? Colors.white : Colors.white70,
-                      fontWeight: isSelected ? 600 : 400,
-                    ),
-                    if (count > 0) ...[
-                      SizedBox(width: 8),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color:
-                              isSelected
-                                  ? Colors.white.withValues(alpha: 0.2)
-                                  : CustomTheme.primary,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: FxText.bodySmall(
-                          count.toString(),
-                          color: Colors.white,
-                          fontWeight: 600,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildMatchesContent() {
-    if (_isLoading && _currentPage == 1) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(CustomTheme.primary),
-            ),
-            SizedBox(height: 16),
-            FxText.bodyMedium('Loading your matches...', color: Colors.white70),
-          ],
-        ),
-      );
-    }
-
-    if (_filteredMatches.isEmpty) {
-      return _buildEmptyState();
-    }
-
-    return ListView.builder(
-      controller: _scrollController,
-      padding: EdgeInsets.all(16),
-      itemCount: _filteredMatches.length + (_hasMorePages ? 1 : 0),
-      itemBuilder: (context, index) {
-        if (index >= _filteredMatches.length) {
-          return Center(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(CustomTheme.primary),
-              ),
-            ),
-          );
-        }
-
-        final match = _filteredMatches[index];
-        return _buildMatchCard(match);
-      },
-    );
-  }
-
-  Widget _buildEmptyState() {
-    String title;
-    String subtitle;
-    IconData icon;
-
-    switch (_currentFilter) {
-      case 'new':
-        title = 'No new matches';
-        subtitle = 'Keep swiping to find new people!';
-        icon = Icons.fiber_new;
-        break;
-      case 'recent':
-        title = 'No recent activity';
-        subtitle = 'Start conversations with your matches!';
-        icon = Icons.access_time;
-        break;
-      case 'unread':
-        title = 'All caught up!';
-        subtitle = 'No unread messages from your matches.';
-        icon = Icons.mark_email_read;
-        break;
-      default:
-        title = 'No matches yet';
-        subtitle = 'Start swiping to find your perfect match!';
-        icon = Icons.favorite_border;
-    }
-
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 80, color: Colors.grey),
-          SizedBox(height: 24),
-          FxText.titleMedium(title, color: Colors.white, fontWeight: 600),
-          SizedBox(height: 8),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 40),
-            child: FxText.bodyMedium(
-              subtitle,
-              color: Colors.white70,
-              textAlign: TextAlign.center,
-            ),
-          ),
-          SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () => Navigator.pop(context),
-            icon: Icon(Icons.swipe, color: Colors.white),
-            label: FxText.bodyMedium(
-              'Start Swiping',
-              color: Colors.white,
-              fontWeight: 600,
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: CustomTheme.primary,
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMatchCard(MatchModel match) {
-    final timeDiff = DateTime.now().difference(DateTime.parse(match.matchedAt));
-    final timeAgo = _formatTimeAgo(timeDiff);
-
-    return Container(
-      margin: EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: CustomTheme.background,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(15),
-          onTap: () => _openChat(match),
-          child: Padding(
-            padding: EdgeInsets.all(16),
-            child: Row(
-              children: [
-                // User photo
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(50),
-                  child: Container(
-                    width: 60,
-                    height: 60,
-                    child: _buildUserAvatar(match.user),
-                  ),
-                ),
-
-                SizedBox(width: 16),
-
-                // User info
-                Flexible(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: FxText.titleSmall(
-                              match.user.name,
-                              color: Colors.white,
-                              fontWeight: 600,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          if (match.messagesCount > 0) ...[
-                            SizedBox(width: 8),
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                color: CustomTheme.primary,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-
-                      SizedBox(height: 4),
-
-                      FxText.bodySmall(
-                        match.conversationStarter.isNotEmpty
-                            ? match.conversationStarter
-                            : 'Say hello to ${match.user.name}!',
-                        color: Colors.white70,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-
-                      SizedBox(height: 4),
-
-                      FxText.bodySmall(
-                        'Matched $timeAgo',
-                        color: Colors.white60,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-
-                SizedBox(width: 12),
-
-                // Quick action buttons
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Chat button
-                    GestureDetector(
-                      onTap: () => _openChat(match),
-                      child: Container(
-                        padding: EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: CustomTheme.primary.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          Icons.chat_bubble_outline,
-                          color: CustomTheme.primary,
-                          size: 20,
-                        ),
-                      ),
-                    ),
-
-                    SizedBox(width: 8),
-
-                    // Dating features menu
-                    PopupMenuButton<String>(
-                      icon: Container(
-                        padding: EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          Icons.more_horiz,
-                          color: Colors.white70,
-                          size: 20,
-                        ),
-                      ),
-                      color: CustomTheme.background,
-                      onSelected: (value) => _handleMatchAction(value, match),
-                      itemBuilder:
-                          (context) => [
-                            PopupMenuItem(
-                              value: 'send_gift',
-                              child: _buildMatchMenuItem(
-                                Icons.card_giftcard,
-                                'Send Gift',
-                              ),
-                            ),
-                            PopupMenuItem(
-                              value: 'plan_date',
-                              child: _buildMatchMenuItem(
-                                Icons.calendar_today,
-                                'Plan Date',
-                              ),
-                            ),
-                            PopupMenuItem(
-                              value: 'shop_together',
-                              child: _buildMatchMenuItem(
-                                Icons.shopping_cart,
-                                'Shop Together',
-                              ),
-                            ),
-                            PopupMenuItem(
-                              value: 'milestone_gifts',
-                              child: _buildMatchMenuItem(
-                                Icons.celebration,
-                                'Milestone Gifts',
-                              ),
-                            ),
-                          ],
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   String _formatTimeAgo(Duration difference) {
     if (difference.inDays > 0) {
       return '${difference.inDays}d ago';
@@ -950,75 +1410,6 @@ class _MatchesScreenState extends State<MatchesScreen>
     } else {
       return 'Just now';
     }
-  }
-
-  Widget _buildUserAvatar(UserModel user) {
-    final avatarUrl = user.avatar.isNotEmpty ? user.avatar : null;
-
-    return Container(
-      width: 60,
-      height: 60,
-      decoration: BoxDecoration(
-        color: CustomTheme.card,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.2),
-          width: 1,
-        ),
-      ),
-      child: ClipOval(
-        child:
-            avatarUrl != null
-                ? CachedNetworkImage(
-                  imageUrl: avatarUrl,
-                  fit: BoxFit.cover,
-                  width: 60,
-                  height: 60,
-                  placeholder:
-                      (context, url) => Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: CustomTheme.primary.withOpacity(0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              CustomTheme.primary,
-                            ),
-                          ),
-                        ),
-                      ),
-                  errorWidget:
-                      (context, url, error) => _buildFallbackAvatar(user),
-                )
-                : _buildFallbackAvatar(user),
-      ),
-    );
-  }
-
-  Widget _buildFallbackAvatar(UserModel user) {
-    final initials = _getInitials(user.name);
-    return Container(
-      width: 60,
-      height: 60,
-      decoration: BoxDecoration(
-        color: CustomTheme.primary,
-        shape: BoxShape.circle,
-      ),
-      child: Center(
-        child: Text(
-          initials,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
   }
 
   String _getInitials(String name) {

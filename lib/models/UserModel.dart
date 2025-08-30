@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:sqflite/sqflite.dart';
 
 import '../utils/AppConfig.dart';
@@ -443,6 +444,7 @@ class UserModel {
       if (lastUpdate != null) 'last_update_date': lastUpdate,
     };
     final resp = RespondModel(await Utils.http_get(endPoint, params));
+
     if (resp.code != 1 ||
         resp.data == null ||
         resp.data is! Map<String, dynamic>)
@@ -533,9 +535,8 @@ class MatchModel {
   // Computed properties for backward compatibility
   bool get hasMessage => messagesCount > 0;
   bool get isSuperLike => matchType == 'super_like';
-  bool get isNew =>
-      status == 'new' ||
-      (DateTime.now().difference(DateTime.parse(matchedAt)).inHours < 24);
+
+  bool get isNew => status == 'new';
 
   MatchModel();
 

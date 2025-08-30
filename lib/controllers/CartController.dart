@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 
+import '../models/DeliveryAddress.dart';
 import '../models/LoggedInUserModel.dart';
 import '../screens/shop/models/CartItem.dart';
 import '../screens/shop/models/OrderOnline.dart';
@@ -16,17 +17,34 @@ class CartController extends GetxController {
   final RxDouble deliveryFee = 5000.0.obs;
   final RxDouble taxRate = 0.13.obs; // 13% VAT
   final RxString deliveryMethod = 'delivery'.obs; // 'pickup' or 'delivery'
-  final RxString selectedAddress = ''.obs;
-  final RxString selectedAddressId = ''.obs;
+  final Rx<DeliveryAddress?> selectedDeliveryAddress = Rx<DeliveryAddress?>(
+    null,
+  );
   final RxBool isLoading = false.obs;
 
   // Computed properties
   double get tax => subtotal.value * taxRate.value;
-  double get actualDeliveryFee => deliveryMethod.value == 'pickup' ? 0.0 : deliveryFee.value;
+  double get actualDeliveryFee {
+    if (deliveryMethod.value == 'pickup') {
+      return 0.0;
+    }
+    if (selectedDeliveryAddress.value != null) {
+      return Utils.double_parse(selectedDeliveryAddress.value!.shipping_cost);
+    }
+    return deliveryFee.value;
+  }
+
   double get total => subtotal.value + tax + actualDeliveryFee;
   int get itemCount => cartItems.length;
   bool get isEmpty => cartItems.isEmpty;
   bool get isNotEmpty => cartItems.isNotEmpty;
+
+  // Address getters for backward compatibility
+  String get selectedAddress => selectedDeliveryAddress.value?.address ?? '';
+  String get selectedAddressId =>
+      selectedDeliveryAddress.value?.id.toString() ?? '';
+  String get selectedAddressShippingCost =>
+      selectedDeliveryAddress.value?.shipping_cost ?? '0';
 
   @override
   void onInit() {
@@ -42,13 +60,13 @@ class CartController extends GetxController {
       subtotal.value = 0.0;
 
       List<CartItem> items = await CartItem.getItems();
-      
+
       for (CartItem item in items) {
         // Ensure product data is loaded
         if (item.pro.id < 1) {
           await item.getPro();
         }
-        
+
         if (item.pro.id > 0) {
           // Handle dynamic pricing
           if (item.pro.p_type == 'Yes') {
@@ -63,10 +81,11 @@ class CartController extends GetxController {
           } else {
             item.product_price_1 = item.pro.price_1;
           }
-          
+
           cartItems.add(item);
-          subtotal.value += Utils.double_parse(item.product_quantity) * 
-                          Utils.double_parse(item.product_price_1);
+          subtotal.value +=
+              Utils.double_parse(item.product_quantity) *
+              Utils.double_parse(item.product_price_1);
         }
       }
     } catch (e) {
@@ -77,12 +96,16 @@ class CartController extends GetxController {
   }
 
   // Add product to cart
-  Future<bool> addToCart(Product product, {String color = "", String size = ""}) async {
+  Future<bool> addToCart(
+    Product product, {
+    String color = "",
+    String size = "",
+  }) async {
     try {
       // Check if item already exists
       for (CartItem item in cartItems) {
-        if (item.product_id == product.id.toString() && 
-            item.color == color && 
+        if (item.product_id == product.id.toString() &&
+            item.color == color &&
             item.size == size) {
           showMessage('Item already in cart', isError: false);
           return false;
@@ -102,7 +125,7 @@ class CartController extends GetxController {
 
       await cartItem.save();
       await loadCartItems();
-      
+
       showMessage('${product.name} added to cart');
       return true;
     } catch (e) {
@@ -121,9 +144,9 @@ class CartController extends GetxController {
 
       // Find and update the item
       CartItem? item = cartItems.firstWhereOrNull(
-        (item) => item.product_id == productId
+        (item) => item.product_id == productId,
       );
-      
+
       if (item != null) {
         item.product_quantity = quantity.toString();
         await item.save();
@@ -162,15 +185,37 @@ class CartController extends GetxController {
   void setDeliveryMethod(String method) {
     deliveryMethod.value = method;
     if (method == 'pickup') {
-      selectedAddress.value = '';
-      selectedAddressId.value = '';
+      selectedDeliveryAddress.value = null;
     }
   }
 
   // Set delivery address
-  void setDeliveryAddress(String address, String addressId) {
-    selectedAddress.value = address;
-    selectedAddressId.value = addressId;
+  void setDeliveryAddress(DeliveryAddress? address) {
+    selectedDeliveryAddress.value = address;
+  }
+
+  // Backward compatibility method
+  void setDeliveryAddressFromData(String address, String addressId) {
+    // Try to find the delivery address from local data
+    _findAndSetDeliveryAddress(addressId);
+  }
+
+  // Helper method to find and set delivery address
+  Future<void> _findAndSetDeliveryAddress(String addressId) async {
+    try {
+      if (addressId.isNotEmpty) {
+        int id = Utils.int_parse(addressId);
+        List<DeliveryAddress> addresses = await DeliveryAddress.get_items();
+        for (DeliveryAddress address in addresses) {
+          if (address.id == id) {
+            selectedDeliveryAddress.value = address;
+            break;
+          }
+        }
+      }
+    } catch (e) {
+      print('Error finding delivery address: $e');
+    }
   }
 
   // Validate order before checkout
@@ -180,7 +225,8 @@ class CartController extends GetxController {
       return false;
     }
 
-    if (deliveryMethod.value == 'delivery' && selectedAddress.value.isEmpty) {
+    if (deliveryMethod.value == 'delivery' &&
+        selectedDeliveryAddress.value == null) {
       showMessage('Please select delivery address', isError: true);
       return false;
     }
@@ -191,14 +237,17 @@ class CartController extends GetxController {
   // Create order object
   Future<OrderOnline> createOrder() async {
     OrderOnline order = OrderOnline();
-    
+
     // Set delivery information
     order.delivery_method = deliveryMethod.value;
     order.delivery_amount = actualDeliveryFee.toString();
-    
-    if (deliveryMethod.value == 'delivery' && selectedAddressId.value.isNotEmpty) {
-      order.delivery_address_id = selectedAddressId.value;
-      order.delivery_address_text = selectedAddress.value;
+
+    if (deliveryMethod.value == 'delivery' &&
+        selectedDeliveryAddress.value != null) {
+      DeliveryAddress deliveryAddr = selectedDeliveryAddress.value!;
+      order.delivery_address_id = deliveryAddr.id.toString();
+      order.delivery_address_text = deliveryAddr.address;
+      order.delivery_amount = deliveryAddr.shipping_cost;
     }
 
     // Set order totals
@@ -223,9 +272,10 @@ class CartController extends GetxController {
     Get.snackbar(
       isError ? 'Error' : 'Success',
       message,
-      backgroundColor: isError 
-          ? Colors.red.withOpacity(0.9)
-          : CustomTheme.primary.withOpacity(0.9),
+      backgroundColor:
+          isError
+              ? Colors.red.withOpacity(0.9)
+              : CustomTheme.primary.withOpacity(0.9),
       colorText: Colors.white,
       snackPosition: SnackPosition.BOTTOM,
       margin: const EdgeInsets.all(16),
@@ -247,7 +297,9 @@ class CartController extends GetxController {
       'total': total,
       'item_count': itemCount,
       'delivery_method': deliveryMethod.value,
-      'selected_address': selectedAddress.value,
+      'selected_address': selectedAddress,
+      'selected_address_id': selectedAddressId,
+      'delivery_address': selectedDeliveryAddress.value,
     };
   }
 }

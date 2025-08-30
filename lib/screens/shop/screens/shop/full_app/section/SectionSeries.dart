@@ -74,8 +74,6 @@ class _SectionSeriesState extends State<SectionSeries> {
       final fetched = await NewMovieModel.getMoviesOnline(
         page: _page,
         perPage: _perPage,
-        typeFilter: 'Series',
-        isFirstEpisode: 'yes',
       );
       if (!mounted) return;
       setState(() {

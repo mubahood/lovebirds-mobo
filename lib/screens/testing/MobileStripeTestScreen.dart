@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'dart:convert';
 
 import '../../models/RespondModel.dart';
-import '../../utils/Utils.dart';
-import '../shop/models/Order.dart';
+import '../../utils/Utilities.dart';
 import '../../models/LoggedInUserModel.dart';
 
 /// Mobile Stripe Integration Test Screen
@@ -87,7 +85,10 @@ class _MobileStripeTestScreenState extends State<MobileStripeTestScreen> {
             const SizedBox(height: 8),
             Text(
               '👤 User: ${currentUser!.first_name} ${currentUser!.last_name}',
-              style: TextStyle(color: Colors.green[600], fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: Colors.green[600],
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ],
@@ -101,13 +102,17 @@ class _MobileStripeTestScreenState extends State<MobileStripeTestScreen> {
         Expanded(
           child: ElevatedButton.icon(
             onPressed: isRunningTests ? null : _runCompleteTest,
-            icon: isRunningTests 
-                ? SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                  )
-                : Icon(Icons.play_arrow),
+            icon:
+                isRunningTests
+                    ? SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                    : Icon(Icons.play_arrow),
             label: Text(isRunningTests ? 'Testing...' : 'Run Complete Test'),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green,
@@ -242,7 +247,11 @@ class _MobileStripeTestScreenState extends State<MobileStripeTestScreen> {
         children: [
           _buildStat('Passed', passed.toString(), Colors.green),
           _buildStat('Failed', (total - passed).toString(), Colors.red),
-          _buildStat('Success', '$rate%', rate >= 80 ? Colors.green : Colors.orange),
+          _buildStat(
+            'Success',
+            '$rate%',
+            rate >= 80 ? Colors.green : Colors.orange,
+          ),
           if (testOrderId != null)
             _buildStat('Order', testOrderId!.substring(0, 4), Colors.blue),
         ],
@@ -255,7 +264,11 @@ class _MobileStripeTestScreenState extends State<MobileStripeTestScreen> {
       children: [
         Text(
           value,
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
         ),
         Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
       ],
@@ -302,7 +315,7 @@ class _MobileStripeTestScreenState extends State<MobileStripeTestScreen> {
     final passed = testResults.where((r) => r.passed).length;
     final total = testResults.length;
     final rate = (passed / total * 100).round();
-    
+
     Get.snackbar(
       'Test Complete',
       '$passed/$total tests passed ($rate% success)',
@@ -317,26 +330,31 @@ class _MobileStripeTestScreenState extends State<MobileStripeTestScreen> {
       currentUser = await LoggedInUserModel.getLoggedInUser();
     }
 
-    testResults.add(TestResult(
-      name: 'User Authentication',
-      description: 'Check if user is logged in',
-      passed: currentUser != null && currentUser!.id > 0,
-      details: currentUser != null 
-          ? 'User ID: ${currentUser!.id}'
-          : 'No user logged in',
-    ));
+    testResults.add(
+      TestResult(
+        name: 'User Authentication',
+        description: 'Check if user is logged in',
+        passed: currentUser != null && currentUser!.id > 0,
+        details:
+            currentUser != null
+                ? 'User ID: ${currentUser!.id}'
+                : 'No user logged in',
+      ),
+    );
     setState(() {});
   }
 
   Future<void> _testCreateOrder() async {
     try {
       if (currentUser == null) {
-        testResults.add(TestResult(
-          name: 'Create Order',
-          description: 'Create test order with sample products',
-          passed: false,
-          details: 'No user logged in',
-        ));
+        testResults.add(
+          TestResult(
+            name: 'Create Order',
+            description: 'Create test order with sample products',
+            passed: false,
+            details: 'No user logged in',
+          ),
+        );
         setState(() {});
         return;
       }
@@ -345,7 +363,10 @@ class _MobileStripeTestScreenState extends State<MobileStripeTestScreen> {
         'user': currentUser!.id,
         'customer_name': '${currentUser!.first_name} ${currentUser!.last_name}',
         'customer_phone_number_1': currentUser!.phone_number,
-        'customer_address': currentUser!.address.isNotEmpty ? currentUser!.address : '123 Test Street',
+        'customer_address':
+            currentUser!.address.isNotEmpty
+                ? currentUser!.address
+                : '123 Test Street',
         'amount': '67.48',
         'order_total': '67.48',
         'total_amount': '6748', // In cents
@@ -356,12 +377,14 @@ class _MobileStripeTestScreenState extends State<MobileStripeTestScreen> {
             'product_id': 1,
             'quantity': 2,
             'price': 25.99,
-            'name': 'Mobile Test Product'
-          }
-        ]
+            'name': 'Mobile Test Product',
+          },
+        ],
       };
 
-      RespondModel r = RespondModel(await Utils.http_post('create-order', orderData));
+      RespondModel r = RespondModel(
+        await Utils.http_post('create-order', orderData),
+      );
 
       bool success = r.code == 1;
       String details = r.message;
@@ -370,26 +393,30 @@ class _MobileStripeTestScreenState extends State<MobileStripeTestScreen> {
         if (r.data is Map && r.data['order'] != null) {
           var order = r.data['order'];
           testOrderId = order['id']?.toString();
-          details = testOrderId != null 
-              ? 'Order created: $testOrderId'
-              : 'Order created successfully';
+          details =
+              testOrderId != null
+                  ? 'Order created: $testOrderId'
+                  : 'Order created successfully';
         }
       }
 
-      testResults.add(TestResult(
-        name: 'Create Order',
-        description: 'Create test order with sample products',
-        passed: success,
-        details: details,
-      ));
-
+      testResults.add(
+        TestResult(
+          name: 'Create Order',
+          description: 'Create test order with sample products',
+          passed: success,
+          details: details,
+        ),
+      );
     } catch (e) {
-      testResults.add(TestResult(
-        name: 'Create Order',
-        description: 'Create test order with sample products',
-        passed: false,
-        details: 'Error: ${e.toString()}',
-      ));
+      testResults.add(
+        TestResult(
+          name: 'Create Order',
+          description: 'Create test order with sample products',
+          passed: false,
+          details: 'Error: ${e.toString()}',
+        ),
+      );
     }
     setState(() {});
   }
@@ -401,7 +428,9 @@ class _MobileStripeTestScreenState extends State<MobileStripeTestScreen> {
         'logged_in_user_id': currentUser?.id ?? 1,
       };
 
-      RespondModel r = RespondModel(await Utils.http_post('generate-payment-link', paymentData));
+      RespondModel r = RespondModel(
+        await Utils.http_post('generate-payment-link', paymentData),
+      );
 
       bool success = r.code == 1;
       String details = r.message;
@@ -413,38 +442,45 @@ class _MobileStripeTestScreenState extends State<MobileStripeTestScreen> {
         }
       }
 
-      testResults.add(TestResult(
-        name: 'Generate Payment Link',
-        description: 'Create Stripe payment link',
-        passed: success,
-        details: details,
-      ));
-
+      testResults.add(
+        TestResult(
+          name: 'Generate Payment Link',
+          description: 'Create Stripe payment link',
+          passed: success,
+          details: details,
+        ),
+      );
     } catch (e) {
-      testResults.add(TestResult(
-        name: 'Generate Payment Link',
-        description: 'Create Stripe payment link',
-        passed: false,
-        details: 'Error: ${e.toString()}',
-      ));
+      testResults.add(
+        TestResult(
+          name: 'Generate Payment Link',
+          description: 'Create Stripe payment link',
+          passed: false,
+          details: 'Error: ${e.toString()}',
+        ),
+      );
     }
     setState(() {});
   }
 
   Future<void> _testValidatePaymentUrl() async {
-    bool isValid = paymentUrl != null && 
-                   paymentUrl!.isNotEmpty &&
-                   paymentUrl!.contains('stripe.com') &&
-                   paymentUrl!.startsWith('https://');
+    bool isValid =
+        paymentUrl != null &&
+        paymentUrl!.isNotEmpty &&
+        paymentUrl!.contains('stripe.com') &&
+        paymentUrl!.startsWith('https://');
 
-    testResults.add(TestResult(
-      name: 'Validate Payment URL',
-      description: 'Check payment URL is valid Stripe link',
-      passed: isValid,
-      details: isValid 
-          ? 'Valid Stripe HTTPS URL'
-          : 'Invalid or missing payment URL',
-    ));
+    testResults.add(
+      TestResult(
+        name: 'Validate Payment URL',
+        description: 'Check payment URL is valid Stripe link',
+        passed: isValid,
+        details:
+            isValid
+                ? 'Valid Stripe HTTPS URL'
+                : 'Invalid or missing payment URL',
+      ),
+    );
     setState(() {});
   }
 
@@ -455,32 +491,40 @@ class _MobileStripeTestScreenState extends State<MobileStripeTestScreen> {
       bool success = r.code == 1;
       String details = r.message;
 
-      if (success && r.data != null && r.data is Map && r.data['orders'] != null) {
+      if (success &&
+          r.data != null &&
+          r.data is Map &&
+          r.data['orders'] != null) {
         List orders = r.data['orders'];
         details = 'Found ${orders.length} orders';
-        
+
         if (testOrderId != null) {
-          bool found = orders.any((order) => order['id'].toString() == testOrderId);
+          bool found = orders.any(
+            (order) => order['id'].toString() == testOrderId,
+          );
           if (found) {
             details += ' (including test order)';
           }
         }
       }
 
-      testResults.add(TestResult(
-        name: 'Retrieve Orders',
-        description: 'Fetch user order history',
-        passed: success,
-        details: details,
-      ));
-
+      testResults.add(
+        TestResult(
+          name: 'Retrieve Orders',
+          description: 'Fetch user order history',
+          passed: success,
+          details: details,
+        ),
+      );
     } catch (e) {
-      testResults.add(TestResult(
-        name: 'Retrieve Orders',
-        description: 'Fetch user order history',
-        passed: false,
-        details: 'Error: ${e.toString()}',
-      ));
+      testResults.add(
+        TestResult(
+          name: 'Retrieve Orders',
+          description: 'Fetch user order history',
+          passed: false,
+          details: 'Error: ${e.toString()}',
+        ),
+      );
     }
     setState(() {});
   }
@@ -489,7 +533,7 @@ class _MobileStripeTestScreenState extends State<MobileStripeTestScreen> {
     try {
       if (await canLaunchUrl(Uri.parse(url))) {
         await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-        
+
         Get.snackbar(
           'Payment Page Opened',
           'Use test card: 4242 4242 4242 4242',

@@ -22,6 +22,9 @@ class Order {
   String stripeText = "";
   String stripeUrl = "";
   String stripePaid = "No";
+  String stripeProductId = "";
+  String stripePriceId = "";
+  String totalAmount = "0";
   String createdAt = "";
   String updatedAt = "";
   List<OrderItem> items = [];
@@ -55,6 +58,9 @@ class Order {
     obj.stripeText = Utils.to_str(m['stripe_text'], '');
     obj.stripeUrl = Utils.to_str(m['stripe_url'], '');
     obj.stripePaid = Utils.to_str(m['stripe_paid'], 'No');
+    obj.stripeProductId = Utils.to_str(m['stripe_product_id'], '');
+    obj.stripePriceId = Utils.to_str(m['stripe_price_id'], '');
+    obj.totalAmount = Utils.to_str(m['total_amount'], '0');
     obj.createdAt = Utils.to_str(m['created_at'], '');
     obj.updatedAt = Utils.to_str(m['updated_at'], '');
 
@@ -92,6 +98,9 @@ class Order {
       'stripe_text': stripeText,
       'stripe_url': stripeUrl,
       'stripe_paid': stripePaid,
+      'stripe_product_id': stripeProductId,
+      'stripe_price_id': stripePriceId,
+      'total_amount': totalAmount,
       'created_at': createdAt,
       'updated_at': updatedAt,
       'items': items.map((item) => item.toJson()).toList(),
@@ -100,11 +109,16 @@ class Order {
 
   String getStatusText() {
     switch (orderState) {
-      case 0: return "Pending";
-      case 1: return "Processing";
-      case 2: return "Completed";
-      case 3: return "Cancelled";
-      default: return "Unknown";
+      case 0:
+        return "Pending";
+      case 1:
+        return "Processing";
+      case 2:
+        return "Completed";
+      case 3:
+        return "Cancelled";
+      default:
+        return "Unknown";
     }
   }
 
@@ -127,7 +141,7 @@ class OrderItem {
   String size = "";
   String createdAt = "";
   String updatedAt = "";
-  
+
   // Additional product info (if populated by backend)
   String productName = "";
   String productImage = "";
@@ -150,7 +164,7 @@ class OrderItem {
     obj.size = Utils.to_str(m['size'], '');
     obj.createdAt = Utils.to_str(m['created_at'], '');
     obj.updatedAt = Utils.to_str(m['updated_at'], '');
-    
+
     // Additional product info
     obj.productName = Utils.to_str(m['product_name'], '');
     obj.productImage = Utils.to_str(m['product_image'], '');

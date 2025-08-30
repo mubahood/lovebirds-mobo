@@ -16,7 +16,7 @@ class CartFloatingButton extends StatelessWidget {
 
     return Obx(() {
       if (cartController.cartItems.isEmpty) return const SizedBox();
-      
+
       return Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(50),
@@ -57,10 +57,7 @@ class CartFloatingButton extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: CustomTheme.primary, width: 1.5),
                 ),
-                constraints: const BoxConstraints(
-                  minWidth: 20,
-                  minHeight: 20,
-                ),
+                constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
                 child: FxText.bodySmall(
                   '${cartController.cartItems.length}',
                   color: CustomTheme.primary,

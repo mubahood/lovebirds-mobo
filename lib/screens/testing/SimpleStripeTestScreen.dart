@@ -78,7 +78,10 @@ class _SimpleStripeTestScreenState extends State<SimpleStripeTestScreen> {
             const SizedBox(height: 8),
             Text(
               '👤 ${user!.first_name} ${user!.last_name}',
-              style: TextStyle(color: Colors.blue[600], fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: Colors.blue[600],
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ],
@@ -94,13 +97,17 @@ class _SimpleStripeTestScreenState extends State<SimpleStripeTestScreen> {
             Expanded(
               child: ElevatedButton.icon(
                 onPressed: isRunning ? null : _runTest,
-                icon: isRunning 
-                    ? SizedBox(
-                        width: 16, 
-                        height: 16, 
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)
-                      )
-                    : Icon(Icons.play_arrow),
+                icon:
+                    isRunning
+                        ? SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                        : Icon(Icons.play_arrow),
                 label: Text(isRunning ? 'Testing...' : 'Run Test'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
@@ -237,9 +244,17 @@ class _SimpleStripeTestScreenState extends State<SimpleStripeTestScreen> {
         children: [
           _buildStat('Passed', passed.toString(), Colors.green),
           _buildStat('Failed', (total - passed).toString(), Colors.red),
-          _buildStat('Rate', '$rate%', rate >= 80 ? Colors.green : Colors.orange),
+          _buildStat(
+            'Rate',
+            '$rate%',
+            rate >= 80 ? Colors.green : Colors.orange,
+          ),
           if (orderId != null)
-            _buildStat('Order', orderId!.length > 4 ? orderId!.substring(0, 4) : orderId!, Colors.blue),
+            _buildStat(
+              'Order',
+              orderId!.length > 4 ? orderId!.substring(0, 4) : orderId!,
+              Colors.blue,
+            ),
         ],
       ),
     );
@@ -250,7 +265,11 @@ class _SimpleStripeTestScreenState extends State<SimpleStripeTestScreen> {
       children: [
         Text(
           value,
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
         ),
         Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
       ],
@@ -267,14 +286,14 @@ class _SimpleStripeTestScreenState extends State<SimpleStripeTestScreen> {
 
     await _testUser();
     await Future.delayed(const Duration(milliseconds: 500));
-    
+
     await _testCreateOrder();
     await Future.delayed(const Duration(milliseconds: 500));
-    
+
     if (orderId != null) {
       await _testGeneratePaymentLink();
       await Future.delayed(const Duration(milliseconds: 500));
-      
+
       if (paymentUrl != null) {
         await _testPaymentUrl();
       }
@@ -302,24 +321,28 @@ class _SimpleStripeTestScreenState extends State<SimpleStripeTestScreen> {
       user = await LoggedInUserModel.getLoggedInUser();
     }
 
-    results.add(TestResult(
-      name: 'User Check',
-      description: 'Verify user is logged in',
-      passed: user != null && user!.id > 0,
-      details: user != null ? 'User ID: ${user!.id}' : 'No user logged in',
-    ));
+    results.add(
+      TestResult(
+        name: 'User Check',
+        description: 'Verify user is logged in',
+        passed: user != null && user!.id > 0,
+        details: user != null ? 'User ID: ${user!.id}' : 'No user logged in',
+      ),
+    );
     setState(() {});
   }
 
   Future<void> _testCreateOrder() async {
     try {
       if (user == null) {
-        results.add(TestResult(
-          name: 'Create Order',
-          description: 'Create test order',
-          passed: false,
-          details: 'No user available',
-        ));
+        results.add(
+          TestResult(
+            name: 'Create Order',
+            description: 'Create test order',
+            passed: false,
+            details: 'No user available',
+          ),
+        );
         setState(() {});
         return;
       }
@@ -327,7 +350,8 @@ class _SimpleStripeTestScreenState extends State<SimpleStripeTestScreen> {
       final orderData = {
         'user': user!.id,
         'customer_name': '${user!.first_name} ${user!.last_name}',
-        'customer_phone_number_1': user!.phone_number.isNotEmpty ? user!.phone_number : '+1234567890',
+        'customer_phone_number_1':
+            user!.phone_number.isNotEmpty ? user!.phone_number : '+1234567890',
         'customer_address': '123 Test Street',
         'amount': '29.99',
         'order_total': '29.99',
@@ -335,7 +359,9 @@ class _SimpleStripeTestScreenState extends State<SimpleStripeTestScreen> {
         'description': 'Mobile test order',
       };
 
-      final response = RespondModel(await Utils.http_post('orders-create', orderData));
+      final response = RespondModel(
+        await Utils.http_post('orders-create', orderData),
+      );
 
       bool success = response.code == 1;
       String details = response.message;
@@ -349,20 +375,23 @@ class _SimpleStripeTestScreenState extends State<SimpleStripeTestScreen> {
         }
       }
 
-      results.add(TestResult(
-        name: 'Create Order',
-        description: 'Create test order',
-        passed: success,
-        details: details,
-      ));
-
+      results.add(
+        TestResult(
+          name: 'Create Order',
+          description: 'Create test order',
+          passed: success,
+          details: details,
+        ),
+      );
     } catch (e) {
-      results.add(TestResult(
-        name: 'Create Order',
-        description: 'Create test order',
-        passed: false,
-        details: 'Error: ${e.toString()}',
-      ));
+      results.add(
+        TestResult(
+          name: 'Create Order',
+          description: 'Create test order',
+          passed: false,
+          details: 'Error: ${e.toString()}',
+        ),
+      );
     }
     setState(() {});
   }
@@ -374,7 +403,9 @@ class _SimpleStripeTestScreenState extends State<SimpleStripeTestScreen> {
         'logged_in_user_id': user?.id ?? 1,
       };
 
-      final response = RespondModel(await Utils.http_post('generate-payment-link', paymentData));
+      final response = RespondModel(
+        await Utils.http_post('generate-payment-link', paymentData),
+      );
 
       bool success = response.code == 1;
       String details = response.message;
@@ -386,36 +417,42 @@ class _SimpleStripeTestScreenState extends State<SimpleStripeTestScreen> {
         }
       }
 
-      results.add(TestResult(
-        name: 'Payment Link',
-        description: 'Generate Stripe payment link',
-        passed: success,
-        details: details,
-      ));
-
+      results.add(
+        TestResult(
+          name: 'Payment Link',
+          description: 'Generate Stripe payment link',
+          passed: success,
+          details: details,
+        ),
+      );
     } catch (e) {
-      results.add(TestResult(
-        name: 'Payment Link',
-        description: 'Generate Stripe payment link',
-        passed: false,
-        details: 'Error: ${e.toString()}',
-      ));
+      results.add(
+        TestResult(
+          name: 'Payment Link',
+          description: 'Generate Stripe payment link',
+          passed: false,
+          details: 'Error: ${e.toString()}',
+        ),
+      );
     }
     setState(() {});
   }
 
   Future<void> _testPaymentUrl() async {
-    bool valid = paymentUrl != null && 
-                 paymentUrl!.isNotEmpty &&
-                 paymentUrl!.contains('stripe.com') &&
-                 paymentUrl!.startsWith('https://');
+    bool valid =
+        paymentUrl != null &&
+        paymentUrl!.isNotEmpty &&
+        paymentUrl!.contains('stripe.com') &&
+        paymentUrl!.startsWith('https://');
 
-    results.add(TestResult(
-      name: 'Payment URL',
-      description: 'Validate payment URL',
-      passed: valid,
-      details: valid ? 'Valid Stripe HTTPS URL' : 'Invalid URL format',
-    ));
+    results.add(
+      TestResult(
+        name: 'Payment URL',
+        description: 'Validate payment URL',
+        passed: valid,
+        details: valid ? 'Valid Stripe HTTPS URL' : 'Invalid URL format',
+      ),
+    );
     setState(() {});
   }
 
@@ -423,7 +460,7 @@ class _SimpleStripeTestScreenState extends State<SimpleStripeTestScreen> {
     try {
       if (await canLaunchUrl(Uri.parse(url))) {
         await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-        
+
         Get.snackbar(
           'Payment Opened',
           'Test card: 4242 4242 4242 4242\nAny future date, any CVC',

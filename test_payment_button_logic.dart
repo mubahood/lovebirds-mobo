@@ -4,7 +4,7 @@
 
 void main() {
   print('=== PAYMENT BUTTON LOGIC TEST ===\n');
-  
+
   // Test scenarios with different order states
   List<TestOrder> testOrders = [
     TestOrder(
@@ -15,7 +15,7 @@ void main() {
       stripeUrl: '',
     ),
     TestOrder(
-      id: 2, 
+      id: 2,
       description: 'Pending order, not paid, has payment URL',
       orderState: 0,
       stripePaid: 'No',
@@ -32,7 +32,7 @@ void main() {
       id: 4,
       description: 'Processing order, not paid, no payment URL',
       orderState: 1,
-      stripePaid: 'No', 
+      stripePaid: 'No',
       stripeUrl: '',
     ),
     TestOrder(
@@ -50,18 +50,20 @@ void main() {
       stripeUrl: '',
     ),
   ];
-  
+
   for (TestOrder order in testOrders) {
     print('📦 Order #${order.id}: ${order.description}');
-    print('   State: ${order.orderState}, Paid: ${order.stripePaid}, URL: ${order.stripeUrl.isEmpty ? "(empty)" : "(exists)"}');
-    
+    print(
+      '   State: ${order.orderState}, Paid: ${order.stripePaid}, URL: ${order.stripeUrl.isEmpty ? "(empty)" : "(exists)"}',
+    );
+
     String buttonResult = getButtonLogic(order);
     print('   🔲 Button: $buttonResult');
-    
+
     bool isCorrect = validateButtonLogic(order, buttonResult);
     print('   ${isCorrect ? "✅ CORRECT" : "❌ ISSUE"}\n');
   }
-  
+
   print('=== SUMMARY ===');
   print('The updated logic prioritizes payment buttons:');
   print('1. PRIORITY 1: Pay Now (when URL exists and not paid)');
@@ -76,7 +78,7 @@ class TestOrder {
   final int orderState;
   final String stripePaid;
   final String stripeUrl;
-  
+
   TestOrder({
     required this.id,
     required this.description,
@@ -92,7 +94,8 @@ String getButtonLogic(TestOrder order) {
     return "Pay Now";
   } else if (order.stripePaid != "Yes" && order.stripeUrl.isEmpty) {
     return "Generate Payment";
-  } else if (order.stripePaid == "Yes" && (order.orderState == 0 || order.orderState == 1)) {
+  } else if (order.stripePaid == "Yes" &&
+      (order.orderState == 0 || order.orderState == 1)) {
     return "Track Order";
   } else {
     return "No Button";
@@ -104,12 +107,13 @@ bool validateButtonLogic(TestOrder order, String buttonResult) {
   if (order.stripePaid != "Yes") {
     return buttonResult == "Pay Now" || buttonResult == "Generate Payment";
   }
-  
+
   // A paid processing order should have Track button
-  if (order.stripePaid == "Yes" && (order.orderState == 0 || order.orderState == 1)) {
+  if (order.stripePaid == "Yes" &&
+      (order.orderState == 0 || order.orderState == 1)) {
     return buttonResult == "Track Order";
   }
-  
+
   // Completed paid orders might not need any button
   return true;
 }
