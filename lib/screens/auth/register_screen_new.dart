@@ -8,11 +8,11 @@ import 'package:lovebirds_app/features/legal/views/community_guidelines_screen.d
 import 'package:lovebirds_app/features/legal/views/privacy_policy_screen.dart';
 import 'package:lovebirds_app/features/legal/views/terms_of_service_screen.dart';
 import 'package:lovebirds_app/screens/auth/login_screen.dart';
+import 'package:lovebirds_app/src/features/app_introduction/view/onboarding_screens.dart';
 import 'package:lovebirds_app/utils/lovebirds_theme.dart';
 
 import '../../models/LoggedInUserModel.dart';
 import '../../models/RespondModel.dart';
-import '../../src/features/app_introduction/view/splash_screen.dart';
 import '../../utils/AppConfig.dart';
 import '../../utils/Utilities.dart';
 
@@ -507,7 +507,7 @@ class RegisterScreenState extends State<RegisterScreen> {
         );
 
         Utils.toast('Account created successfully! Welcome to Lovebirds!');
-        Get.offAll(() => const SplashScreen());
+        Get.offAll(() => const OnBoardingScreen());
       } else {
         Utils.toast(responseModel.message ?? 'Registration failed');
       }

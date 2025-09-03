@@ -10,11 +10,9 @@ import '../../models/RespondModel.dart';
 import '../../models/UserModel.dart';
 import '../../controllers/MainController.dart';
 import '../../services/swipe_service.dart';
-import '../../services/BoostService.dart';
 import '../../utils/CustomTheme.dart';
 import '../../utils/Utilities.dart';
 import '../../widgets/dating/swipe_shimmer.dart';
-import '../../widgets/dating/boost_dialog.dart';
 import '../shop/screens/shop/chat/chat_screen.dart';
 import '../dating/ProfileViewScreen.dart';
 import '../dating/AnalyticsScreen.dart';
@@ -68,11 +66,6 @@ class _OrbitalSwipeScreenState extends State<OrbitalSwipeScreen>
   int likesRemaining = 10; // Updated to 10 for free users
   int messagesRemaining = 10; // New: message limits for free users
   bool hasPremium = false;
-
-  // Boost functionality
-  Map<String, dynamic>? _boostStatus;
-  bool _isBoostActive = false;
-  String _boostTimeRemaining = '';
 
   // Analytics data
   Map<String, dynamic>? _analyticsData;
@@ -193,12 +186,8 @@ class _OrbitalSwipeScreenState extends State<OrbitalSwipeScreen>
 
   Future<void> _loadStats() async {
     try {
-      // Load user stats, boost status, and analytics in parallel
-      await Future.wait([
-        _loadUserStats(),
-        _loadBoostStatus(),
-        _loadAnalyticsData(),
-      ]);
+      // Load user stats and analytics in parallel
+      await Future.wait([_loadUserStats(), _loadAnalyticsData()]);
 
       setState(() {
         likesRemaining = 10; // Updated: Will be updated from user stats
@@ -232,25 +221,6 @@ class _OrbitalSwipeScreenState extends State<OrbitalSwipeScreen>
     } catch (e) {
       print('Error loading user stats: $e');
       return {};
-    }
-  }
-
-  Future<void> _loadBoostStatus() async {
-    try {
-      final response = await BoostService.getBoostStatus();
-      if (response.code == 1) {
-        setState(() {
-          _boostStatus = response.data;
-          _isBoostActive = response.data?['is_boosted'] ?? false;
-
-          if (_isBoostActive) {
-            final currentBoost = response.data?['current_boost'];
-            _boostTimeRemaining = currentBoost?['time_remaining'] ?? '';
-          }
-        });
-      }
-    } catch (e) {
-      print('Error loading boost status: $e');
     }
   }
 
@@ -306,22 +276,34 @@ class _OrbitalSwipeScreenState extends State<OrbitalSwipeScreen>
     });
   }
 
-  void _onUserTap(int index) {
-    if (index == selectedUserIndex) {
-      // Tapped on center user - show details
-      setState(() {
-        _showUserDetails = !_showUserDetails;
-      });
-    } else {
-      // Tapped on orbital user - bring to center
+  // Direct click handlers with no conflicts
+  void _handleOrbitalUserTap(int index) {
+    if (_isAnimating) return;
+
+    HapticFeedback.lightImpact();
+    print('Orbital user tapped: ${users[index].name} (index: $index)');
+
+    if (index != selectedUserIndex) {
+      // Bring this user to center
       _bringUserToCenter(index);
     }
+  }
+
+  void _handleCenterUserTap() {
+    if (_selectedUser == null) return;
+
+    HapticFeedback.lightImpact();
+    print('Center user tapped: ${_selectedUser!.name}');
+
+    Utils.toast("Opening ${_selectedUser!.name}'s profile");
+    _openUserProfile(_selectedUser!);
   }
 
   void _bringUserToCenter(int index) {
     if (_isAnimating) return;
 
     setState(() {
+      _isAnimating = true;
       selectedUserIndex = index;
       _selectedUser = users[index];
       _showUserDetails = false;
@@ -330,11 +312,17 @@ class _OrbitalSwipeScreenState extends State<OrbitalSwipeScreen>
     // Calculate rotation needed
     final targetAngle = -(index * (math.pi * 2 / users.length));
 
-    _rotationController.animateTo(
-      targetAngle / (math.pi * 2),
-      duration: const Duration(milliseconds: 800),
-      curve: Curves.easeInOut,
-    );
+    _rotationController
+        .animateTo(
+          targetAngle / (math.pi * 2),
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.easeInOut,
+        )
+        .then((_) {
+          setState(() {
+            _isAnimating = false;
+          });
+        });
 
     _scaleController.forward().then((_) {
       _scaleController.reverse();
@@ -360,7 +348,7 @@ class _OrbitalSwipeScreenState extends State<OrbitalSwipeScreen>
 
     // Snap to nearest user
     final userCount = users.length;
-    if (userCount > 0) {
+    if (userCount > 0 && !_isAnimating) {
       final anglePerUser = (math.pi * 2) / userCount;
       final normalizedAngle = _currentAngle % (math.pi * 2);
       final nearestUserIndex =
@@ -1058,7 +1046,7 @@ class _OrbitalSwipeScreenState extends State<OrbitalSwipeScreen>
                         left: posX,
                         top: posY,
                         child: GestureDetector(
-                          onTap: () => _onUserTap(index),
+                          onTap: () => _handleOrbitalUserTap(index),
                           child: AnimatedScale(
                             duration: const Duration(milliseconds: 300),
                             scale: isSelected ? 0.3 : 1.0,
@@ -1087,17 +1075,7 @@ class _OrbitalSwipeScreenState extends State<OrbitalSwipeScreen>
                             return Transform.scale(
                               scale: _scaleAnimation.value,
                               child: GestureDetector(
-                                onTap: () {
-                                  print(
-                                    'Center user tapped: ${_selectedUser!.name}',
-                                  );
-                                  Utils.toast(
-                                    "Opening ${_selectedUser!.name}'s profile",
-                                  );
-                                  // Add haptic feedback for better UX
-                                  HapticFeedback.lightImpact();
-                                  _openUserProfile(_selectedUser!);
-                                },
+                                onTap: _handleCenterUserTap,
                                 child: Container(
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
@@ -1391,14 +1369,17 @@ class _OrbitalSwipeScreenState extends State<OrbitalSwipeScreen>
             badge: likesRemaining > 0 ? null : '0',
           ),
 
-          // Boost button (moved from app bar)
+          // View Profile button (replaces Boost)
           _buildModernActionButtonWithText(
-            icon: FeatherIcons.zap,
-            color: _isBoostActive ? Colors.orange[600]! : Colors.amber[600]!,
+            icon: FeatherIcons.user,
+            color: CustomTheme.primary,
             size: 50,
-            label: 'Boost',
-            onPressed: _showBoostDialog,
-            badge: _isBoostActive ? '⚡' : null,
+            label: 'View Profile',
+            onPressed:
+                _selectedUser != null
+                    ? () => _openUserProfile(_selectedUser!)
+                    : null,
+            badge: null,
           ),
 
           // Message/Chat button
@@ -2343,177 +2324,6 @@ class _OrbitalSwipeScreenState extends State<OrbitalSwipeScreen>
         ],
       ),
     );
-  }
-
-  // Boost Dialog
-  void _showBoostDialog() async {
-    try {
-      HapticFeedback.lightImpact();
-
-      // Load latest boost status
-      await _loadBoostStatus();
-
-      showDialog(
-        context: context,
-        builder:
-            (context) => BoostDialog(
-              boostStatus: _boostStatus,
-              subscriptionStatus: {
-                'is_premium': hasPremium,
-                'boost_credits':
-                    _boostStatus?['available_boosts']?['count'] ?? 0,
-              },
-              onBoostActivated: () async {
-                // Refresh boost status after activation
-                await _loadBoostStatus();
-              },
-            ),
-      );
-    } catch (e) {
-      // Fallback boost dialog if BoostDialog widget is not available
-      _showFallbackBoostDialog();
-    }
-  }
-
-  void _showFallbackBoostDialog() {
-    showDialog(
-      context: context,
-      builder:
-          (context) => Dialog(
-            backgroundColor: Colors.transparent,
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.orange.withOpacity(0.9),
-                    Colors.red.withOpacity(0.8),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.orange.withOpacity(0.5)),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Boost icon with animation
-                  Container(
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      FeatherIcons.zap,
-                      color: Colors.white,
-                      size: 40,
-                    ),
-                  ),
-                  SizedBox(height: 16),
-
-                  Text(
-                    _isBoostActive
-                        ? '⚡ Boost Active!'
-                        : '🚀 Boost Your Profile',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 12),
-
-                  Text(
-                    _isBoostActive
-                        ? 'Your profile is currently boosted!\nTime remaining: $_boostTimeRemaining'
-                        : '3x more profile views for 30 minutes!\nGet more matches and likes.',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.9),
-                      fontSize: 14,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 20),
-
-                  // Action buttons
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Text(
-                            'Cancel',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      if (!_isBoostActive) ...[
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              Navigator.of(context).pop();
-                              await _activateBoost();
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: Colors.orange,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(25),
-                              ),
-                            ),
-                            child: Text(
-                              'Boost Now!',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-    );
-  }
-
-  Future<void> _activateBoost() async {
-    try {
-      Utils.toast('Activating boost...', color: Colors.blue);
-
-      final result = await BoostService.boostProfile();
-
-      if (result.code == 1) {
-        Utils.toast(
-          '🚀 Boost activated! 3x more visibility for 30 minutes!',
-          color: Colors.green,
-        );
-        HapticFeedback.mediumImpact();
-
-        // Refresh boost status
-        await _loadBoostStatus();
-      } else {
-        if (result.message.contains('premium') ||
-            result.message.contains('credits')) {
-          // Show upgrade dialog
-          _showUpgradeDialog('boost');
-        } else {
-          Utils.toast(result.message, color: Colors.red);
-        }
-      }
-    } catch (e) {
-      Utils.toast(
-        'Failed to activate boost. Please try again.',
-        color: Colors.red,
-      );
-      print('Error activating boost: $e');
-    }
   }
 }
 

@@ -18,7 +18,7 @@ class _ColorPickerScreenState extends State<ColorPickerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: const Text("Select Colors"),
+          title: const Text("Select Colours"),
           automaticallyImplyLeading: false,
           actions: [
             IconButton(
@@ -52,7 +52,8 @@ class _ColorPickerScreenState extends State<ColorPickerScreen> {
                                   color: Colors.green,
                                 )
                               : null,
-                      title: FxText.titleLarge(AppConfig.COLORS[index]),
+                      title: FxText.titleLarge(
+                        AppConfig.COLORS[index], color: Colors.white,),
                       onTap: () {
                         if (widget.selected.contains(AppConfig.COLORS[index])) {
                           widget.selected.remove(AppConfig.COLORS[index]);

@@ -5,7 +5,6 @@ import '../../screens/shop/screens/shop/full_app/full_app.dart';
 import '../../screens/shop/screens/shop/full_app/guest/GuestHomeScreen.dart';
 import '../../screens/subscription/subscription_selection_screen.dart';
 import '../features/app_introduction/view/onboarding_screens.dart';
-import '../features/app_introduction/view/splash_screen.dart';
 import '../features/authentication/view/signup_screen.dart';
 import '../features/home/view/resource_category_screen.dart';
 import '../features/home/view/resource_subcategory_screen.dart';
@@ -14,8 +13,7 @@ import '../features/home/view/update_profile.dart';
 import '../../features/moderation/screens/moderation_home_screen.dart';
 
 class AppRouter {
-  static const String splash = '/';
-  static const String onBoarding = '/onBoarding';
+  static const String onBoarding = '/';
   static const String register = '/register';
   static const String login = '/login';
   static const String home = '/homeScreen';
@@ -31,7 +29,6 @@ class AppRouter {
   static const String farmerProfilingScreenTwo = '/farmerScreenTwo';
   static const String farmerProfilingScreenThree = '/farmerScreenThree';
   static final List<GetPage> routes = [
-    GetPage(name: splash, page: () => const SplashScreen()),
     GetPage(name: onBoarding, page: () => const OnBoardingScreen()),
     GetPage(name: register, page: () => const CreateAccountScreen()),
     GetPage(name: login, page: () => const LoginScreen()),
@@ -51,7 +48,7 @@ class AppRouter {
   ];
 
   static void goToSplash() {
-    Get.offAllNamed(splash);
+    Get.offAllNamed(onBoarding);
   }
 
   static void goToOnBoarding() {

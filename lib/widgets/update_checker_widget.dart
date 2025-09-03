@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
-import 'package:get/get.dart';
 
 import '../services/app_update_service.dart';
 
@@ -18,10 +17,7 @@ class UpdateCheckerWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     if (showAsMenuItem) {
       return ListTile(
-        leading: const Icon(
-          FeatherIcons.download,
-          color: Colors.blue,
-        ),
+        leading: const Icon(FeatherIcons.download, color: Colors.blue),
         title: const Text('Check for Updates'),
         subtitle: const Text('See if a newer version is available'),
         onTap: () => _checkForUpdates(),
@@ -37,10 +33,7 @@ class UpdateCheckerWidget extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.blue.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: Colors.blue.withOpacity(0.3),
-            width: 1,
-          ),
+          border: Border.all(color: Colors.blue.withOpacity(0.3), width: 1),
         ),
         child: Row(
           children: [
@@ -72,19 +65,12 @@ class UpdateCheckerWidget extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     'See if a newer version is available',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   ),
                 ],
               ),
             ),
-            const Icon(
-              Icons.chevron_right,
-              color: Colors.blue,
-              size: 20,
-            ),
+            const Icon(Icons.chevron_right, color: Colors.blue, size: 20),
           ],
         ),
       ),

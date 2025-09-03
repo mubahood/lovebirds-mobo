@@ -343,7 +343,8 @@ class _DeliveryAddressScreenState extends State<DeliveryAddressScreen>
                             FormBuilderTextField(
                               style: const TextStyle(color: Colors.white),
                               decoration: InputDecoration(
-                                labelText: "Alternate phone number",
+                                labelText: "City/Town",
+                                /*1.⁠ ⁠Please add the following. [], [city or town], [province or state]. all in their lines.*/
                                 labelStyle: TextStyle(
                                   color: CustomTheme.color2,
                                 ),
@@ -379,7 +380,7 @@ class _DeliveryAddressScreenState extends State<DeliveryAddressScreen>
                             FormBuilderTextField(
                               style: const TextStyle(color: Colors.white),
                               decoration: InputDecoration(
-                                labelText: "Order details",
+                                labelText: "Full address",
                                 labelStyle: TextStyle(
                                   color: CustomTheme.color2,
                                 ),

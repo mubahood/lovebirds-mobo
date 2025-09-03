@@ -6,7 +6,7 @@ import '../../../../models/LoggedInUserModel.dart';
 import '../../../../models/RespondModel.dart';
 import '../../../../utils/Utilities.dart';
 import '../../../routing/routing.dart';
-import '../../app_introduction/view/splash_screen.dart';
+import '../../app_introduction/view/onboarding_screens.dart';
 import '../controllers/create_account_screen_controller.dart';
 import 'common_widgets/custom_button.dart';
 import 'common_widgets/text_form_field.dart';
@@ -22,10 +22,11 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   CreateAccountScreenController controller = CreateAccountScreenController();
   final bool _isLoaderVisible = false;
   @override
-  void dispose(){
+  void dispose() {
     super.dispose();
     controller.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,8 +42,10 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   const SizedBox(height: 80),
                   Text(
                     'Create an Account',
-                    style: AppStyles.googleFontMontserrat
-                        .copyWith(fontWeight: FontWeight.w700, fontSize: 24),
+                    style: AppStyles.googleFontMontserrat.copyWith(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 24,
+                    ),
                   ),
                   const SizedBox(height: 40),
                   Padding(
@@ -51,34 +54,39 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         CustomTextFormField(
-                            controller: controller.fullNameController,
-                            labelText: 'Full Name',
-                            validator: controller.validateFullName),
+                          controller: controller.fullNameController,
+                          labelText: 'Full Name',
+                          validator: controller.validateFullName,
+                        ),
                         const SizedBox(height: 28.0),
                         CustomTextFormField(
-                            controller: controller.emailController,
-                            labelText: 'Email',
-                            keyboardType: TextInputType.emailAddress,
-                            validator: controller.validateEmail),
+                          controller: controller.emailController,
+                          labelText: 'Email',
+                          keyboardType: TextInputType.emailAddress,
+                          validator: controller.validateEmail,
+                        ),
                         const SizedBox(height: 28.0),
                         CustomTextFormField(
-                            controller: controller.phoneNumberController,
-                            labelText: 'Phone Number',
-                            keyboardType: TextInputType.phone,
-                            maxLength: 10,
-                            validator: controller.validatePhoneNumber),
+                          controller: controller.phoneNumberController,
+                          labelText: 'Phone Number',
+                          keyboardType: TextInputType.phone,
+                          maxLength: 10,
+                          validator: controller.validatePhoneNumber,
+                        ),
                         const SizedBox(height: 28.0),
                         CustomTextFormField(
-                            controller: controller.passwordController,
-                            labelText: 'Password',
-                            obscureText: true,
-                            validator: controller.validatePassword),
+                          controller: controller.passwordController,
+                          labelText: 'Password',
+                          obscureText: true,
+                          validator: controller.validatePassword,
+                        ),
                         const SizedBox(height: 28.0),
                         CustomTextFormField(
-                            controller: controller.confirmPasswordController,
-                            labelText: 'Confirm Password',
-                            obscureText: true,
-                            validator: controller.validateConfirmPassword),
+                          controller: controller.confirmPasswordController,
+                          labelText: 'Confirm Password',
+                          obscureText: true,
+                          validator: controller.validateConfirmPassword,
+                        ),
                         const SizedBox(height: 28.0),
                       ],
                     ),
@@ -134,7 +142,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                       };
 
                       RespondModel resp = RespondModel(
-                          await Utils.http_post('register', formDataMap));
+                        await Utils.http_post('register', formDataMap),
+                      );
 
                       setState(() {});
                       if (resp.code != 1) {
@@ -142,8 +151,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                         return;
                       }
 
-                      LoggedInUserModel u =
-                          LoggedInUserModel.fromJson(resp.data);
+                      LoggedInUserModel u = LoggedInUserModel.fromJson(
+                        resp.data,
+                      );
 
                       if (!(await u.save())) {
                         Utils.toast('failed to log you in ');
@@ -160,33 +170,36 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
 
                       Utils.toast("Success!");
 
-                      Get.off(() => const SplashScreen());
+                      Get.off(() => const OnBoardingScreen());
                     },
                     text: 'Register',
                   ),
                   const SizedBox(height: 18),
-                  Wrap(children: [
-                    Text(
-                      'Already have an account?',
-                      style: AppStyles.googleFontMontserrat
-                          .copyWith(fontWeight: FontWeight.w500, fontSize: 14),
-                    ),
-                    const SizedBox(
-                      width: 3,
-                    ),
-                    InkWell(
-                      onTap: () {
-                        AppRouter.goToLogin();
-                      },
-                      child: Text(
-                        'Login',
+                  Wrap(
+                    children: [
+                      Text(
+                        'Already have an account?',
                         style: AppStyles.googleFontMontserrat.copyWith(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(width: 3),
+                      InkWell(
+                        onTap: () {
+                          AppRouter.goToLogin();
+                        },
+                        child: Text(
+                          'Login',
+                          style: AppStyles.googleFontMontserrat.copyWith(
                             fontWeight: FontWeight.w700,
                             fontSize: 14,
-                            color: AppStyles.secondaryColor),
+                            color: AppStyles.secondaryColor,
+                          ),
+                        ),
                       ),
-                    ),
-                  ])
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -194,6 +207,5 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
         ),
       ),
     );
-
   }
 }

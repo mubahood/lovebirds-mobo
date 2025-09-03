@@ -385,81 +385,268 @@ class _MyProductsScreenState extends State<MyProductsScreen> {
   }
 
   Future<bool?> _showDeleteConfirmation() {
-    return Get.defaultDialog<bool>(
-      title: "Delete Product",
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: CustomTheme.card,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          contentPadding: EdgeInsets.zero,
+          content: Container(
+            width: double.maxFinite,
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      Icon(
+                        FeatherIcons.alertTriangle,
+                        color: Colors.orange,
+                        size: 48,
+                      ),
+                      const SizedBox(height: 16),
+                      FxText.titleMedium(
+                        "Delete Product",
+                        color: CustomTheme.colorLight,
+                        fontWeight: 700,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 12),
+                      FxText.bodyMedium(
+                        "Are you sure you want to delete this product?",
+                        textAlign: TextAlign.center,
+                        color: CustomTheme.colorLight,
+                        fontWeight: 600,
+                      ),
+                      const SizedBox(height: 8),
+                      FxText.bodySmall(
+                        "This action cannot be undone. The product will be permanently removed from your shop and the server.",
+                        textAlign: TextAlign.center,
+                        color: CustomTheme.color2,
+                        fontWeight: 400,
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Divider
+                Container(
+                  height: 0.5,
+                  color: CustomTheme.color4.withOpacity(0.3),
+                ),
+
+                // Action buttons
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      Flexible(
+                        flex: 1,
+                        child: Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: CustomTheme.color4.withOpacity(0.3),
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: InkWell(
+                            onTap: () => Navigator.of(context).pop(false),
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    FeatherIcons.x,
+                                    color: CustomTheme.color2,
+                                    size: 16,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  FxText.bodyMedium(
+                                    "Cancel",
+                                    color: CustomTheme.color2,
+                                    fontWeight: 600,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Flexible(
+                        flex: 1,
+                        child: Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: Colors.redAccent,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.redAccent.withOpacity(0.3),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: InkWell(
+                            onTap: () => Navigator.of(context).pop(true),
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    FeatherIcons.trash2,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  FxText.bodyMedium(
+                                    "Delete",
+                                    color: Colors.white,
+                                    fontWeight: 600,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteProduct(Product m) async {
+    // Show loading
+    Utils.showLoading(message: "Deleting product...");
+    setState(() => is_loading = true);
+
+    try {
+      debugPrint('🗑️ Starting product deletion for ID: ${m.id}');
+      debugPrint('📝 Product name: ${m.name}');
+
+      await Product.deleteProduct(m.id);
+
+      // Hide loading
+      Utils.hideLoading();
+
+      // Show success message
+      Utils.toast(
+        "✅ Product '${m.name.length > 20 ? m.name.substring(0, 20) + '...' : m.name}' deleted successfully",
+        color: Colors.green,
+      );
+
+      debugPrint('✅ Product deleted successfully');
+
+      // Refresh the list
+      await doRefresh();
+    } catch (e) {
+      // Hide loading on error
+      Utils.hideLoading();
+
+      debugPrint('❌ Failed to delete product: $e');
+
+      // Show detailed error message
+      String errorMessage = "Failed to delete product";
+      if (e.toString().contains('Failed to delete product from server')) {
+        errorMessage =
+            "❌ Server error: Unable to delete product. Please try again.";
+      } else if (e.toString().contains('You are not connected to internet')) {
+        errorMessage =
+            "❌ No internet connection. Please check your connection and try again.";
+      } else if (e.toString().contains('Unauthorized') ||
+          e.toString().contains('401')) {
+        errorMessage = "❌ You don't have permission to delete this product.";
+      } else {
+        errorMessage =
+            "❌ Unable to delete product: ${e.toString().replaceAll('Exception: ', '')}";
+      }
+
+      Utils.toast(errorMessage, color: Colors.red, isLong: true);
+
+      // Show retry option for critical errors
+      if (e.toString().contains('server') ||
+          e.toString().contains('internet')) {
+        _showRetryDeleteDialog(m);
+      }
+    }
+
+    setState(() => is_loading = false);
+  }
+
+  void _showRetryDeleteDialog(Product product) {
+    Get.defaultDialog(
+      title: "Delete Failed",
       titleStyle: TextStyle(
-        color: CustomTheme.colorLight,
+        color: Colors.redAccent,
         fontWeight: FontWeight.bold,
       ),
-      middleText:
-          "Are you sure you want to delete this product? This action cannot be undone.",
-      middleTextStyle: TextStyle(color: CustomTheme.color2, fontSize: 14),
+      content: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          children: [
+            Icon(FeatherIcons.wifiOff, color: Colors.orange, size: 32),
+            const SizedBox(height: 12),
+            FxText.bodyMedium(
+              "The product couldn't be deleted due to a connection issue.",
+              textAlign: TextAlign.center,
+              color: CustomTheme.colorLight,
+            ),
+            const SizedBox(height: 8),
+            FxText.bodySmall(
+              "Would you like to try again?",
+              textAlign: TextAlign.center,
+              color: CustomTheme.color2,
+            ),
+          ],
+        ),
+      ),
       backgroundColor: CustomTheme.card,
       radius: 12,
       actions: [
         Row(
           children: [
             Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: CustomTheme.color4.withOpacity(0.3),
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: InkWell(
-                  onTap: () => Get.back(result: false),
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: FxText.bodyMedium(
-                      "Cancel",
-                      color: CustomTheme.color2,
-                      fontWeight: 600,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
+              child: FxButton.text(
+                onPressed: () => Get.back(),
+                child: FxText.bodyMedium("Cancel", color: CustomTheme.color2),
               ),
             ),
-            const SizedBox(width: 12),
             Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.redAccent,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: InkWell(
-                  onTap: () => Get.back(result: true),
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: FxText.bodyMedium(
-                      "Delete",
-                      color: Colors.white,
-                      fontWeight: 600,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
+              child: FxButton(
+                onPressed: () async {
+                  Get.back();
+                  await _deleteProduct(product);
+                },
+                backgroundColor: CustomTheme.primary,
+                child: FxText.bodyMedium("Retry", color: Colors.white),
               ),
             ),
           ],
         ),
       ],
     );
-  }
-
-  Future<void> _deleteProduct(Product m) async {
-    setState(() => is_loading = true);
-    try {
-      await Product.deleteProduct(m.id);
-      Utils.toast("Product deleted successfully.", color: Colors.green);
-      await doRefresh();
-    } catch (e) {
-      Utils.toast("Failed to delete product: $e", color: Colors.red);
-    }
-    setState(() => is_loading = false);
   }
 
   Widget _buildProductCard(Product product) {

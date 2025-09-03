@@ -11,7 +11,7 @@ import 'package:lovebirds_app/utils/lovebirds_theme.dart';
 
 import '../../models/LoggedInUserModel.dart';
 import '../../models/RespondModel.dart';
-import '../../src/features/app_introduction/view/splash_screen.dart';
+import '../../src/features/app_introduction/view/onboarding_screens.dart';
 import '../../utils/Utilities.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -388,9 +388,16 @@ class LoginScreenState extends State<LoginScreen> {
 
       if (respModel.code == 1) {
         final user = LoggedInUserModel.fromJson(respModel.data['user']);
+
+        // Save the auth token separately using new token management system
+        if (user.token.isNotEmpty) {
+          await LoggedInUserModel.saveToken(user.token);
+          debugPrint('🔑 Login successful, token saved to SharedPreferences');
+        }
+
         await user.save();
         Utils.toast('Welcome back!');
-        Get.offAll(() => const SplashScreen());
+        Get.offAll(() => const OnBoardingScreen());
       } else {
         // **Show alert with server message**
         await showDialog(

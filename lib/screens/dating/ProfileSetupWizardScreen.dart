@@ -3,12 +3,14 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
-import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:flutx/flutx.dart';
+import 'package:form_builder_validators/form_builder_validators.dart';
+import 'package:get/get.dart' as gt;
 import 'package:image_picker/image_picker.dart';
 
 import '../../models/LoggedInUserModel.dart';
 import '../../models/RespondModel.dart';
+import '../../src/features/app_introduction/view/onboarding_screens.dart';
 import '../../utils/CustomTheme.dart';
 import '../../utils/Utilities.dart';
 
@@ -28,19 +30,14 @@ class ProfileSetupWizardScreen extends StatefulWidget {
 }
 
 class _ProfileSetupWizardScreenState extends State<ProfileSetupWizardScreen> {
-  final PageController _pageController = PageController();
-  final List<GlobalKey<FormBuilderState>> _formKeys = List.generate(
-    6,
-    (index) => GlobalKey<FormBuilderState>(),
-  );
+  // Form keys with unique stable identity
+  late final List<GlobalKey<FormBuilderState>> _formKeys;
 
   int _currentStep = 0;
   bool _isSaving = false;
   String _error = "";
   File? _pickedImage;
-  late LoggedInUserModel _user;
-
-  // Step titles for progress indicator
+  late LoggedInUserModel _user; // Step titles for progress indicator
   final List<String> _stepTitles = [
     'Basic Info',
     'Photos',
@@ -48,30 +45,275 @@ class _ProfileSetupWizardScreenState extends State<ProfileSetupWizardScreen> {
     'Lifestyle',
     'Goals',
     'Interests',
+    'Preferences',
+  ];
+
+  // Enhanced safe dropdown value validation with comprehensive logging
+  String? _safeDropdownValue(String? currentValue, List<String> validOptions) {
+    if (currentValue == null || currentValue.isEmpty) {
+      debugPrint('📝 Dropdown: Empty/null value provided, returning null');
+      return null;
+    }
+
+    final isValid = validOptions.contains(currentValue);
+    if (!isValid) {
+      debugPrint(
+        '⚠️  Dropdown: Invalid value "$currentValue" not in options: ${validOptions.join(", ")}',
+      );
+      debugPrint('🔧 Dropdown: Setting to null to prevent crashes');
+      return null;
+    }
+
+    debugPrint('✅ Dropdown: Valid value "$currentValue" found in options');
+    return currentValue;
+  }
+
+  // Safe integer dropdown value validation
+  int? _safeIntDropdownValue(String? currentValue, List<int> validOptions) {
+    if (currentValue == null || currentValue.isEmpty) {
+      debugPrint('📝 Int Dropdown: Empty/null value provided, returning null');
+      return null;
+    }
+
+    final intValue = int.tryParse(currentValue);
+    if (intValue == null) {
+      debugPrint(
+        '⚠️  Int Dropdown: Cannot parse "$currentValue" to int, returning null',
+      );
+      return null;
+    }
+
+    final isValid = validOptions.contains(intValue);
+    if (!isValid) {
+      debugPrint(
+        '⚠️  Int Dropdown: Invalid value $intValue not in options: ${validOptions.join(", ")}',
+      );
+      debugPrint('🔧 Int Dropdown: Setting to null to prevent crashes');
+      return null;
+    }
+
+    debugPrint('✅ Int Dropdown: Valid value $intValue found in options');
+    return intValue;
+  }
+
+  // Custom age range validator
+  String? _validateAgeRange(dynamic value) {
+    if (value == null) return 'Age range is required';
+
+    final formValues = _formKeys[4].currentState?.value;
+    if (formValues != null) {
+      final minAge = formValues['age_range_min'];
+      final maxAge = formValues['age_range_max'];
+
+      if (minAge != null && maxAge != null && minAge >= maxAge) {
+        return 'Min age must be less than max age';
+      }
+    }
+    return null;
+  }
+
+  // Predefined dropdown options for consistency
+  final List<String> _bodyTypes = [
+    'Slim',
+    'Average',
+    'Athletic',
+    'Curvy',
+    'Plus Size',
+  ];
+  final List<String> _educationLevels = [
+    'High School',
+    'Associate Degree',
+    'Bachelor Degree',
+    'Master Degree',
+    'PhD',
+    'Trade School',
+    'Other',
+  ];
+  final List<String> _religions = [
+    'Christianity',
+    'Islam',
+    'Hinduism',
+    'Buddhism',
+    'Judaism',
+    'Atheism',
+    'Agnostic',
+    'Spiritual',
+    'Other',
+    'Prefer not to say',
+  ];
+  final List<String> _smokingHabits = [
+    'Never',
+    'Rarely',
+    'Sometimes',
+    'Regularly',
+  ];
+  final List<String> _drinkingHabits = [
+    'Never',
+    'Rarely',
+    'Socially',
+    'Regularly',
+  ];
+  final List<String> _petPreferences = [
+    'Love pets',
+    'Like pets',
+    'Allergic to pets',
+    'No pets',
+    'Prefer not to say',
+  ];
+  final List<String> _politicalViews = [
+    'Liberal',
+    'Moderate',
+    'Conservative',
+    'Other',
+    'Prefer not to say',
+  ];
+  final List<String> _familyPlans = [
+    'Want children',
+    'Have children',
+    'Don\'t want children',
+    'Open to children',
+    'Prefer not to say',
+  ];
+  final List<String> _sexualOrientations = [
+    'Straight',
+    'Gay',
+    'Lesbian',
+    'Bisexual',
+    'Pansexual',
+    'Asexual',
+    'Other',
+  ];
+  final List<String> _lookingFor = [
+    'Long-term relationship',
+    'Short-term relationship',
+    'Friendship',
+    'Casual dating',
+    'Not sure',
+  ];
+  final List<String> _interestedIn = ['Men', 'Women', 'Everyone'];
+
+  // Enhanced language options with flags/emojis for better UX
+  final List<Map<String, String>> _languageOptions = [
+    {'code': 'en', 'name': 'English', 'flag': '🇺🇸'},
+    {'code': 'es', 'name': 'Spanish', 'flag': '🇪🇸'},
+    {'code': 'fr', 'name': 'French', 'flag': '🇫🇷'},
+    {'code': 'de', 'name': 'German', 'flag': '🇩🇪'},
+    {'code': 'it', 'name': 'Italian', 'flag': '🇮🇹'},
+    {'code': 'pt', 'name': 'Portuguese', 'flag': '🇵🇹'},
+    {'code': 'ru', 'name': 'Russian', 'flag': '🇷🇺'},
+    {'code': 'zh', 'name': 'Chinese', 'flag': '🇨🇳'},
+    {'code': 'ja', 'name': 'Japanese', 'flag': '🇯🇵'},
+    {'code': 'ko', 'name': 'Korean', 'flag': '🇰🇷'},
+    {'code': 'ar', 'name': 'Arabic', 'flag': '🇸🇦'},
+    {'code': 'hi', 'name': 'Hindi', 'flag': '🇮🇳'},
+    {'code': 'sw', 'name': 'Swahili', 'flag': '🇰🇪'},
+    {'code': 'am', 'name': 'Amharic', 'flag': '🇪🇹'},
+    {'code': 'wo', 'name': 'Wolof', 'flag': '🇸🇳'},
+    {'code': 'yo', 'name': 'Yoruba', 'flag': '🇳🇬'},
+    {'code': 'ig', 'name': 'Igbo', 'flag': '🇳🇬'},
+    {'code': 'ha', 'name': 'Hausa', 'flag': '🇳🇬'},
+    {'code': 'zu', 'name': 'Zulu', 'flag': '🇿🇦'},
+    {'code': 'xh', 'name': 'Xhosa', 'flag': '🇿🇦'},
   ];
 
   @override
+  @override
   void initState() {
     super.initState();
+    _formKeys = List.generate(7, (index) => GlobalKey<FormBuilderState>());
+
+    // Initialize with passed user data first, then load fresh data
     _user = LoggedInUserModel.fromJson(widget.user.toJson());
+
+    // Load fresh data from storage in the background
+    _initializeUserData();
+  }
+
+  // Initialize user data by fetching fresh data from local storage
+  Future<void> _initializeUserData() async {
+    try {
+      debugPrint('🔄 Fetching fresh user data from local storage...');
+
+      // Get the latest user data from local storage
+      LoggedInUserModel freshUser = await LoggedInUserModel.getLoggedInUser();
+
+      if (freshUser.id > 0) {
+        debugPrint(
+          '✅ Fresh user data loaded from storage with ID: ${freshUser.id}',
+        );
+
+        // Update the widget.user with fresh data from storage
+        widget.user.id = freshUser.id;
+        widget.user.first_name = freshUser.first_name;
+        widget.user.last_name = freshUser.last_name;
+        widget.user.email = freshUser.email;
+        widget.user.username = freshUser.username;
+        widget.user.name = freshUser.name;
+        widget.user.avatar = freshUser.avatar;
+        // Note: token is managed separately in SharedPreferences now
+        widget.user.dob = freshUser.dob;
+        widget.user.sex = freshUser.sex;
+        widget.user.phone_number = freshUser.phone_number;
+        widget.user.bio = freshUser.bio;
+        widget.user.city = freshUser.city;
+        widget.user.state = freshUser.state;
+        widget.user.country = freshUser.country;
+        widget.user.height_cm = freshUser.height_cm;
+        widget.user.body_type = freshUser.body_type;
+        widget.user.smoking_habit = freshUser.smoking_habit;
+        widget.user.drinking_habit = freshUser.drinking_habit;
+        widget.user.sexual_orientation = freshUser.sexual_orientation;
+        widget.user.occupation = freshUser.occupation;
+        widget.user.education_level = freshUser.education_level;
+        widget.user.religion = freshUser.religion;
+        widget.user.looking_for = freshUser.looking_for;
+        widget.user.interested_in = freshUser.interested_in;
+        widget.user.age_range_min = freshUser.age_range_min;
+        widget.user.age_range_max = freshUser.age_range_max;
+        widget.user.languages_spoken = freshUser.languages_spoken;
+        widget.user.family_plans = freshUser.family_plans;
+        widget.user.max_distance_km = freshUser.max_distance_km;
+        widget.user.pet_preference = freshUser.pet_preference;
+        widget.user.political_views = freshUser.political_views;
+        widget.user.interests_json = freshUser.interests_json;
+
+        // Update internal working copy with fresh data
+        _user = LoggedInUserModel.fromJson(widget.user.toJson());
+
+        // Trigger UI update to reflect the fresh data
+        if (mounted) {
+          setState(() {
+            debugPrint('🔄 UI updated with fresh user data');
+          });
+        }
+      } else {
+        debugPrint(
+          '⚠️ No valid user found in local storage, using passed user data',
+        );
+      }
+    } catch (e) {
+      debugPrint('❌ Error loading fresh user data: ${e.toString()}');
+      Utils.toast(
+        'Failed to load latest profile data',
+        color: Colors.orange.shade700,
+      );
+    }
   }
 
   @override
   void dispose() {
-    _pageController.dispose();
+    // No PageController to dispose
     super.dispose();
   }
 
   void _nextStep() {
     if (_currentStep < _stepTitles.length - 1) {
       if (_validateCurrentStep()) {
-        setState(() {
-          _currentStep++;
-        });
-        _pageController.nextPage(
-          duration: Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
+        if (mounted) {
+          setState(() {
+            _currentStep++;
+          });
+        }
       }
     } else {
       _saveProfile();
@@ -80,13 +322,11 @@ class _ProfileSetupWizardScreenState extends State<ProfileSetupWizardScreen> {
 
   void _previousStep() {
     if (_currentStep > 0) {
-      setState(() {
-        _currentStep--;
-      });
-      _pageController.previousPage(
-        duration: Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+      if (mounted) {
+        setState(() {
+          _currentStep--;
+        });
+      }
     }
   }
 
@@ -180,12 +420,57 @@ class _ProfileSetupWizardScreenState extends State<ProfileSetupWizardScreen> {
             _user.languages_spoken = value.toString();
             break;
           case 'family_plans':
-            _user.political_views =
-                value.toString(); // Repurpose this field for family plans
+            _user.family_plans = value.toString();
+            break;
+          case 'political_views':
+            _user.political_views = value.toString();
+            break;
+          case 'pet_preference':
+            _user.pet_preference = value.toString();
+            break;
+          case 'max_distance_km':
+            _user.max_distance_km = value.toString();
             break;
           case 'interests':
-            _user.tagline =
-                value.toString(); // Repurpose this field for interests tags
+            // Store as JSON array string for future flexibility
+            if (value is String) {
+              // If already comma separated convert to JSON array
+              final parts =
+                  value
+                      .split(',')
+                      .map((e) => e.trim())
+                      .where((e) => e.isNotEmpty)
+                      .toList();
+              _user.interests_json =
+                  parts.isEmpty ? '[]' : '["' + parts.join('","') + '"]';
+            } else if (value is List) {
+              _user.interests_json =
+                  '["' + value.map((e) => e.toString()).join('","') + '"]';
+            }
+            break;
+          case 'languages_spoken_structured':
+            if (value is List && value.isNotEmpty) {
+              _user.languages_spoken = value.join(', ');
+            }
+            break;
+          case 'languages_custom':
+            if (value != null && value.toString().isNotEmpty) {
+              final customLangs =
+                  value
+                      .toString()
+                      .split(',')
+                      .map((e) => e.trim())
+                      .where((e) => e.isNotEmpty)
+                      .toList();
+              final existingLangs =
+                  _user.languages_spoken
+                      .split(',')
+                      .map((e) => e.trim())
+                      .where((e) => e.isNotEmpty)
+                      .toSet();
+              existingLangs.addAll(customLangs);
+              _user.languages_spoken = existingLangs.join(', ');
+            }
             break;
         }
       }
@@ -212,6 +497,81 @@ class _ProfileSetupWizardScreenState extends State<ProfileSetupWizardScreen> {
     }
   }
 
+  // Safely update user object with server response data
+  void _updateUserWithServerResponse(LoggedInUserModel serverUser) {
+    // Core profile fields
+    widget.user.id = serverUser.id;
+    widget.user.first_name = serverUser.first_name;
+    widget.user.last_name = serverUser.last_name;
+    widget.user.email = serverUser.email;
+    widget.user.username = serverUser.username;
+    widget.user.name = serverUser.name;
+    widget.user.avatar = serverUser.avatar;
+    // Note: token is managed separately in SharedPreferences - don't update from server response
+    widget.user.created_at = serverUser.created_at;
+    widget.user.updated_at = serverUser.updated_at;
+
+    // Personal details
+    widget.user.dob = serverUser.dob;
+    widget.user.sex = serverUser.sex;
+    widget.user.phone_number = serverUser.phone_number;
+    widget.user.phone_number_2 = serverUser.phone_number_2;
+    widget.user.address = serverUser.address;
+    widget.user.bio = serverUser.bio;
+    widget.user.tagline = serverUser.tagline;
+
+    // Location
+    widget.user.city = serverUser.city;
+    widget.user.state = serverUser.state;
+    widget.user.country = serverUser.country;
+    widget.user.latitude = serverUser.latitude;
+    widget.user.longitude = serverUser.longitude;
+
+    // Physical attributes
+    widget.user.height_cm = serverUser.height_cm;
+    widget.user.body_type = serverUser.body_type;
+
+    // Lifestyle
+    widget.user.smoking_habit = serverUser.smoking_habit;
+    widget.user.drinking_habit = serverUser.drinking_habit;
+    widget.user.sexual_orientation = serverUser.sexual_orientation;
+    widget.user.occupation = serverUser.occupation;
+    widget.user.education_level = serverUser.education_level;
+    widget.user.religion = serverUser.religion;
+
+    // Dating preferences
+    widget.user.looking_for = serverUser.looking_for;
+    widget.user.interested_in = serverUser.interested_in;
+    widget.user.age_range_min = serverUser.age_range_min;
+    widget.user.age_range_max = serverUser.age_range_max;
+    widget.user.languages_spoken = serverUser.languages_spoken;
+    widget.user.family_plans = serverUser.family_plans;
+    widget.user.max_distance_km = serverUser.max_distance_km;
+    widget.user.pet_preference = serverUser.pet_preference;
+    widget.user.political_views = serverUser.political_views;
+    widget.user.interests_json = serverUser.interests_json;
+
+    // Status and verification fields
+    widget.user.status = serverUser.status;
+    widget.user.isVerified = serverUser.isVerified;
+    widget.user.isOnline = serverUser.isOnline;
+    widget.user.last_online_at = serverUser.last_online_at;
+    widget.user.online_status = serverUser.online_status;
+
+    // Profile completeness and engagement
+    widget.user.completed_profile_pct = serverUser.completed_profile_pct;
+    widget.user.profile_views = serverUser.profile_views;
+    widget.user.likes_received = serverUser.likes_received;
+    widget.user.matches_count = serverUser.matches_count;
+
+    // Update internal user copy as well
+    _user = LoggedInUserModel.fromJson(widget.user.toJson());
+
+    debugPrint(
+      '✅ Local user data updated successfully with ID: ${widget.user.id}',
+    );
+  }
+
   Future<void> _saveProfile() async {
     setState(() {
       _isSaving = true;
@@ -235,7 +595,23 @@ class _ProfileSetupWizardScreenState extends State<ProfileSetupWizardScreen> {
         }
       }
 
-      final resp = RespondModel(await Utils.http_post('User', data));
+      // Normalize newly added structured fields before send
+      if (_user.interests_json.isNotEmpty) {
+        data['interests_json'] = _user.interests_json;
+      }
+      if (_user.family_plans.isNotEmpty)
+        data['family_plans'] = _user.family_plans;
+      if (_user.max_distance_km.isNotEmpty)
+        data['max_distance_km'] = _user.max_distance_km;
+      if (_user.pet_preference.isNotEmpty)
+        data['pet_preference'] = _user.pet_preference;
+
+      final resp = RespondModel(
+        await Utils.http_post('profile-wizard-save', data),
+      );
+      setState(() {
+        _isSaving = false;
+      });
 
       if (resp.code != 1) {
         setState(() {
@@ -249,8 +625,8 @@ class _ProfileSetupWizardScreenState extends State<ProfileSetupWizardScreen> {
         return;
       }
 
-      LoggedInUserModel newUser = LoggedInUserModel.fromJson(resp.data);
-      if (newUser.id < 1) {
+      // Check if response contains valid updated profile data
+      if (resp.data == null || resp.data is! Map<String, dynamic>) {
         setState(() {
           _error = 'Invalid response from server. Please try again.';
           _isSaving = false;
@@ -259,32 +635,36 @@ class _ProfileSetupWizardScreenState extends State<ProfileSetupWizardScreen> {
         return;
       }
 
-      // Update the widget's user object
-      widget.user.id = newUser.id;
-      widget.user.first_name = newUser.first_name;
-      widget.user.last_name = newUser.last_name;
-      widget.user.email = newUser.email;
-      widget.user.dob = newUser.dob;
-      widget.user.sex = newUser.sex;
-      widget.user.phone_number = newUser.phone_number;
-      widget.user.city = newUser.city;
-      widget.user.height_cm = newUser.height_cm;
-      widget.user.body_type = newUser.body_type;
-      widget.user.smoking_habit = newUser.smoking_habit;
-      widget.user.drinking_habit = newUser.drinking_habit;
-      widget.user.sexual_orientation = newUser.sexual_orientation;
-      widget.user.bio = newUser.bio;
-      widget.user.occupation = newUser.occupation;
-      widget.user.education_level = newUser.education_level;
-      widget.user.religion = newUser.religion;
-      widget.user.looking_for = newUser.looking_for;
-      widget.user.interested_in = newUser.interested_in;
-      widget.user.age_range_min = newUser.age_range_min;
-      widget.user.age_range_max = newUser.age_range_max;
-      widget.user.languages_spoken = newUser.languages_spoken;
-      widget.user.avatar = newUser.avatar;
+      LoggedInUserModel updatedUser = LoggedInUserModel.fromJson(resp.data);
+      if (updatedUser.id < 1) {
+        setState(() {
+          _error = 'Invalid user ID from server. Please try again.';
+          _isSaving = false;
+        });
+        Utils.toast('Failed to save profile', color: Colors.red.shade700);
+        return;
+      }
 
-      await widget.user.save();
+      try {
+        updatedUser.save();
+      } catch (e) {
+        Utils.toast(
+          'Failed to save profile locally: ${e.toString()}',
+          color: Colors.orange.shade700,
+        );
+        return;
+      }
+
+      _updateUserWithServerResponse(updatedUser);
+
+      // Save the updated user data to local storage
+      bool saveSuccess = await widget.user.save();
+      if (!saveSuccess) {
+        Utils.toast(
+          'Profile saved on server but failed to save locally. Please restart the app.',
+          color: Colors.orange.shade700,
+        );
+      }
 
       // Clear any previous errors on success
       setState(() {
@@ -292,15 +672,19 @@ class _ProfileSetupWizardScreenState extends State<ProfileSetupWizardScreen> {
         _isSaving = false;
       });
 
-      Utils.toast(
-        'Profile ${widget.isEditing ? 'updated' : 'created'} successfully!',
-        color: Colors.green.shade700,
-      );
+      Utils.toast(resp.message, color: Colors.green.shade700);
 
-      // Add a small delay to show the success message before navigating
-      await Future.delayed(Duration(milliseconds: 500));
+      debugPrint('🎉 Profile update completed successfully');
+      debugPrint('📊 Updated user ID: ${widget.user.id}');
+      debugPrint('📧 Email: ${widget.user.email}');
+      debugPrint('👤 Name: ${widget.user.first_name} ${widget.user.last_name}');
 
-      Navigator.pop(context, _user);
+      // Add a delay to show the success message and let the UI update
+      await Future.delayed(Duration(milliseconds: 800));
+
+      // Return the updated user data so the calling screen can refresh
+      // Navigator.pop(context, widget.user);
+      gt.Get.offAll(() => const OnBoardingScreen());
     } catch (e) {
       setState(() {
         _error = 'Network error: ${e.toString()}';
@@ -444,22 +828,20 @@ class _ProfileSetupWizardScreenState extends State<ProfileSetupWizardScreen> {
             ),
 
           Expanded(
-            child: PageView(
-              controller: _pageController,
-              physics: NeverScrollableScrollPhysics(), // Prevent manual swiping
-              onPageChanged: (index) {
-                setState(() {
-                  _currentStep = index;
-                });
-              },
-              children: [
-                _buildBasicInfoStep(),
-                _buildPhotosStep(),
-                _buildPhysicalAttributesStep(),
-                _buildLifestyleStep(),
-                _buildRelationshipGoalsStep(),
-                _buildInterestsStep(),
-              ],
+            child: Container(
+              key: ValueKey('pageview_container'),
+              child: IndexedStack(
+                index: _currentStep,
+                children: [
+                  _buildBasicInfoStep(),
+                  _buildPhotosStep(),
+                  _buildPhysicalAttributesStep(),
+                  _buildLifestyleStep(),
+                  _buildRelationshipGoalsStep(),
+                  _buildInterestsStep(),
+                  _buildPreferencesStep(),
+                ],
+              ),
             ),
           ),
 
@@ -806,8 +1188,10 @@ class _ProfileSetupWizardScreenState extends State<ProfileSetupWizardScreen> {
                 Expanded(
                   child: FormBuilderDropdown<String>(
                     name: 'body_type',
-                    initialValue:
-                        _user.body_type.isNotEmpty ? _user.body_type : null,
+                    initialValue: _safeDropdownValue(
+                      _user.body_type,
+                      _bodyTypes,
+                    ),
                     decoration: _inputDecoration(
                       'Body Type',
                       Icons.accessibility,
@@ -815,7 +1199,7 @@ class _ProfileSetupWizardScreenState extends State<ProfileSetupWizardScreen> {
                     dropdownColor: CustomTheme.card,
                     validator: FormBuilderValidators.required(),
                     items:
-                        ['Slim', 'Average', 'Athletic', 'Curvy', 'Plus Size']
+                        _bodyTypes
                             .map(
                               (type) => DropdownMenuItem(
                                 value: type,
@@ -840,25 +1224,17 @@ class _ProfileSetupWizardScreenState extends State<ProfileSetupWizardScreen> {
             SizedBox(height: 8),
             FormBuilderRadioGroup<String>(
               name: 'sexual_orientation',
-              initialValue:
-                  _user.sexual_orientation.isNotEmpty
-                      ? _user.sexual_orientation
-                      : null,
+              initialValue: _safeDropdownValue(
+                _user.sexual_orientation,
+                _sexualOrientations,
+              ),
               decoration: InputDecoration(
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.zero,
               ),
               validator: FormBuilderValidators.required(),
               options:
-                  [
-                        'Straight',
-                        'Gay',
-                        'Lesbian',
-                        'Bisexual',
-                        'Pansexual',
-                        'Asexual',
-                        'Other',
-                      ]
+                  _sexualOrientations
                       .map(
                         (orientation) => FormBuilderFieldOption(
                           value: orientation,
@@ -902,10 +1278,10 @@ class _ProfileSetupWizardScreenState extends State<ProfileSetupWizardScreen> {
                 Expanded(
                   child: FormBuilderDropdown<String>(
                     name: 'smoking_habit',
-                    initialValue:
-                        _user.smoking_habit.isNotEmpty
-                            ? _user.smoking_habit
-                            : null,
+                    initialValue: _safeDropdownValue(
+                      _user.smoking_habit,
+                      _smokingHabits,
+                    ),
                     decoration: _inputDecoration(
                       'Smoking',
                       Icons.smoking_rooms,
@@ -913,7 +1289,7 @@ class _ProfileSetupWizardScreenState extends State<ProfileSetupWizardScreen> {
                     dropdownColor: CustomTheme.card,
                     validator: FormBuilderValidators.required(),
                     items:
-                        ['Never', 'Occasionally', 'Regular', 'Trying to Quit']
+                        _smokingHabits
                             .map(
                               (habit) => DropdownMenuItem(
                                 value: habit,
@@ -930,15 +1306,15 @@ class _ProfileSetupWizardScreenState extends State<ProfileSetupWizardScreen> {
                 Expanded(
                   child: FormBuilderDropdown<String>(
                     name: 'drinking_habit',
-                    initialValue:
-                        _user.drinking_habit.isNotEmpty
-                            ? _user.drinking_habit
-                            : null,
+                    initialValue: _safeDropdownValue(
+                      _user.drinking_habit,
+                      _drinkingHabits,
+                    ),
                     decoration: _inputDecoration('Drinking', Icons.local_bar),
                     dropdownColor: CustomTheme.card,
                     validator: FormBuilderValidators.required(),
                     items:
-                        ['Never', 'Socially', 'Regular', 'Frequently']
+                        _drinkingHabits
                             .map(
                               (habit) => DropdownMenuItem(
                                 value: habit,
@@ -952,6 +1328,30 @@ class _ProfileSetupWizardScreenState extends State<ProfileSetupWizardScreen> {
                   ),
                 ),
               ],
+            ),
+            SizedBox(height: 16),
+
+            // Add pet preference field
+            FormBuilderDropdown<String>(
+              name: 'pet_preference',
+              initialValue: _safeDropdownValue(
+                _user.pet_preference,
+                _petPreferences,
+              ),
+              decoration: _inputDecoration('Pet Preference', Icons.pets),
+              dropdownColor: CustomTheme.card,
+              items:
+                  _petPreferences
+                      .map(
+                        (pref) => DropdownMenuItem(
+                          value: pref,
+                          child: Text(
+                            pref,
+                            style: TextStyle(color: CustomTheme.color),
+                          ),
+                        ),
+                      )
+                      .toList(),
             ),
             SizedBox(height: 16),
 
@@ -969,23 +1369,15 @@ class _ProfileSetupWizardScreenState extends State<ProfileSetupWizardScreen> {
                 Expanded(
                   child: FormBuilderDropdown<String>(
                     name: 'education_level',
-                    initialValue:
-                        _user.education_level.isNotEmpty
-                            ? _user.education_level
-                            : null,
+                    initialValue: _safeDropdownValue(
+                      _user.education_level,
+                      _educationLevels,
+                    ),
                     decoration: _inputDecoration('Education', Icons.school),
                     dropdownColor: CustomTheme.card,
                     validator: FormBuilderValidators.required(),
                     items:
-                        [
-                              'High School',
-                              'Associate Degree',
-                              'Bachelor Degree',
-                              'Master Degree',
-                              'PhD',
-                              'Trade School',
-                              'Other',
-                            ]
+                        _educationLevels
                             .map(
                               (level) => DropdownMenuItem(
                                 value: level,
@@ -1004,25 +1396,14 @@ class _ProfileSetupWizardScreenState extends State<ProfileSetupWizardScreen> {
 
             FormBuilderDropdown<String>(
               name: 'religion',
-              initialValue: _user.religion.isNotEmpty ? _user.religion : null,
+              initialValue: _safeDropdownValue(_user.religion, _religions),
               decoration: _inputDecoration(
                 'Religion/Spirituality',
                 Icons.favorite,
               ),
               dropdownColor: CustomTheme.card,
               items:
-                  [
-                        'Christianity',
-                        'Islam',
-                        'Hinduism',
-                        'Buddhism',
-                        'Judaism',
-                        'Atheism',
-                        'Agnostic',
-                        'Spiritual',
-                        'Other',
-                        'Prefer not to say',
-                      ]
+                  _religions
                       .map(
                         (religion) => DropdownMenuItem(
                           value: religion,
@@ -1036,10 +1417,132 @@ class _ProfileSetupWizardScreenState extends State<ProfileSetupWizardScreen> {
             ),
             SizedBox(height: 16),
 
+            // Enhanced Language Selection with Multi-Select
+            FxText.bodyLarge(
+              'Languages Spoken',
+              color: CustomTheme.accent,
+              fontWeight: 600,
+            ),
+            SizedBox(height: 8),
+            FxText.bodySmall(
+              'Select all languages you can communicate in',
+              color: CustomTheme.color.withValues(alpha: 0.7),
+            ),
+            SizedBox(height: 12),
+
+            FormBuilderCheckboxGroup<String>(
+              name: 'languages_spoken_structured',
+              initialValue:
+                  _user.languages_spoken
+                      .split(',')
+                      .map((lang) => lang.trim())
+                      .where((lang) => lang.isNotEmpty)
+                      .where(
+                        (lang) =>
+                            _languageOptions.any((opt) => opt['name'] == lang),
+                      )
+                      .toList(),
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: CustomTheme.primary.withValues(alpha: 0.3),
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: CustomTheme.primary.withValues(alpha: 0.3),
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: CustomTheme.primary, width: 2),
+                ),
+                filled: true,
+                fillColor: CustomTheme.card,
+                contentPadding: EdgeInsets.all(16),
+              ),
+              options:
+                  _languageOptions
+                      .map(
+                        (lang) => FormBuilderFieldOption(
+                          value: lang['name']!,
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              vertical: 8,
+                              horizontal: 4,
+                            ),
+                            child: Row(
+                              children: [
+                                Text(
+                                  lang['flag']!,
+                                  style: TextStyle(fontSize: 20),
+                                ),
+                                SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    lang['name']!,
+                                    style: TextStyle(
+                                      color: CustomTheme.color,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
+              checkColor: CustomTheme.accent,
+              activeColor: CustomTheme.primary,
+              controlAffinity: ControlAffinity.leading,
+              wrapSpacing: 8,
+              wrapRunSpacing: 4,
+              separator: SizedBox(height: 8),
+            ),
+
+            SizedBox(height: 16),
+
+            // Fallback text field for custom languages not in the list
             FormBuilderTextField(
-              name: 'languages_spoken',
-              initialValue: _user.languages_spoken,
-              decoration: _inputDecoration('Languages Spoken', Icons.language),
+              name: 'languages_custom',
+              decoration: InputDecoration(
+                labelText: 'Other Languages (comma-separated)',
+                hintText: 'e.g., Mandarin, Swahili, Tamil',
+                prefixIcon: Icon(Icons.translate, color: CustomTheme.primary),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: CustomTheme.primary.withValues(alpha: 0.3),
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: CustomTheme.primary.withValues(alpha: 0.3),
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: CustomTheme.primary, width: 2),
+                ),
+                filled: true,
+                fillColor: CustomTheme.card,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                labelStyle: TextStyle(
+                  color: CustomTheme.color.withValues(alpha: 0.7),
+                ),
+                hintStyle: TextStyle(
+                  color: CustomTheme.color.withValues(alpha: 0.5),
+                ),
+              ),
+              style: TextStyle(color: CustomTheme.color),
               textCapitalization: TextCapitalization.words,
             ),
           ],
@@ -1071,21 +1574,12 @@ class _ProfileSetupWizardScreenState extends State<ProfileSetupWizardScreen> {
 
             FormBuilderDropdown<String>(
               name: 'looking_for',
-              initialValue:
-                  _user.looking_for.isNotEmpty ? _user.looking_for : null,
+              initialValue: _safeDropdownValue(_user.looking_for, _lookingFor),
               decoration: _inputDecoration('Looking For', Icons.search_rounded),
               dropdownColor: CustomTheme.card,
               validator: FormBuilderValidators.required(),
               items:
-                  [
-                        'Casual Dating',
-                        'Serious Relationship',
-                        'Marriage',
-                        'Friendship',
-                        'Connect & See',
-                        'Something Casual',
-                        'Long-term Partner',
-                      ]
+                  _lookingFor
                       .map(
                         (goal) => DropdownMenuItem(
                           value: goal,
@@ -1101,18 +1595,47 @@ class _ProfileSetupWizardScreenState extends State<ProfileSetupWizardScreen> {
 
             FormBuilderDropdown<String>(
               name: 'interested_in',
-              initialValue:
-                  _user.interested_in.isNotEmpty ? _user.interested_in : null,
+              initialValue: _safeDropdownValue(
+                _user.interested_in,
+                _interestedIn,
+              ),
               decoration: _inputDecoration('Interested In', Icons.people),
               dropdownColor: CustomTheme.card,
               validator: FormBuilderValidators.required(),
               items:
-                  ['Men', 'Women', 'Everyone', 'Non-binary']
+                  _interestedIn
                       .map(
                         (interest) => DropdownMenuItem(
                           value: interest,
                           child: Text(
                             interest,
+                            style: TextStyle(color: CustomTheme.color),
+                          ),
+                        ),
+                      )
+                      .toList(),
+            ),
+            SizedBox(height: 16),
+
+            // Add family plans field
+            FormBuilderDropdown<String>(
+              name: 'family_plans',
+              initialValue: _safeDropdownValue(
+                _user.family_plans,
+                _familyPlans,
+              ),
+              decoration: _inputDecoration(
+                'Family Plans',
+                Icons.family_restroom,
+              ),
+              dropdownColor: CustomTheme.card,
+              items:
+                  _familyPlans
+                      .map(
+                        (plan) => DropdownMenuItem(
+                          value: plan,
+                          child: Text(
+                            plan,
                             style: TextStyle(color: CustomTheme.color),
                           ),
                         ),
@@ -1132,16 +1655,19 @@ class _ProfileSetupWizardScreenState extends State<ProfileSetupWizardScreen> {
                 Expanded(
                   child: FormBuilderDropdown<int>(
                     name: 'age_range_min',
-                    initialValue:
-                        _user.age_range_min.isNotEmpty
-                            ? int.tryParse(_user.age_range_min)
-                            : null,
+                    initialValue: _safeIntDropdownValue(
+                      _user.age_range_min,
+                      List.generate(63, (i) => i + 18), // 18-80 age range
+                    ),
                     decoration: _inputDecoration(
                       'Min Age',
                       Icons.calendar_today,
                     ),
                     dropdownColor: CustomTheme.card,
-                    validator: FormBuilderValidators.required(),
+                    validator: FormBuilderValidators.compose([
+                      FormBuilderValidators.required(),
+                      _validateAgeRange,
+                    ]),
                     items:
                         List.generate(35, (index) => 18 + index)
                             .map(
@@ -1160,16 +1686,19 @@ class _ProfileSetupWizardScreenState extends State<ProfileSetupWizardScreen> {
                 Expanded(
                   child: FormBuilderDropdown<int>(
                     name: 'age_range_max',
-                    initialValue:
-                        _user.age_range_max.isNotEmpty
-                            ? int.tryParse(_user.age_range_max)
-                            : null,
+                    initialValue: _safeIntDropdownValue(
+                      _user.age_range_max,
+                      List.generate(63, (i) => i + 18), // 18-80 age range
+                    ),
                     decoration: _inputDecoration(
                       'Max Age',
                       Icons.calendar_today,
                     ),
                     dropdownColor: CustomTheme.card,
-                    validator: FormBuilderValidators.required(),
+                    validator: FormBuilderValidators.compose([
+                      FormBuilderValidators.required(),
+                      _validateAgeRange,
+                    ]),
                     items:
                         List.generate(35, (index) => 25 + index)
                             .map(
@@ -1442,39 +1971,133 @@ class _ProfileSetupWizardScreenState extends State<ProfileSetupWizardScreen> {
               ),
             ),
             SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
 
+  Widget _buildPreferencesStep() {
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(20),
+      child: FormBuilder(
+        key: _formKeys[6],
+        onChanged: () => _saveCurrentStep(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            FxText.titleLarge(
+              'Dating Preferences',
+              color: CustomTheme.primary,
+              fontWeight: 700,
+            ),
+            SizedBox(height: 8),
+            FxText.bodyMedium(
+              'Help us find your perfect match by setting your preferences.',
+              color: CustomTheme.color2,
+            ),
+            SizedBox(height: 24),
+
+            // Max Distance
+            FxText.bodyLarge(
+              'Maximum Distance (km)',
+              color: CustomTheme.accent,
+              fontWeight: 600,
+            ),
+            SizedBox(height: 8),
+            FormBuilderSlider(
+              name: 'max_distance_km',
+              min: 1,
+              max: 100,
+              divisions: 99,
+              initialValue: double.tryParse(_user.max_distance_km) ?? 25.0,
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
+              ),
+              valueTransformer: (value) => value?.round().toString(),
+              displayValues: DisplayValues.current,
+              activeColor: CustomTheme.primary,
+              inactiveColor: CustomTheme.color2,
+            ),
+            SizedBox(height: 24),
+
+            // Political Views
             FormBuilderDropdown<String>(
-              name: 'family_plans',
-              initialValue:
-                  _user.political_views.isNotEmpty
-                      ? _user.political_views
-                      : null,
+              name: 'political_views',
+              initialValue: _safeDropdownValue(
+                _user.political_views,
+                _politicalViews,
+              ),
               decoration: _inputDecoration(
-                'Family Plans',
-                Icons.family_restroom,
+                'Political Views',
+                Icons.how_to_vote,
               ),
               dropdownColor: CustomTheme.card,
-              validator: FormBuilderValidators.required(),
               items:
-                  [
-                        'Want kids someday',
-                        'Want kids soon',
-                        'Have kids & want more',
-                        'Have kids & done',
-                        'Don\'t want kids',
-                        'Not sure yet',
-                        'Open to discussion',
-                      ]
+                  _politicalViews
                       .map(
-                        (plan) => DropdownMenuItem(
-                          value: plan,
+                        (view) => DropdownMenuItem(
+                          value: view,
                           child: Text(
-                            plan,
+                            view,
                             style: TextStyle(color: CustomTheme.color),
                           ),
                         ),
                       )
                       .toList(),
+            ),
+            SizedBox(height: 16),
+
+            // Enhanced Bio Section
+            FxText.bodyLarge(
+              'About You',
+              color: CustomTheme.accent,
+              fontWeight: 600,
+            ),
+            SizedBox(height: 8),
+            FormBuilderTextField(
+              name: 'bio',
+              initialValue: _user.bio,
+              decoration: _inputDecoration(
+                'Tell us about yourself...',
+                Icons.edit,
+              ),
+              maxLines: 4,
+              maxLength: 500,
+              validator: FormBuilderValidators.compose([
+                FormBuilderValidators.minLength(
+                  20,
+                  errorText: 'Bio should be at least 20 characters',
+                ),
+              ]),
+              textCapitalization: TextCapitalization.sentences,
+            ),
+            SizedBox(height: 24),
+
+            // Profile completeness tip
+            Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: CustomTheme.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: CustomTheme.primary.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.lightbulb, color: CustomTheme.primary, size: 24),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: FxText.bodySmall(
+                      'Complete profiles with detailed preferences get 5x more quality matches!',
+                      color: CustomTheme.primary,
+                      fontWeight: 500,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

@@ -50,12 +50,7 @@ class PriceModel {
 
   //to json
   toJson() {
-    return {
-      'id': id,
-      'min_qty': min_qty,
-      'max_qty': max_qty,
-      'price': price,
-    };
+    return {'id': id, 'min_qty': min_qty, 'max_qty': max_qty, 'price': price};
   }
 
   //to json list
@@ -245,8 +240,10 @@ class Product {
         attributes = [];
         var temp = jsonDecode(summary);
         temp.forEach((key, value) {
-          attributes.add(
-              {"key": key.toString().trim(), "value": value.toString().trim()});
+          attributes.add({
+            "key": key.toString().trim(),
+            "value": value.toString().trim(),
+          });
         });
       } catch (e) {
         attributes = [];
@@ -375,18 +372,37 @@ class Product {
 
   //function to delete the current product
   static Future<void> deleteProduct(int id) async {
-    Database db = await Utils.dbInit();
-    if (!db.isOpen) {
-      return;
+    try {
+      // Send POST request to products-delete endpoint
+      RespondModel resp = RespondModel(
+        await Utils.http_post('products-delete', {'id': id}),
+      );
+
+      if (resp.code != 1) {
+        throw Exception(
+          resp.message.isEmpty
+              ? 'Failed to delete product from server'
+              : resp.message,
+        );
+      }
+
+      // If server deletion successful, delete from local database
+      Database db = await Utils.dbInit();
+      if (db.isOpen) {
+        await db.delete(tableName, where: 'id = ?', whereArgs: [id]);
+      }
+    } catch (e) {
+      // Re-throw the exception to be handled by the calling code
+      throw Exception('Failed to delete product: $e');
     }
-    await db.delete(tableName, where: 'id = $id');
   }
 
   static Future<List<Product>> getOnlineItems() async {
     List<Product> data = [];
 
-    RespondModel resp =
-    RespondModel(await Utils.http_get(Product.endPoint, {}));
+    RespondModel resp = RespondModel(
+      await Utils.http_get(Product.endPoint, {}),
+    );
 
     if (resp.code != 1) {
       return [];
@@ -409,8 +425,11 @@ class Product {
         for (var x in resp.data) {
           Product sub = Product.fromJson(x);
           try {
-            batch.insert(tableName, sub.toJson(),
-                conflictAlgorithm: ConflictAlgorithm.replace);
+            batch.insert(
+              tableName,
+              sub.toJson(),
+              conflictAlgorithm: ConflictAlgorithm.replace,
+            );
           } catch (e) {}
         }
 
@@ -483,7 +502,8 @@ class Product {
       return false;
     }
 
-    String sql = "CREATE TABLE  IF NOT EXISTS  ${Product.tableName} (  "
+    String sql =
+        "CREATE TABLE  IF NOT EXISTS  ${Product.tableName} (  "
         "id INTEGER PRIMARY KEY,"
         " name TEXT,"
         " metric TEXT,"

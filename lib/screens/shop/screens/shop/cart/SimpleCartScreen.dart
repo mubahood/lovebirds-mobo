@@ -4,6 +4,7 @@ import 'package:flutx/flutx.dart';
 import 'package:get/get.dart';
 
 import '../../../../../controllers/SimpleCartManager.dart';
+import '../../../../../controllers/CartController.dart';
 import '../../../../../controllers/MainController.dart';
 import '../../../../../utils/AppConfig.dart';
 import '../../../../../utils/CustomTheme.dart';
@@ -23,6 +24,7 @@ class SimpleCartScreen extends StatefulWidget {
 
 class _SimpleCartScreenState extends State<SimpleCartScreen> {
   final SimpleCartManager cartManager = Get.put(SimpleCartManager());
+  final CartController cartController = Get.put(CartController());
   final MainController mainController = Get.put(MainController());
 
   String selectedDeliveryMethod = 'pickup';

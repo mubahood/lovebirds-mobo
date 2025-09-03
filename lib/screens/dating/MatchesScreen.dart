@@ -1,13 +1,15 @@
 import 'dart:math' as math;
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
-import '../../controllers/MainController.dart';
 import '../../models/UserModel.dart';
 import '../../services/swipe_service.dart';
+import '../../utils/Utilities.dart';
 import '../shop/screens/shop/chat/chat_screen.dart';
+import 'ProfileViewScreen.dart';
 
 class MatchesScreen extends StatefulWidget {
   const MatchesScreen({Key? key}) : super(key: key);
@@ -17,8 +19,6 @@ class MatchesScreen extends StatefulWidget {
 }
 
 class _MatchesScreenState extends State<MatchesScreen> {
-  final MainController _mainC = Get.find<MainController>();
-
   List<MatchModel> _allMatches = [];
   List<MatchModel> _filteredMatches = [];
   bool _isLoading = true;
@@ -32,16 +32,6 @@ class _MatchesScreenState extends State<MatchesScreen> {
     'recent': 'Active',
     'unread': 'Unread',
   };
-
-  // Simple color gradients for cards
-  final List<List<Color>> _cardGradients = [
-    [Color(0xFF667eea), Color(0xFF764ba2)],
-    [Color(0xFFf093fb), Color(0xFFf5576c)],
-    [Color(0xFF4facfe), Color(0xFF00f2fe)],
-    [Color(0xFFa8edea), Color(0xFFfed6e3)],
-    [Color(0xFFffecd2), Color(0xFFfcb69f)],
-    [Color(0xFF89f7fe), Color(0xFF66a6ff)],
-  ];
 
   @override
   void initState() {
@@ -74,6 +64,15 @@ class _MatchesScreenState extends State<MatchesScreen> {
     }
   }
 
+  Future<void> _refreshMatches() async {
+    setState(() {
+      _currentPage = 1;
+      _isLoading = true;
+      _filteredMatches.clear();
+    });
+    _loadMatches();
+  }
+
   void _changeFilter(String filter) {
     if (filter != _currentFilter) {
       setState(() {
@@ -95,7 +94,7 @@ class _MatchesScreenState extends State<MatchesScreen> {
             match.user.id
                 .toString(), // FIXED: Use receiver_id instead of chatHead
         'matchedUser': match.user,
-        'compatibilityScore': match.compatibilityScore.toInt(),
+        'compatibilityScore': (match.compatibilityScore * 100).toInt(),
         'isNewMatch': _isNewMatch(match),
         'isDatingMode': true,
       }),
@@ -160,15 +159,15 @@ class _MatchesScreenState extends State<MatchesScreen> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         gradient: LinearGradient(
-          colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+          colors: [Colors.red, Colors.redAccent],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         boxShadow: [
           BoxShadow(
-            color: Color(0xFF667eea).withOpacity(0.2),
-            blurRadius: 15,
-            offset: Offset(0, 8),
+            color: Colors.red.withOpacity(0.15),
+            blurRadius: 8,
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -188,13 +187,13 @@ class _MatchesScreenState extends State<MatchesScreen> {
             Container(
               padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.yellow.withOpacity(0.9),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 '${_filteredMatches.length}',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Colors.black,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
@@ -231,19 +230,25 @@ class _MatchesScreenState extends State<MatchesScreen> {
                   gradient:
                       isSelected
                           ? LinearGradient(
-                            colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                            colors: [Colors.red, Colors.redAccent],
                           )
                           : null,
                   color: isSelected ? null : Color(0xFF1a1a2e),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: isSelected ? Colors.transparent : Color(0xFF2a2a3e),
+                    color:
+                        isSelected
+                            ? Colors.transparent
+                            : Colors.yellow.withOpacity(0.3),
                   ),
                 ),
                 child: Text(
                   label,
                   style: TextStyle(
-                    color: isSelected ? Colors.white : Colors.grey[400],
+                    color:
+                        isSelected
+                            ? Colors.white
+                            : Colors.yellow.withOpacity(0.8),
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                     fontSize: 13,
                   ),
@@ -265,298 +270,186 @@ class _MatchesScreenState extends State<MatchesScreen> {
       return _buildEmptyState();
     }
 
-    return ListView.builder(
-      padding: EdgeInsets.only(left: 15, right: 15, bottom: 80),
-      itemCount: _filteredMatches.length,
-      itemBuilder: (context, index) {
-        return _buildRevolutionaryMatchCard(_filteredMatches[index], index);
-      },
+    return RefreshIndicator(
+      color: Colors.red,
+      backgroundColor: Color(0xFF1a1a2e),
+      onRefresh: () => _refreshMatches(),
+      child: ListView.builder(
+        padding: EdgeInsets.only(left: 15, right: 15, bottom: 80),
+        itemCount: _filteredMatches.length,
+        itemBuilder: (context, index) {
+          return _buildRevolutionaryMatchCard(_filteredMatches[index], index);
+        },
+      ),
     );
   }
 
   Widget _buildRevolutionaryMatchCard(MatchModel match, int index) {
-    final gradientIndex = index % _cardGradients.length;
-    final gradient = _cardGradients[gradientIndex];
-
-    // FIXED: Safe date parsing with error handling
-    DateTime matchedDate;
-    try {
-      matchedDate = DateTime.parse(match.matchedAt);
-    } catch (e) {
-      // Fallback to current time if date parsing fails
-      matchedDate = DateTime.now();
-    }
-
-    final timeDiff = DateTime.now().difference(matchedDate);
-    final timeAgo = _formatTimeAgo(timeDiff);
+    final age = _calculateAge(match.user.dob);
 
     return Container(
       margin: EdgeInsets.only(bottom: 12),
-      child: GestureDetector(
-        onTap: () => _openChat(match),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(25),
-            gradient: LinearGradient(
-              colors: gradient,
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: gradient[0].withOpacity(0.3),
-                blurRadius: 20,
-                offset: Offset(0, 10),
-              ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(25),
+          gradient: LinearGradient(
+            colors: [
+              Colors.red.withOpacity(0.1),
+              Colors.redAccent.withOpacity(0.05),
             ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          child: Container(
-            margin: EdgeInsets.all(2),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(23),
-              color: Color(0xFF1a1a2e),
+          border: Border.all(color: Colors.yellow.withOpacity(0.2), width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.red.withOpacity(0.08),
+              blurRadius: 6,
+              offset: Offset(0, 3),
             ),
-            child: Padding(
-              padding: EdgeInsets.all(12),
-              child: Row(
-                children: [
-                  _buildRevolutionaryAvatar(match.user, gradient),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
+          ],
+        ),
+        child: Container(
+          margin: EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(23),
+            color: Color(0xFF1a1a2e),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // Clickable avatar for profile viewing
+                GestureDetector(
+                  onTap: () => _openFullProfile(match),
+                  child: _buildEnhancedAvatar(match.user),
+                ),
+                SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Clickable name and age for profile viewing
+                      GestureDetector(
+                        onTap: () => _openFullProfile(match),
+                        child: Row(
                           children: [
                             Expanded(
-                              child: Text(
-                                match.user.name,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: -0.5,
-                                ),
-                                overflow: TextOverflow.ellipsis,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    match.user.name,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: -0.5,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  SizedBox(height: 2),
+                                  Text(
+                                    '$age years old',
+                                    style: TextStyle(
+                                      color: Colors.yellow.withOpacity(0.8),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            _buildCompatibilityChip(
-                              match.compatibilityScore.toInt(),
-                              gradient,
+                            _buildEnhancedCompatibilityChip(
+                              (match.compatibilityScore * 100).toInt(),
                             ),
                           ],
                         ),
-                        SizedBox(height: 4),
-                        Text(
-                          '${match.user.age} years old',
-                          style: TextStyle(
-                            color: Colors.grey[400],
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        SizedBox(height: 6),
-                        Container(
-                          padding: EdgeInsets.all(8),
+                      ),
+                      SizedBox(height: 12),
+                      // Clickable conversation starter for messaging
+                      GestureDetector(
+                        onTap: () => _openChat(match),
+                        child: Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: Color(0xFF2a2a3e),
                             borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            match.conversationStarter.isNotEmpty
-                                ? match.conversationStarter
-                                : 'Say hello to ${match.user.name}! 👋',
-                            style: TextStyle(
-                              color: Colors.grey[300],
-                              fontSize: 11,
-                              fontStyle: FontStyle.italic,
-                              height: 1.2,
+                            border: Border.all(
+                              color: Colors.yellow.withOpacity(0.1),
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                        SizedBox(height: 6),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.schedule_rounded,
-                              size: 14,
-                              color: Colors.grey[500],
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              'Matched $timeAgo',
-                              style: TextStyle(
-                                color: Colors.grey[500],
-                                fontSize: 11,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  match.conversationStarter.isNotEmpty
+                                      ? match.conversationStarter
+                                      : 'Say hello to ${match.user.name}! 👋',
+                                  style: TextStyle(
+                                    color: Colors.grey[300],
+                                    fontSize: 12,
+                                    fontStyle: FontStyle.italic,
+                                    height: 1.2,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
-                            ),
-                            Spacer(),
-                            if (match.isNew)
+                              SizedBox(width: 8),
                               Container(
                                 padding: EdgeInsets.symmetric(
                                   horizontal: 8,
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  gradient: LinearGradient(colors: gradient),
-                                  borderRadius: BorderRadius.circular(10),
+                                  color: Colors.red.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: Text(
-                                  'NEW',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                                child: Icon(
+                                  Icons.chat_bubble_outline,
+                                  color: Colors.red,
+                                  size: 14,
                                 ),
                               ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  Column(
-                    children: [
-                      _buildActionButton(
-                        Icons.chat_bubble_rounded,
-                        gradient,
-                        () => _openChat(match),
-                      ),
-                      SizedBox(height: 8),
-                      _buildActionButton(Icons.more_horiz_rounded, [
-                        Colors.grey[600]!,
-                        Colors.grey[700]!,
-                      ], () => _showMatchActions(match)),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRevolutionaryAvatar(UserModel user, List<Color> gradient) {
-    return Container(
-      width: 60,
-      height: 60,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(colors: gradient),
-        boxShadow: [
-          BoxShadow(
-            color: gradient[0].withOpacity(0.4),
-            blurRadius: 15,
-            offset: Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(3),
-        child: ClipOval(
-          child:
-              user.avatar.isNotEmpty
-                  ? CachedNetworkImage(
-                    imageUrl: user.avatar,
-                    fit: BoxFit.cover,
-                    placeholder:
-                        (context, url) => Container(
-                          color: Color(0xFF2a2a3e),
-                          child: Icon(
-                            Icons.person,
-                            color: Colors.grey[400],
-                            size: 28,
+                            ],
                           ),
                         ),
-                    errorWidget:
-                        (context, url, error) => _buildAvatarFallback(user),
-                  )
-                  : _buildAvatarFallback(user),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAvatarFallback(UserModel user) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Color(0xFF2a2a3e),
-        shape: BoxShape.circle,
-      ),
-      child: Center(
-        child: Text(
-          _getInitials(user.name),
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCompatibilityChip(int score, List<Color> gradient) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(colors: gradient),
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: gradient[0].withOpacity(0.3),
-            blurRadius: 8,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.favorite, size: 12, color: Colors.white),
-          SizedBox(width: 4),
-          Text(
-            '$score%',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
+                      ),
+                      // Show NEW badge if applicable
+                      if (match.isNew)
+                        Padding(
+                          padding: EdgeInsets.only(top: 8),
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.yellow,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                'NEW',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionButton(
-    IconData icon,
-    List<Color> gradient,
-    VoidCallback onTap,
-  ) {
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        onTap();
-      },
-      child: Container(
-        width: 35,
-        height: 35,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(colors: gradient),
-          borderRadius: BorderRadius.circular(17.5),
-          boxShadow: [
-            BoxShadow(
-              color: gradient[0].withOpacity(0.3),
-              blurRadius: 10,
-              offset: Offset(0, 5),
-            ),
-          ],
         ),
-        child: Icon(icon, color: Colors.white, size: 16),
       ),
     );
   }
@@ -654,7 +547,7 @@ class _MatchesScreenState extends State<MatchesScreen> {
               ],
             ),
             child: ElevatedButton.icon(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Get.back(),
               icon: Icon(Icons.swipe_rounded, color: Colors.white),
               label: Text(
                 'Start Swiping',
@@ -678,124 +571,134 @@ class _MatchesScreenState extends State<MatchesScreen> {
       ),
     );
   }
+}
 
-  void _showMatchActions(MatchModel match) {
-    HapticFeedback.lightImpact();
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder:
-          (context) => Container(
-            decoration: BoxDecoration(
-              color: Color(0xFF1a1a2e),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-            ),
-            padding: EdgeInsets.all(15),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 50,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[600],
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                ),
-                SizedBox(height: 20),
-                Text(
-                  'Actions for ${match.user.name}',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                SizedBox(height: 15),
-                ...[
-                  {
-                    'icon': Icons.chat_rounded,
-                    'title': 'Send Message',
-                    'color': Color(0xFF667eea),
-                  },
-                  {
-                    'icon': Icons.card_giftcard_rounded,
-                    'title': 'Send Gift',
-                    'color': Color(0xFFf093fb),
-                  },
-                  {
-                    'icon': Icons.calendar_today_rounded,
-                    'title': 'Plan Date',
-                    'color': Color(0xFF4facfe),
-                  },
-                  {
-                    'icon': Icons.shopping_cart_rounded,
-                    'title': 'Shop Together',
-                    'color': Color(0xFF89f7fe),
-                  },
-                ].map((item) {
-                  return Container(
-                    margin: EdgeInsets.only(bottom: 15),
-                    child: ListTile(
-                      leading: Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: (item['color'] as Color).withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(15),
-                        ),
+// HELPER METHODS
+
+int _calculateAge(String dob) {
+  if (dob.isEmpty) return 25; // Default age
+
+  try {
+    final birthDate = DateTime.parse(dob);
+    final now = DateTime.now();
+    int age = now.year - birthDate.year;
+
+    if (now.month < birthDate.month ||
+        (now.month == birthDate.month && now.day < birthDate.day)) {
+      age--;
+    }
+
+    return age;
+  } catch (e) {
+    return 25; // Default age on error
+  }
+}
+
+Widget _buildEnhancedAvatar(UserModel user) {
+  return Container(
+    width: 60,
+    height: 60,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      gradient: LinearGradient(colors: [Colors.red, Colors.redAccent]),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.red.withOpacity(0.2),
+          blurRadius: 8,
+          offset: Offset(0, 4),
+        ),
+      ],
+    ),
+    child: Padding(
+      padding: EdgeInsets.all(3),
+      child: ClipOval(
+        child:
+            user.avatar.isNotEmpty
+                ? CachedNetworkImage(
+                  imageUrl: Utils.img(user.avatar),
+                  fit: BoxFit.cover,
+                  placeholder:
+                      (context, url) => Container(
+                        color: Color(0xFF2a2a3e),
                         child: Icon(
-                          item['icon'] as IconData,
-                          color: item['color'] as Color,
-                          size: 24,
+                          Icons.person,
+                          color: Colors.grey[400],
+                          size: 28,
                         ),
                       ),
-                      title: Text(
-                        item['title'] as String,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                        ),
-                      ),
-                      trailing: Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        color: Colors.grey[500],
-                        size: 16,
-                      ),
-                      onTap: () {
-                        Navigator.pop(context);
-                        // Handle action
-                      },
-                    ),
-                  );
-                }).toList(),
-              ],
-            ),
+                  errorWidget:
+                      (context, url, error) => _buildAvatarFallback(user),
+                )
+                : _buildAvatarFallback(user),
+      ),
+    ),
+  );
+}
+
+Widget _buildAvatarFallback(UserModel user) {
+  return Container(
+    decoration: BoxDecoration(color: Color(0xFF2a2a3e), shape: BoxShape.circle),
+    child: Center(
+      child: Text(
+        _getInitials(user.name),
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    ),
+  );
+}
+
+Widget _buildEnhancedCompatibilityChip(int score) {
+  return Container(
+    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+    decoration: BoxDecoration(
+      gradient: LinearGradient(colors: [Colors.yellow, Colors.yellow.shade700]),
+      borderRadius: BorderRadius.circular(15),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.yellow.withOpacity(0.2),
+          blurRadius: 4,
+          offset: Offset(0, 2),
+        ),
+      ],
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.favorite, size: 12, color: Colors.black),
+        SizedBox(width: 4),
+        Text(
+          '$score%',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
           ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 
-  String _formatTimeAgo(Duration difference) {
-    if (difference.inDays > 0) {
-      return '${difference.inDays}d ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours}h ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}m ago';
-    } else {
-      return 'Just now';
-    }
-  }
+void _openFullProfile(MatchModel match) {
+  HapticFeedback.lightImpact();
+  Get.to(
+    () => ProfileViewScreen(match.user),
+    transition: Transition.rightToLeftWithFade,
+    duration: Duration(milliseconds: 300),
+  );
+}
 
-  String _getInitials(String name) {
-    if (name.isEmpty) return '?';
-    final words = name.split(' ');
-    if (words.length >= 2) {
-      return '${words[0][0]}${words[1][0]}'.toUpperCase();
-    }
-    return words[0][0].toUpperCase();
+String _getInitials(String name) {
+  if (name.isEmpty) return '?';
+  final words = name.split(' ');
+  if (words.length >= 2) {
+    return '${words[0][0]}${words[1][0]}'.toUpperCase();
   }
+  return words[0][0].toUpperCase();
 }
 
 class BackgroundPatternPainter extends CustomPainter {

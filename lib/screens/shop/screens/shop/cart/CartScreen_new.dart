@@ -31,7 +31,7 @@ class _CartScreenState extends State<CartScreen>
   String? selectedAddress;
   int? selectedAddressId;
   OrderOnline order = OrderOnline();
-  
+
   // Collapsible summary state
   bool isSummaryExpanded = true;
 
@@ -45,7 +45,7 @@ class _CartScreenState extends State<CartScreen>
   Future<void> _initializeOrder() async {
     await mainController.getLoggedInUser();
     await mainController.getCartItems();
-    
+
     // Sync cartController with mainController data
     List<CartItem> items = mainController.cartItems.cast<CartItem>();
     cartController.cartItems.assignAll(items);
@@ -274,18 +274,22 @@ class _CartScreenState extends State<CartScreen>
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                border: isSummaryExpanded ? Border(
-                  bottom: BorderSide(
-                    color: CustomTheme.color4.withOpacity(0.3),
-                    width: 0.5,
-                  ),
-                ) : null,
-                borderRadius: isSummaryExpanded 
-                    ? const BorderRadius.only(
-                        topLeft: Radius.circular(12),
-                        topRight: Radius.circular(12),
-                      )
-                    : BorderRadius.circular(12),
+                border:
+                    isSummaryExpanded
+                        ? Border(
+                          bottom: BorderSide(
+                            color: CustomTheme.color4.withOpacity(0.3),
+                            width: 0.5,
+                          ),
+                        )
+                        : null,
+                borderRadius:
+                    isSummaryExpanded
+                        ? const BorderRadius.only(
+                          topLeft: Radius.circular(12),
+                          topRight: Radius.circular(12),
+                        )
+                        : BorderRadius.circular(12),
               ),
               child: Row(
                 children: [
@@ -325,7 +329,10 @@ class _CartScreenState extends State<CartScreen>
           AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
-            child: isSummaryExpanded ? _buildExpandedSummaryContent(total) : const SizedBox.shrink(),
+            child:
+                isSummaryExpanded
+                    ? _buildExpandedSummaryContent(total)
+                    : const SizedBox.shrink(),
           ),
         ],
       ),
@@ -348,10 +355,7 @@ class _CartScreenState extends State<CartScreen>
             selectedDeliveryMethod == 'pickup' ? 'FREE' : 'UGX 5,000',
           ),
           const SizedBox(height: 8),
-          Container(
-            height: 0.5,
-            color: CustomTheme.color4.withOpacity(0.3),
-          ),
+          Container(height: 0.5, color: CustomTheme.color4.withOpacity(0.3)),
           const SizedBox(height: 8),
           _buildSummaryRow(
             'Total',
@@ -393,23 +397,23 @@ class _CartScreenState extends State<CartScreen>
             color: CustomTheme.colorLight,
           ),
           const SizedBox(height: 12),
-          
+
           // Delivery Method Options
           Row(
             children: [
               Expanded(
                 child: _buildDeliveryOption(
-                  'pickup', 
-                  FeatherIcons.mapPin, 
-                  'Pickup'
+                  'pickup',
+                  FeatherIcons.mapPin,
+                  'Pickup',
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _buildDeliveryOption(
-                  'delivery', 
-                  FeatherIcons.truck, 
-                  'Delivery'
+                  'delivery',
+                  FeatherIcons.truck,
+                  'Delivery',
                 ),
               ),
             ],
@@ -442,14 +446,16 @@ class _CartScreenState extends State<CartScreen>
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isSelected 
-              ? CustomTheme.primary.withOpacity(0.1)
-              : Colors.transparent,
+          color:
+              isSelected
+                  ? CustomTheme.primary.withOpacity(0.1)
+                  : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isSelected
-                ? CustomTheme.primary
-                : CustomTheme.color4.withOpacity(0.3),
+            color:
+                isSelected
+                    ? CustomTheme.primary
+                    : CustomTheme.color4.withOpacity(0.3),
             width: 1.5,
           ),
         ),
@@ -478,14 +484,16 @@ class _CartScreenState extends State<CartScreen>
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: selectedAddress != null
-              ? CustomTheme.accent.withOpacity(0.1)
-              : CustomTheme.color4.withOpacity(0.05),
+          color:
+              selectedAddress != null
+                  ? CustomTheme.accent.withOpacity(0.1)
+                  : CustomTheme.color4.withOpacity(0.05),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: selectedAddress != null
-                ? CustomTheme.accent.withOpacity(0.3)
-                : CustomTheme.color4.withOpacity(0.2),
+            color:
+                selectedAddress != null
+                    ? CustomTheme.accent.withOpacity(0.3)
+                    : CustomTheme.color4.withOpacity(0.2),
             width: 1,
           ),
         ),
@@ -494,17 +502,19 @@ class _CartScreenState extends State<CartScreen>
             Icon(
               FeatherIcons.home,
               size: 16,
-              color: selectedAddress != null
-                  ? CustomTheme.accent
-                  : CustomTheme.color2,
+              color:
+                  selectedAddress != null
+                      ? CustomTheme.accent
+                      : CustomTheme.color2,
             ),
             const SizedBox(width: 8),
             Expanded(
               child: FxText.bodySmall(
                 selectedAddress ?? "Select delivery address",
-                color: selectedAddress != null
-                    ? CustomTheme.colorLight
-                    : CustomTheme.color2,
+                color:
+                    selectedAddress != null
+                        ? CustomTheme.colorLight
+                        : CustomTheme.color2,
                 fontWeight: selectedAddress != null ? 500 : 400,
               ),
             ),
@@ -528,11 +538,7 @@ class _CartScreenState extends State<CartScreen>
       ),
       child: Row(
         children: [
-          Icon(
-            FeatherIcons.info,
-            size: 16,
-            color: CustomTheme.accent,
-          ),
+          Icon(FeatherIcons.info, size: 16, color: CustomTheme.accent),
           const SizedBox(width: 8),
           Expanded(
             child: FxText.bodySmall(
@@ -614,7 +620,10 @@ class _CartScreenState extends State<CartScreen>
     try {
       // Validate cart is not empty
       if (cartController.isEmpty) {
-        _showErrorMessage('Cart is empty', 'Please add items to your cart before proceeding');
+        _showErrorMessage(
+          'Cart is empty',
+          'Please add items to your cart before proceeding',
+        );
         return;
       }
 
@@ -622,7 +631,7 @@ class _CartScreenState extends State<CartScreen>
       if (selectedDeliveryMethod == 'delivery' && selectedAddress == null) {
         _showErrorMessage(
           'Address Required',
-          'Please select a delivery address to continue with delivery'
+          'Please select a delivery address to continue with delivery',
         );
         return;
       }
@@ -631,7 +640,7 @@ class _CartScreenState extends State<CartScreen>
       if (mainController.userModel.id <= 0) {
         _showErrorMessage(
           'Login Required',
-          'Please login to proceed with checkout'
+          'Please login to proceed with checkout',
         );
         return;
       }
@@ -642,7 +651,7 @@ class _CartScreenState extends State<CartScreen>
       // Set delivery information in order
       order.delivery_method = selectedDeliveryMethod;
       order.delivery_amount = selectedDeliveryMethod == 'pickup' ? '0' : '5000';
-      
+
       if (selectedDeliveryMethod == 'delivery' && selectedAddressId != null) {
         order.delivery_address_id = selectedAddressId!.toString();
         order.delivery_address_text = selectedAddress ?? '';
@@ -655,10 +664,10 @@ class _CartScreenState extends State<CartScreen>
         int itemQuantity = Utils.int_parse(item.product_quantity);
         subtotal += (itemQuantity * itemPrice);
       }
-      
+
       double deliveryFee = selectedDeliveryMethod == 'pickup' ? 0 : 5000;
       double total = subtotal + deliveryFee;
-      
+
       order.order_total = subtotal.toString();
       order.payable_amount = total.toString();
 
@@ -668,24 +677,23 @@ class _CartScreenState extends State<CartScreen>
       // Show success and proceed to checkout
       _showSuccessMessage(
         'Ready for Checkout',
-        'Order total: UGX ${Utils.moneyFormat(total.toString())}'
+        'Order total: UGX ${Utils.moneyFormat(total.toString())}',
       );
 
       // Navigate to checkout
       final result = await Get.to(() => CheckoutScreen(order));
-      
+
       // Handle checkout result
       if (result != null && result['success'] == true) {
         // Clear cart on successful checkout
         await cartController.clearCart();
         Get.back(); // Return to previous screen
       }
-
     } catch (e) {
       Utils.hideLoading();
       _showErrorMessage(
         'Checkout Error',
-        'Failed to prepare checkout: ${e.toString()}'
+        'Failed to prepare checkout: ${e.toString()}',
       );
     }
   }

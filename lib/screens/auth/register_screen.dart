@@ -8,7 +8,7 @@ import 'package:lovebirds_app/utils/AppConfig.dart';
 import 'package:lovebirds_app/utils/lovebirds_theme.dart';
 
 import '../../models/LoggedInUserModel.dart';
-import '../../src/features/app_introduction/view/splash_screen.dart';
+import '../../src/features/app_introduction/view/onboarding_screens.dart';
 import '../../utils/Utilities.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -437,9 +437,18 @@ class RegisterScreenState extends State<RegisterScreen> {
       return;
     }
     setState(() => _isLoading = false);
+
+    // Save the auth token separately using new token management system
+    if (user.token.isNotEmpty) {
+      await LoggedInUserModel.saveToken(user.token);
+      debugPrint(
+        '🔑 Registration successful, token saved to SharedPreferences',
+      );
+    }
+
     await user.save();
     Utils.toast('Welcome to ${AppConfig.APP_NAME}!');
-    Get.offAll(() => const SplashScreen());
+    Get.offAll(() => const OnBoardingScreen());
 
     return;
     try {
@@ -451,7 +460,7 @@ class RegisterScreenState extends State<RegisterScreen> {
         ),
       );
 
-      Get.offAll(() => const SplashScreen());
+      Get.offAll(() => const OnBoardingScreen());
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

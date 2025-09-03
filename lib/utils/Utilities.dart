@@ -673,7 +673,9 @@ class Utils {
 
   static Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
+    // Clear both old and new token keys for backward compatibility
     await prefs.remove('token');
+    await LoggedInUserModel.clearToken(); // Use new token management system
     await deleteDatabase(AppConfig.DATABASE_PATH);
     Get.offAll(const LoginScreen());
     return;
@@ -807,13 +809,12 @@ class Utils {
       ..receiveTimeout = const Duration(seconds: 30)
       ..sendTimeout = const Duration(seconds: 30);
 
-    // Retrieve token
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token') ?? '';
+    // Retrieve token using the new token management system
+    final token = await LoggedInUserModel.getToken();
 
     // Add logged‐in user ID
     LoggedInUserModel userModel = await LoggedInUserModel.getLoggedInUser();
-/*    payload['logged_in_user_id'] = userModel.id.toString();
+    /*    payload['logged_in_user_id'] = userModel.id.toString();
     print("${AppConfig.API_BASE_URL}/$path");*/
     /*
     print("============START CONNECTION==============");
@@ -839,6 +840,7 @@ class Utils {
 
     // Build FormData from our mutable payload
     var formData = dio.FormData.fromMap(payload);
+    // print("=======> ${token} <========");
 
     try {
       response = await dioClient.post(
@@ -858,7 +860,7 @@ class Utils {
         ),
       );
 
-      /*      print("============SUCCESS CONNECTION==============");
+  /*          print("============SUCCESS CONNECTION==============");
       print("${AppConfig.API_BASE_URL}/$path");
       print("Response Status: ${response.statusCode}");
       log("Response Data: ${response.data}");
@@ -938,10 +940,9 @@ class Utils {
       };
     }
 
-    // Load current user and token
+    // Load current user and token using new token management system
     final LoggedInUserModel u = await LoggedInUserModel.getLoggedInUser();
-    final prefs = await SharedPreferences.getInstance();
-    final String token = prefs.getString('token') ?? '';
+    final String token = await LoggedInUserModel.getToken();
 
     // print(token);
     // Make Dio client with bad-cert callback
@@ -994,6 +995,117 @@ class Utils {
         'status': 0,
         'code': 0,
         'message': 'Unexpected error: $e',
+        'data': null,
+      };
+    }
+  }
+
+  static Future<dynamic> http_delete(
+    String path,
+    Map<String, dynamic> body, {
+    bool addBase = true,
+  }) async {
+    // Check connectivity
+    if (!await Utils.is_connected()) {
+      return {
+        'code': 0,
+        'message': 'You are not connected to internet.',
+        'data': null,
+      };
+    }
+
+    // Load current user and token using new token management system
+    final String token = await LoggedInUserModel.getToken();
+
+    // Make Dio client with bad-cert callback
+    final dioClient = dio.Dio();
+    (dioClient.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
+      HttpClient client = HttpClient();
+      client.badCertificateCallback = (cert, host, port) => true;
+      return client;
+    };
+
+    // Set timeout
+    dioClient.options.connectTimeout = const Duration(seconds: 30);
+    dioClient.options.receiveTimeout = const Duration(seconds: 30);
+
+    // Prepare headers
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+
+    if (token.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $token';
+    }
+
+    // Prepare URL
+    String url = '';
+    if (addBase) {
+      url = '${AppConfig.API_BASE_URL}/$path';
+    } else {
+      url = path;
+    }
+
+    try {
+      // Make DELETE request
+      final response = await dioClient.delete(
+        url,
+        data: body.isNotEmpty ? jsonEncode(body) : null,
+        options: dio.Options(
+          headers: headers,
+          validateStatus: (status) {
+            return status != null &&
+                status < 500; // Accept all non-server error responses
+          },
+        ),
+      );
+
+      // Handle response
+      if (response.data is Map<String, dynamic>) {
+        return response.data;
+      } else if (response.data is String) {
+        try {
+          return jsonDecode(response.data);
+        } catch (e) {
+          return {
+            'status': 0,
+            'code': 0,
+            'message': 'Invalid JSON response from server',
+            'data': response.data,
+          };
+        }
+      } else {
+        return {
+          'status': 1,
+          'code': 1,
+          'message': 'Success',
+          'data': response.data,
+        };
+      }
+    } on dio.DioException catch (e) {
+      print("DioException in http_delete: ${e.toString()}");
+      print("Response data: ${e.response?.data}");
+
+      // If the response has structured data, return it as is
+      if (e.response?.data != null &&
+          e.response?.data is Map<String, dynamic>) {
+        return e.response?.data;
+      }
+      // Otherwise, wrap in our standard error shape
+      return {
+        'status': 0,
+        'code': 0,
+        'message': e.response?.data ?? e.message,
+        'data': null,
+      };
+    } catch (e) {
+      // Unexpected errors
+      print("Unexpected error in http_delete: $e");
+      return {
+        'status': 0,
+        'code': 0,
+        'message': 'Unexpected error occurred. Please try again.',
         'data': null,
       };
     }

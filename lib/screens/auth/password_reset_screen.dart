@@ -4,11 +4,11 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutx/flutx.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:get/get.dart';
+import 'package:lovebirds_app/src/features/app_introduction/view/onboarding_screens.dart';
 
 import '../../core/styles.dart';
 import '../../models/LoggedInUserModel.dart';
 import '../../models/RespondModel.dart';
-import '../../src/features/app_introduction/view/splash_screen.dart';
 import '../../utils/AppConfig.dart';
 import '../../utils/CustomTheme.dart';
 import '../../utils/Utilities.dart';
@@ -331,7 +331,7 @@ class PasswordResetScreenState extends State<PasswordResetScreen> {
                               return;
                             }
 
-                            Get.off(() => const SplashScreen());
+                            Get.off(() => const OnBoardingScreen());
                           },
                           child: FxText.titleLarge(
                             haveCode ? 'Reset Password' : 'Request Secret Code',

@@ -5,7 +5,6 @@ import 'package:get/get.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:upgrader/upgrader.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 import '../utils/Utilities.dart';
 
@@ -25,9 +24,9 @@ class AppUpdateService {
   /// Check for updates manually
   static Future<void> checkForUpdates({bool showNoUpdateDialog = false}) async {
     if (_isCheckingUpdate) return;
-    
+
     _isCheckingUpdate = true;
-    
+
     try {
       if (Platform.isAndroid) {
         await _checkAndroidUpdate(showNoUpdateDialog: showNoUpdateDialog);
@@ -66,15 +65,17 @@ class AppUpdateService {
   }
 
   /// Check for Android updates
-  static Future<void> _checkAndroidUpdate({bool showNoUpdateDialog = false}) async {
+  static Future<void> _checkAndroidUpdate({
+    bool showNoUpdateDialog = false,
+  }) async {
     try {
       // Check if update is available
       final AppUpdateInfo updateInfo = await InAppUpdate.checkForUpdate();
-      
+
       if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
         final bool isImmediate = updateInfo.immediateUpdateAllowed;
         final bool isFlexible = updateInfo.flexibleUpdateAllowed;
-        
+
         if (isImmediate && _shouldForceUpdate(updateInfo)) {
           // Force immediate update for critical updates
           await _performImmediateUpdate();
@@ -99,18 +100,16 @@ class AppUpdateService {
   /// Check for iOS updates
   static Future<void> _checkIOSUpdate({bool showNoUpdateDialog = false}) async {
     try {
-      final PackageInfo packageInfo = await PackageInfo.fromPlatform();
-      
       // Use upgrader to check App Store
       final Upgrader upgrader = Upgrader(
         debugDisplayAlways: false,
         debugDisplayOnce: false,
         debugLogging: false,
       );
-      
+
       // Initialize and check if update is available
       await upgrader.initialize();
-      
+
       if (upgrader.shouldDisplayUpgrade()) {
         await _showIOSUpdateDialog(upgrader);
       } else if (showNoUpdateDialog) {
@@ -151,30 +150,23 @@ class AppUpdateService {
     if (_hasShownUpdateDialog) return;
     _hasShownUpdateDialog = true;
 
-    final String title = isImmediate ? 'Critical Update Required' : 'App Update Available';
-    final String message = isImmediate 
-        ? 'A critical update is required to continue using the app.'
-        : 'A new version of Lovebirds is available with improvements and bug fixes.';
+    final String title =
+        isImmediate ? 'Critical Update Required' : 'App Update Available';
+    final String message =
+        isImmediate
+            ? 'A critical update is required to continue using the app.'
+            : 'A new version of Lovebirds is available with improvements and bug fixes.';
 
     await Get.dialog(
       AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            Icon(
-              Icons.system_update,
-              color: Colors.blue,
-              size: 28,
-            ),
+            Icon(Icons.system_update, color: Colors.blue, size: 28),
             const SizedBox(width: 12),
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -187,10 +179,7 @@ class AppUpdateService {
               const SizedBox(height: 12),
               Text(
                 'Version: ${updateInfo.availableVersionCode}',
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey,
-                ),
+                style: const TextStyle(fontSize: 14, color: Colors.grey),
               ),
             ],
           ],
@@ -231,41 +220,23 @@ class AppUpdateService {
 
     await Get.dialog(
       AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            Icon(
-              Icons.system_update,
-              color: Colors.blue,
-              size: 28,
-            ),
+            Icon(Icons.system_update, color: Colors.blue, size: 28),
             const SizedBox(width: 12),
             const Text(
               'App Update Available',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ],
         ),
-        content: Column(
+        content: const Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'A new version of Lovebirds is available on the App Store with improvements and bug fixes.',
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Current: ${upgrader.currentInstalledVersion()}',
-              style: const TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-            Text(
-              'Latest: ${upgrader.currentAppStoreVersion()}',
-              style: const TextStyle(fontSize: 14, color: Colors.grey),
             ),
           ],
         ),
@@ -308,20 +279,24 @@ class AppUpdateService {
         Utils.showLoading(message: "Preparing update...");
         await InAppUpdate.startFlexibleUpdate();
         Utils.hideLoading();
-        
+
         // Listen for update download completion
-        InAppUpdate.completeFlexibleUpdate().then((_) {
-          Utils.toast('Update installed successfully!');
-        }).catchError((error) {
-          print('Flexible update completion failed: $error');
-          Utils.toast('Update installation failed');
-        });
+        InAppUpdate.completeFlexibleUpdate()
+            .then((_) {
+              Utils.toast('Update installed successfully!');
+            })
+            .catchError((error) {
+              print('Flexible update completion failed: $error');
+              Utils.toast('Update installation failed');
+            });
       }
       _hasShownUpdateDialog = false;
     } catch (e) {
       Utils.hideLoading();
       print('Update failed: $e');
-      _showErrorDialog('Update failed. Please try again or update manually from Play Store.');
+      _showErrorDialog(
+        'Update failed. Please try again or update manually from Play Store.',
+      );
       _hasShownUpdateDialog = false;
     }
   }
@@ -329,8 +304,9 @@ class AppUpdateService {
   /// Open App Store for iOS updates
   static Future<void> _openAppStore() async {
     try {
-      const String appStoreUrl = 'https://apps.apple.com/app/id1234567890'; // Replace with your App Store URL
-      
+      const String appStoreUrl =
+          'https://apps.apple.com/app/id1234567890'; // Replace with your App Store URL
+
       if (await canLaunchUrl(Uri.parse(appStoreUrl))) {
         await launchUrl(
           Uri.parse(appStoreUrl),
@@ -351,23 +327,14 @@ class AppUpdateService {
   static void _showNoUpdateDialog() {
     Get.dialog(
       AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            Icon(
-              Icons.check_circle,
-              color: Colors.green,
-              size: 28,
-            ),
+            Icon(Icons.check_circle, color: Colors.green, size: 28),
             const SizedBox(width: 12),
             const Text(
               'Up to Date',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -395,23 +362,14 @@ class AppUpdateService {
   static void _showErrorDialog(String message) {
     Get.dialog(
       AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            Icon(
-              Icons.error_outline,
-              color: Colors.red,
-              size: 28,
-            ),
+            Icon(Icons.error_outline, color: Colors.red, size: 28),
             const SizedBox(width: 12),
             const Text(
               'Update Check Failed',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -436,7 +394,7 @@ class AppUpdateService {
   /// Check for flexible update status (Android only)
   static Future<void> checkFlexibleUpdateStatus() async {
     if (!Platform.isAndroid) return;
-    
+
     try {
       await InAppUpdate.completeFlexibleUpdate();
     } catch (e) {

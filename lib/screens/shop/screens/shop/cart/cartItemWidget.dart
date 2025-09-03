@@ -4,6 +4,7 @@ import 'package:flutx/flutx.dart';
 import 'package:get/get.dart';
 
 import '../../../../../controllers/MainController.dart';
+import '../../../../../controllers/CartController.dart';
 import '../../../../../utils/AppConfig.dart';
 import '../../../../../utils/CustomTheme.dart';
 import '../../../../../utils/Utilities.dart';
@@ -11,11 +12,11 @@ import '../../../models/CartItem.dart';
 import '../widgets.dart';
 
 class cartItemWidget extends StatefulWidget {
-  CartItem u;
-  int index;
-  MainController mainController;
+  final CartItem u;
+  final int index;
+  final MainController mainController;
 
-  cartItemWidget(this.u, this.mainController, this.index, {Key? key})
+  const cartItemWidget(this.u, this.mainController, this.index, {Key? key})
     : super(key: key);
 
   @override
@@ -23,10 +24,27 @@ class cartItemWidget extends StatefulWidget {
 }
 
 class _cartItemWidgetState extends State<cartItemWidget> {
+  CartController? cartController;
+
+  @override
+  void initState() {
+    super.initState();
+    // Try to find CartController if it exists, otherwise use null
+    try {
+      cartController = Get.find<CartController>();
+    } catch (e) {
+      // CartController not found, widget will work without it
+      cartController = null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: widget.index.isEven ? CustomTheme.background : CustomTheme.background.withAlpha(20),
+      color:
+          widget.index.isEven
+              ? CustomTheme.background
+              : CustomTheme.background.withAlpha(20),
       padding: const EdgeInsets.only(top: 10, bottom: 15, left: 15, right: 10),
       child: Flex(
         direction: Axis.horizontal,
@@ -65,7 +83,7 @@ class _cartItemWidgetState extends State<cartItemWidget> {
                             Get.defaultDialog(
                               middleText:
                                   "Are you sure you need to remove this item from your cart?",
-                              titleStyle:   TextStyle(color: CustomTheme.color2),
+                              titleStyle: TextStyle(color: CustomTheme.color2),
                               actions: <Widget>[
                                 FxButton.text(
                                   onPressed: () {
@@ -165,15 +183,16 @@ class _cartItemWidgetState extends State<cartItemWidget> {
                     FxContainer(
                       paddingAll: 6,
                       onTap: () async {
-                        int x = Utils.int_parse(widget.u.product_quantity);
-                        x--;
-                        if (x < 1) {
-                          x = 1;
-                          return;
+                        int currentQty = Utils.int_parse(
+                          widget.u.product_quantity,
+                        );
+                        if (currentQty > 1) {
+                          int newQty = currentQty - 1;
+                          widget.u.product_quantity = '$newQty';
+                          await widget.u.save();
+                          await cartController?.loadCartItems();
+                          setState(() {});
                         }
-                        widget.u.product_quantity = '$x';
-                        await widget.u.save();
-                        await widget.mainController.getCartItems();
                       },
                       color: CustomTheme.primary.withAlpha(40),
                       borderRadiusAll: 100,
@@ -184,20 +203,27 @@ class _cartItemWidgetState extends State<cartItemWidget> {
                       ),
                     ),
                     const SizedBox(width: 4),
-                    FxText.bodyLarge(
-                      widget.u.product_quantity,
-                      maxLines: 1,
-                      fontWeight: 900,
-                      color: CustomTheme.color2,
+                    Container(
+                      constraints: const BoxConstraints(minWidth: 30),
+                      child: FxText.bodyLarge(
+                        widget.u.product_quantity,
+                        maxLines: 1,
+                        fontWeight: 900,
+                        color: CustomTheme.color2,
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                     const SizedBox(width: 5),
                     FxContainer(
                       onTap: () async {
-                        int x = Utils.int_parse(widget.u.product_quantity);
-                        x++;
-                        widget.u.product_quantity = '$x';
+                        int currentQty = Utils.int_parse(
+                          widget.u.product_quantity,
+                        );
+                        int newQty = currentQty + 1;
+                        widget.u.product_quantity = '$newQty';
                         await widget.u.save();
-                        await widget.mainController.getCartItems();
+                        await cartController?.loadCartItems();
+                        setState(() {});
                       },
                       paddingAll: 6,
                       color: CustomTheme.primary.withAlpha(40),

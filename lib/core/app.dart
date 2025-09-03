@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: LovebirdsAppTheme.datingTheme,
       home: const OnBoardingScreen(),
-      initialRoute: AppRouter.splash,
+      initialRoute: AppRouter.onBoarding,
       getPages: AppRouter.routes,
     );
   }

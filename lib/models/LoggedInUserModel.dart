@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -69,6 +70,10 @@ class LoggedInUserModel {
   String likes_received = "";
   String matches_count = "";
   String completed_profile_pct = "";
+
+  // Added structured extension fields
+  String family_plans = ""; // Desired family plans (new explicit field)
+  String interests_json = ""; // JSON array string of interests
 
   // Legal and Agreement Fields
   String terms_of_service_accepted =
@@ -156,6 +161,8 @@ class LoggedInUserModel {
     'likes_received': likes_received,
     'matches_count': matches_count,
     'completed_profile_pct': completed_profile_pct,
+    'family_plans': family_plans,
+    'interests_json': interests_json,
     // Legal and Agreement Fields
     'terms_of_service_accepted': terms_of_service_accepted,
     'privacy_policy_accepted': privacy_policy_accepted,
@@ -176,6 +183,89 @@ class LoggedInUserModel {
     'location_sharing': location_sharing,
     'analytics_consent': analytics_consent,
     'crash_reporting': crash_reporting,
+  };
+
+  // Separate method for local database saving - only includes columns that exist in the database
+  Map<String, dynamic> toDatabaseJson() => {
+    'id': id,
+    'username': username,
+    'password': password,
+    'name': name,
+    'avatar': avatar,
+    'created_at': created_at,
+    'updated_at': updated_at,
+    'first_name': first_name,
+    'last_name': last_name,
+    'phone_number': phone_number,
+    'phone_number_2': phone_number_2,
+    'address': address,
+    'sex': sex,
+    'dob': dob,
+    'status': status,
+    'email': email,
+    'secret_code': secret_code,
+    'profile_photos': profile_photos,
+    'bio': bio,
+    'tagline': tagline,
+    'phone_country_name': phone_country_name,
+    'phone_country_code': phone_country_code,
+    'phone_country_international': phone_country_international,
+    'sexual_orientation': sexual_orientation,
+    'height_cm': height_cm,
+    'body_type': body_type,
+    'country': country,
+    'state': state,
+    'city': city,
+    'latitude': latitude,
+    'longitude': longitude,
+    'last_online_at': last_online_at,
+    'online_status': online_status,
+    'looking_for': looking_for,
+    'interested_in': interested_in,
+    'age_range_min': age_range_min,
+    'age_range_max': age_range_max,
+    'max_distance_km': max_distance_km,
+    'smoking_habit': smoking_habit,
+    'drinking_habit': drinking_habit,
+    'pet_preference': pet_preference,
+    'religion': religion,
+    'political_views': political_views,
+    'languages_spoken': languages_spoken,
+    'education_level': education_level,
+    'occupation': occupation,
+    'email_verified': email_verified,
+    'phone_verified': phone_verified,
+    'verification_code': verification_code,
+    'failed_login_attempts': failed_login_attempts,
+    'last_password_change': last_password_change,
+    'subscription_tier': subscription_tier,
+    'subscription_expires': subscription_expires,
+    'credits_balance': credits_balance,
+    'profile_views': profile_views,
+    'likes_received': likes_received,
+    'matches_count': matches_count,
+    'completed_profile_pct': completed_profile_pct,
+    // Legal and Agreement Fields that exist in database
+    'terms_of_service_accepted': terms_of_service_accepted,
+    'privacy_policy_accepted': privacy_policy_accepted,
+    'community_guidelines_accepted': community_guidelines_accepted,
+    'marketing_emails_consent': marketing_emails_consent,
+    'data_processing_consent': data_processing_consent,
+    'content_moderation_consent': content_moderation_consent,
+    'terms_accepted_date': terms_accepted_date,
+    'privacy_accepted_date': privacy_accepted_date,
+    'guidelines_accepted_date': guidelines_accepted_date,
+    // Additional User Settings that exist in database
+    'notification_preferences': notification_preferences,
+    'push_notifications': push_notifications,
+    'email_notifications': email_notifications,
+    'profile_visibility': profile_visibility,
+    'content_filtering': content_filtering,
+    'safe_mode': safe_mode,
+    'location_sharing': location_sharing,
+    'analytics_consent': analytics_consent,
+    'crash_reporting': crash_reporting,
+    // Note: family_plans and interests_json are excluded as they don't exist in the database schema
   };
 
   /// Initialize the local table if needed
@@ -215,6 +305,8 @@ class LoggedInUserModel {
       body_type TEXT,
       phone_number_1 TEXT,
       country TEXT,
+      logged_in_user_6 TEXT,
+      interests_json TEXT,
       state TEXT,
       city TEXT,
       latitude TEXT,
@@ -368,6 +460,9 @@ class LoggedInUserModel {
     u.matches_count = Utils.to_str(m['matches_count'], '');
     u.completed_profile_pct = Utils.to_str(m['completed_profile_pct'], '');
 
+    u.family_plans = Utils.to_str(m['family_plans'], '');
+    u.interests_json = Utils.to_str(m['interests_json'], '');
+
     u.terms_of_service_accepted = Utils.to_str(
       m['terms_of_service_accepted'],
       '',
@@ -416,14 +511,63 @@ class LoggedInUserModel {
 
   static Future<String> get_token() async {
     final prefs = await SharedPreferences.getInstance();
-    dynamic localToken = prefs.getString('token');
+    dynamic localToken = prefs.getString(
+      'auth_token',
+    ); // Changed key to avoid conflicts
     if (localToken == null || localToken.toString().length < 6) {
       LoggedInUserModel lu = await LoggedInUserModel.getLoggedInUser();
       localToken = lu.token;
-      await prefs.setString('token', localToken);
+      if (localToken != null && localToken.toString().length >= 6) {
+        await prefs.setString('auth_token', localToken);
+      }
     }
+    return localToken ?? '';
+  }
 
-    return localToken;
+  // Save token to SharedPreferences independently of user data
+  static Future<bool> saveToken(String token) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (token.isNotEmpty) {
+        await prefs.setString('auth_token', token);
+        debugPrint('🔑 Auth token saved to SharedPreferences');
+        return true;
+      } else {
+        debugPrint('⚠️ Empty token provided, not saving');
+        return false;
+      }
+    } catch (e) {
+      debugPrint('❌ Failed to save auth token: ${e.toString()}');
+      return false;
+    }
+  }
+
+  // Get token from SharedPreferences
+  static Future<String> getToken() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      String token = prefs.getString('auth_token') ?? '';
+      debugPrint(
+        '🔑 Retrieved auth token from SharedPreferences: ${token.isNotEmpty ? "Present" : "Empty"}',
+      );
+      return token;
+    } catch (e) {
+      debugPrint('❌ Failed to get auth token: ${e.toString()}');
+      return '';
+    }
+  }
+
+  // Clear token from SharedPreferences (for logout)
+  static Future<bool> clearToken() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('auth_token');
+      debugPrint('🔑 Auth token cleared from SharedPreferences');
+      return true;
+    } catch (e) {
+      debugPrint('❌ Failed to clear auth token: ${e.toString()}');
+      return false;
+    }
   }
 
   Future<bool> save() async {
@@ -437,15 +581,20 @@ class LoggedInUserModel {
     }
 
     try {
+      debugPrint('💾 Saving user to local database...');
       await db.insert(
         LoggedInUserModel.tableName,
-        toJson(),
+        toDatabaseJson(), // Use toDatabaseJson() instead of toJson() to exclude non-existent columns
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('token', token);
+
+      // DO NOT save token here anymore - token is managed separately
+      debugPrint(
+        '✅ User saved to local database successfully (token managed separately)',
+      );
       isSuccess = true;
     } catch (e) {
+      debugPrint('❌ Failed to save user to local database: ${e.toString()}');
       Utils.log(" !!!==> Failed because ${e.toString()}");
       isSuccess = false;
     }

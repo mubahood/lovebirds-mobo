@@ -28,10 +28,11 @@ class ProductsScreen extends StatefulWidget {
 }
 
 class _ProductsScreenState extends State<ProductsScreen> {
-  late Future<dynamic> futureInit;
+  Future<dynamic>? futureInit;
   List<Product> products = [];
   ProductCategory category = ProductCategory();
   final MainController mainController = Get.find<MainController>();
+
   final SimpleCartManager cartManager = Get.put(SimpleCartManager());
   String _sortBy = 'newest'; // newest, price_low, price_high
   List<Product> _filteredProducts = [];
@@ -47,12 +48,14 @@ class _ProductsScreenState extends State<ProductsScreen> {
   }
 
   Future<void> _refresh() async {
+    await mainController.getLoggedInUser();
     futureInit = _load();
     setState(() {});
     await futureInit;
   }
 
   Future<String> _load() async {
+    await mainController.getLoggedInUser();
     await mainController.getCategories();
     if (category.id > 0) {
       products = await Product.getItems(where: 'category = ${category.id}');
@@ -397,15 +400,18 @@ class _ProductsScreenState extends State<ProductsScreen> {
           ),
         ],
       ),
-      body: FutureBuilder(
-        future: futureInit,
-        builder: (_, snap) {
-          if (snap.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          return _buildGrid();
-        },
-      ),
+      body:
+          futureInit == null
+              ? const Center(child: CircularProgressIndicator())
+              : FutureBuilder(
+                future: futureInit,
+                builder: (_, snap) {
+                  if (snap.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  return _buildGrid();
+                },
+              ),
     );
   }
 
