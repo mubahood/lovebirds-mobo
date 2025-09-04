@@ -2,7 +2,7 @@ name: lovebirds_app
 description: Lovebirds is a premium dating app designed for meaningful connections and authentic relationships. Featuring smart matching, real-time messaging, and secure user verification for users seeking love and companionship.
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
-version: 1.1.5+15
+version: 1.1.8+18
 
 environment:
   sdk: ^3.7.2

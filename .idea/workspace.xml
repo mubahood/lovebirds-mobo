@@ -10,20 +10,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="1b882ce3-1198-472a-b1a3-9e9b778a292b" name="Changes" comment="latest changesxzxzx">
-      <change afterPath="$PROJECT_DIR$/lib/screens/subscription/subscription_history_screen.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/auth/modern_login_screen.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/auth/modern_register_screen.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/onboarding/modern_onboarding_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/onboarding/modern_onboarding_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/profile/modern_profile_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/profile/modern_profile_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/shop/screens/shop/cart/CheckoutScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/shop/screens/shop/cart/CheckoutScreen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/shop/screens/shop/cart/CheckoutScreen_hambren.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/shop/screens/shop/cart/CheckoutScreen_hambren.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/shop/screens/shop/cart/ImprovedCheckoutScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/shop/screens/shop/cart/ImprovedCheckoutScreen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/shop/screens/shop/cart/SimpleCheckoutScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/shop/screens/shop/cart/SimpleCheckoutScreen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/shop/screens/shop/full_app/section/AccountSection.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/shop/screens/shop/full_app/section/AccountSection.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/subscription/subscription_selection_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/subscription/subscription_selection_screen.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/utils/AppConfig.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/utils/AppConfig.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/utils/Utilities.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/utils/Utilities.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
