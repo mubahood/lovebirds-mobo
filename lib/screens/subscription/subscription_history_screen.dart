@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
-import '../../controllers/MainController.dart';
 import '../../models/RespondModel.dart';
 import '../../utils/dating_theme.dart';
 import '../../utils/Utilities.dart';
@@ -16,7 +15,6 @@ class SubscriptionHistoryScreen extends StatefulWidget {
 }
 
 class _SubscriptionHistoryScreenState extends State<SubscriptionHistoryScreen> {
-  final MainController _mainController = Get.find<MainController>();
   List<dynamic> _subscriptions = [];
   bool _isLoading = true;
 
@@ -28,11 +26,11 @@ class _SubscriptionHistoryScreenState extends State<SubscriptionHistoryScreen> {
 
   Future<void> _loadSubscriptionHistory() async {
     setState(() => _isLoading = true);
-    
+
     try {
-      final response = await Utils.http_get('subscription-history');
+      final response = await Utils.http_get('subscription-history', {});
       final resp = RespondModel(response);
-      
+
       if (resp.code == 1) {
         setState(() {
           _subscriptions = resp.data ?? [];
@@ -52,13 +50,13 @@ class _SubscriptionHistoryScreenState extends State<SubscriptionHistoryScreen> {
       final response = await Utils.http_post('refresh-subscription-payment', {
         'subscription_id': subscriptionId,
       });
-      
+
       final resp = RespondModel(response);
       if (resp.code == 1) {
         Utils.toast('Payment status refreshed successfully');
         await _loadSubscriptionHistory(); // Reload the list
       } else {
-        Utils.toast(resp.message ?? 'Failed to refresh payment status');
+        Utils.toast('Failed to refresh payment status');
       }
     } catch (e) {
       Utils.toast('Error refreshing payment status: $e');
@@ -101,7 +99,7 @@ class _SubscriptionHistoryScreenState extends State<SubscriptionHistoryScreen> {
     final status = subscription['status'] ?? 'unknown';
     final isPaid = subscription['payment_status'] == 'paid';
     final isActive = subscription['status'] == 'active';
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       color: DatingTheme.cardBackground,
@@ -127,11 +125,17 @@ class _SubscriptionHistoryScreenState extends State<SubscriptionHistoryScreen> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: _getStatusColor(status).withOpacity(0.2),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: _getStatusColor(status), width: 1),
+                    border: Border.all(
+                      color: _getStatusColor(status),
+                      width: 1,
+                    ),
                   ),
                   child: Text(
                     status.toUpperCase(),
@@ -145,20 +149,32 @@ class _SubscriptionHistoryScreenState extends State<SubscriptionHistoryScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            
+
             // Details
-            _buildDetailRow('Amount', _formatAmount(
-              subscription['amount']?.toDouble(), 
-              subscription['currency']
-            )),
+            _buildDetailRow(
+              'Amount',
+              _formatAmount(
+                subscription['amount']?.toDouble(),
+                subscription['currency'],
+              ),
+            ),
             _buildDetailRow('Plan Type', subscription['plan_type'] ?? 'N/A'),
-            _buildDetailRow('Start Date', _formatDate(subscription['start_date'])),
+            _buildDetailRow(
+              'Start Date',
+              _formatDate(subscription['start_date']),
+            ),
             _buildDetailRow('End Date', _formatDate(subscription['end_date'])),
-            _buildDetailRow('Payment Status', subscription['payment_status'] ?? 'unknown'),
-            
+            _buildDetailRow(
+              'Payment Status',
+              subscription['payment_status'] ?? 'unknown',
+            ),
+
             if (subscription['stripe_subscription_id'] != null)
-              _buildDetailRow('Subscription ID', subscription['stripe_subscription_id']),
-            
+              _buildDetailRow(
+                'Subscription ID',
+                subscription['stripe_subscription_id'],
+              ),
+
             // Action Buttons
             if (!isPaid || status == 'pending') ...[
               const SizedBox(height: 16),
@@ -166,7 +182,10 @@ class _SubscriptionHistoryScreenState extends State<SubscriptionHistoryScreen> {
                 children: [
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: () => _refreshPaymentStatus(subscription['id'].toString()),
+                      onPressed:
+                          () => _refreshPaymentStatus(
+                            subscription['id'].toString(),
+                          ),
                       icon: const Icon(Icons.refresh),
                       label: const Text('Refresh Payment Status'),
                       style: ElevatedButton.styleFrom(
@@ -182,13 +201,16 @@ class _SubscriptionHistoryScreenState extends State<SubscriptionHistoryScreen> {
                 ],
               ),
             ],
-            
+
             if (isActive) ...[
               const SizedBox(height: 8),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: () => _showCancelConfirmation(subscription['id'].toString()),
+                  onPressed:
+                      () => _showCancelConfirmation(
+                        subscription['id'].toString(),
+                      ),
                   icon: const Icon(Icons.cancel),
                   label: const Text('Cancel Subscription'),
                   style: ElevatedButton.styleFrom(
@@ -242,36 +264,37 @@ class _SubscriptionHistoryScreenState extends State<SubscriptionHistoryScreen> {
   void _showCancelConfirmation(String subscriptionId) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: DatingTheme.cardBackground,
-        title: const Text(
-          'Cancel Subscription',
-          style: TextStyle(color: Colors.white),
-        ),
-        content: const Text(
-          'Are you sure you want to cancel this subscription? You will lose access to premium features at the end of your current billing period.',
-          style: TextStyle(color: Colors.white),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Keep Subscription',
-              style: TextStyle(color: Colors.white.withOpacity(0.7)),
-            ),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await _cancelSubscription(subscriptionId);
-            },
-            child: const Text(
+      builder:
+          (context) => AlertDialog(
+            backgroundColor: DatingTheme.cardBackground,
+            title: const Text(
               'Cancel Subscription',
-              style: TextStyle(color: Colors.red),
+              style: TextStyle(color: Colors.white),
             ),
+            content: const Text(
+              'Are you sure you want to cancel this subscription? You will lose access to premium features at the end of your current billing period.',
+              style: TextStyle(color: Colors.white),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  'Keep Subscription',
+                  style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                ),
+              ),
+              TextButton(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  await _cancelSubscription(subscriptionId);
+                },
+                child: const Text(
+                  'Cancel Subscription',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -280,13 +303,13 @@ class _SubscriptionHistoryScreenState extends State<SubscriptionHistoryScreen> {
       final response = await Utils.http_post('cancel-subscription', {
         'subscription_id': subscriptionId,
       });
-      
+
       final resp = RespondModel(response);
       if (resp.code == 1) {
         Utils.toast('Subscription cancelled successfully');
         await _loadSubscriptionHistory(); // Reload the list
       } else {
-        Utils.toast(resp.message ?? 'Failed to cancel subscription');
+        Utils.toast('Failed to cancel subscription');
       }
     } catch (e) {
       Utils.toast('Error cancelling subscription: $e');
@@ -320,76 +343,77 @@ class _SubscriptionHistoryScreenState extends State<SubscriptionHistoryScreen> {
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(
-                color: DatingTheme.primaryPink,
-              ),
-            )
-          : _subscriptions.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.receipt_long,
-                        size: 64,
-                        color: Colors.white.withOpacity(0.5),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No Subscriptions Found',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.7),
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'You haven\'t purchased any premium subscriptions yet.',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.5),
-                          fontSize: 14,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 32),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          // Navigate to subscription plans
-                          Get.toNamed('/subscription-plans');
-                        },
-                        icon: const Icon(Icons.star),
-                        label: const Text('Browse Premium Plans'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: DatingTheme.primaryPink,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(25),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _loadSubscriptionHistory,
+      body:
+          _isLoading
+              ? const Center(
+                child: CircularProgressIndicator(
                   color: DatingTheme.primaryPink,
-                  backgroundColor: DatingTheme.cardBackground,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _subscriptions.length,
-                    itemBuilder: (context, index) {
-                      return _buildSubscriptionCard(_subscriptions[index]);
-                    },
-                  ),
                 ),
+              )
+              : _subscriptions.isEmpty
+              ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.receipt_long,
+                      size: 64,
+                      color: Colors.white.withOpacity(0.5),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No Subscriptions Found',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.7),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'You haven\'t purchased any premium subscriptions yet.',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.5),
+                        fontSize: 14,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 32),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        // Navigate to subscription plans
+                        Get.toNamed('/subscription-plans');
+                      },
+                      icon: const Icon(Icons.star),
+                      label: const Text('Browse Premium Plans'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: DatingTheme.primaryPink,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+              : RefreshIndicator(
+                onRefresh: _loadSubscriptionHistory,
+                color: DatingTheme.primaryPink,
+                backgroundColor: DatingTheme.cardBackground,
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: _subscriptions.length,
+                  itemBuilder: (context, index) {
+                    return _buildSubscriptionCard(_subscriptions[index]);
+                  },
+                ),
+              ),
     );
   }
 }

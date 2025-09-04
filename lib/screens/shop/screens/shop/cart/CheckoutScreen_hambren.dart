@@ -8,6 +8,7 @@ import '../../../../../utils/AppConfig.dart';
 import '../../../../../utils/CustomTheme.dart';
 import '../../../../../utils/Utilities.dart';
 import '../../../models/CartItem.dart';
+import '../orders/MyOrdersScreen.dart';
 
 class CheckoutScreenHambren extends StatefulWidget {
   final List<CartItem>? cartItems;
@@ -600,14 +601,18 @@ class _CheckoutScreenHambrenState extends State<CheckoutScreenHambren> {
           if (await canLaunchUrl(paymentUri)) {
             await launchUrl(paymentUri, mode: LaunchMode.externalApplication);
 
-            // Navigate back to cart/home
-            Navigator.of(context).popUntil((route) => route.isFirst);
+            // Navigate to My Orders screen after payment redirect
+            await Future.delayed(const Duration(milliseconds: 500));
+            Get.offAll(() => const MyOrdersScreen());
           } else {
             Utils.toast('Could not open payment page. Please try again.');
+            // Navigate to orders screen even if payment fails
+            Get.offAll(() => const MyOrdersScreen());
           }
         } else {
-          // Navigate to order confirmation or back
-          Navigator.of(context).popUntil((route) => route.isFirst);
+          // Navigate to orders screen to allow payment later
+          await Future.delayed(const Duration(milliseconds: 500));
+          Get.offAll(() => const MyOrdersScreen());
         }
       } else {
         Utils.toast(response?['message'] ?? 'Failed to submit order');

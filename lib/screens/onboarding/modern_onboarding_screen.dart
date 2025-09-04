@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:get/get.dart';
+import 'package:lovebirds_app/screens/auth/login_screen.dart';
 
-import '../auth/modern_login_screen.dart';
 
 /// Modern Onboarding Screen with Smooth Animations
 class ModernOnboardingScreen extends StatefulWidget {
@@ -135,7 +135,7 @@ class _ModernOnboardingScreenState extends State<ModernOnboardingScreen>
 
     // Navigate to login screen with custom transition
     Get.offAll(
-      () => const ModernLoginScreen(),
+      () => const LoginScreen(),
       transition: Transition.fadeIn,
       duration: const Duration(milliseconds: 600),
     );

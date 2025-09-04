@@ -3,6 +3,7 @@ import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutx/flutx.dart';
 import 'package:get/get.dart';
 import 'package:lovebirds_app/models/LoggedInUserModel.dart';
+import 'package:lovebirds_app/src/features/authentication/models/user_update_form_data.dart';
 
 import '../../../../../../controllers/MainController.dart';
 import '../../../../../../utils/CustomTheme.dart';
@@ -13,6 +14,7 @@ import '../../../../../dating/ProfileEditScreen.dart';
 import '../../../../../dating/ProfileSetupWizardScreen.dart';
 import '../../../../../profile/modern_profile_screen.dart';
 import '../../../../../subscription/subscription_selection_screen.dart';
+import '../../../../../subscription/subscription_history_screen.dart';
 import '../../movies/DownloadListScreen.dart';
 import '../full_app.dart';
 import '../../../../../../features/legal/views/terms_of_service_screen.dart';
@@ -84,7 +86,9 @@ class _AccountSectionState extends State<AccountSection> {
           ),
           IconButton(
             icon: const Icon(FeatherIcons.user, color: CustomTheme.accent),
-            onPressed: () => Get.to(() => const ModernProfileScreen()),
+            onPressed: () {
+              // Get.to(() => Profile());
+            },
           ),
         ],
       ),
@@ -114,7 +118,7 @@ class _AccountSectionState extends State<AccountSection> {
                     },
                   ),
 
-            /*      // Account Management Section
+                  /*      // Account Management Section
                   _buildTile(
                     icon: FeatherIcons.edit,
                     label: "Update My Full Profile",
@@ -131,7 +135,7 @@ class _AccountSectionState extends State<AccountSection> {
                       setState(() {});
                     },
                   ),*/
-/*                  _buildTile(
+                  /*                  _buildTile(
                     icon: FeatherIcons.user,
                     label: "My Profile",
                     subtitle:
@@ -144,6 +148,13 @@ class _AccountSectionState extends State<AccountSection> {
                     subtitle: "Unlock premium features and benefits",
                     onTap:
                         () => Get.to(() => const SubscriptionSelectionScreen()),
+                  ),
+                  _buildTile(
+                    icon: FeatherIcons.creditCard,
+                    label: "My Subscriptions",
+                    subtitle: "View subscription history and manage payments",
+                    onTap:
+                        () => Get.to(() => const SubscriptionHistoryScreen()),
                   ),
 
                   // Legal & Privacy Section Divider

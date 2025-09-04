@@ -14,6 +14,7 @@ import '../../../../../utils/CustomTheme.dart';
 import '../../../../../utils/Utilities.dart';
 import '../../../models/CartItem.dart';
 import '../../../models/OrderOnline.dart';
+import '../orders/MyOrdersScreen.dart';
 
 class ImprovedCheckoutScreen extends StatefulWidget {
   final OrderOnline order;
@@ -790,19 +791,19 @@ class _ImprovedCheckoutScreenState extends State<ImprovedCheckoutScreen> {
       // Show success message
       Get.snackbar(
         'Order Submitted Successfully!',
-        'Your order #${submittedOrder.id} has been received and is being processed.',
+        'Your order #${submittedOrder.id} has been received. You can now view and pay for your order.',
         backgroundColor: Colors.green.withOpacity(0.9),
         colorText: Colors.white,
         snackPosition: SnackPosition.TOP,
         margin: const EdgeInsets.all(16),
         borderRadius: 12,
-        duration: const Duration(seconds: 4),
+        duration: const Duration(seconds: 5),
         icon: Icon(FeatherIcons.checkCircle, color: Colors.white),
       );
 
-      // Navigate to home after delay
+      // Navigate to My Orders screen so user can see their order and pay
       await Future.delayed(const Duration(milliseconds: 1500));
-      Get.offAll(() => const ModernOnboardingScreen());
+      Get.offAll(() => const MyOrdersScreen());
     } catch (e) {
       errorMessage.value = e.toString();
 

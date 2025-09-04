@@ -12,6 +12,7 @@ import '../../../../../utils/AppConfig.dart';
 import '../../../../../utils/CustomTheme.dart';
 import '../../../../../utils/Utilities.dart';
 import '../../../models/OrderOnline.dart';
+import '../orders/MyOrdersScreen.dart';
 
 class SimpleCheckoutScreen extends StatefulWidget {
   final OrderOnline order;
@@ -504,21 +505,22 @@ class _SimpleCheckoutScreenState extends State<SimpleCheckoutScreen> {
 
         Get.snackbar(
           'Order Submitted Successfully!',
-          'Your order has been placed and is being processed.',
+          'Your order has been placed. You can now view and pay for your order.',
           backgroundColor: Colors.green.withValues(alpha: 0.9),
           colorText: Colors.white,
           snackPosition: SnackPosition.TOP,
           margin: const EdgeInsets.all(16),
           borderRadius: 12,
-          duration: const Duration(seconds: 4),
+          duration: const Duration(seconds: 5),
           icon: Icon(FeatherIcons.checkCircle, color: Colors.white),
         );
 
         // Clear cart
         await widget.cartManager.clearCart();
 
-        // Navigate back to products
-        Get.offAllNamed('/'); // or however you navigate back to main screen
+        // Navigate to My Orders screen so user can see their order and pay
+        await Future.delayed(const Duration(milliseconds: 1500));
+        Get.offAll(() => const MyOrdersScreen());
       } else {
         // Error
         print('=== ORDER SUBMISSION FAILED ===');

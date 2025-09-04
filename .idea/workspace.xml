@@ -10,45 +10,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="1b882ce3-1198-472a-b1a3-9e9b778a292b" name="Changes" comment="latest changesxzxzx">
-      <change afterPath="$PROJECT_DIR$/APP_UPDATE_SERVICE_COMPLETE.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/CENTER_USER_PROFILE_CLICK_SUMMARY.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/MATCHESSCREEN_ENHANCEMENT_SUMMARY.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ORBITAL_CLICK_FIXES_SUMMARY.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/PROFILE_WIZARD_ENHANCEMENT_SUMMARY.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/screens/dating/Love-Birds-September.code-workspace" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/screens/shop/screens/shop/cart/CartScreen_new.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/services/app_update_integration_guide.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/services/app_update_service.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/widgets/update_checker_widget.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/test_profile_wizard_enhancements_final.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/test_wizard_enhancements.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Flutter_Plugins.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Flutter_Plugins.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/screens/subscription/subscription_history_screen.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/core/app.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/core/app.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/models/LoggedInUserModel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/models/LoggedInUserModel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/auth/login_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/auth/login_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/auth/password_reset_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/auth/password_reset_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/auth/register_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/auth/register_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/auth/register_screen_new.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/auth/register_screen_new.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/dating/MatchesScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/dating/MatchesScreen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/dating/OrbitalSwipeScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/dating/OrbitalSwipeScreen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/dating/ProfileSetupWizardScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/dating/ProfileSetupWizardScreen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/dating/ProfileViewScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/dating/ProfileViewScreen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/shop/models/Product.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/shop/models/Product.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/shop/screens/shop/ColorPickerScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/shop/screens/shop/ColorPickerScreen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/shop/screens/shop/MyProductsScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/shop/screens/shop/MyProductsScreen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/shop/screens/shop/ProductsScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/shop/screens/shop/ProductsScreen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/shop/screens/shop/cart/CartScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/shop/screens/shop/cart/CartScreen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/shop/screens/shop/cart/DeliveryAddressScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/shop/screens/shop/cart/DeliveryAddressScreen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/shop/screens/shop/cart/SimpleCartScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/shop/screens/shop/cart/SimpleCartScreen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/shop/screens/shop/cart/cartItemWidget.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/shop/screens/shop/cart/cartItemWidget.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/src/features/app_introduction/view/onboarding_screens.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/src/features/app_introduction/view/onboarding_screens.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/src/features/app_introduction/view/splash_screen.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/src/features/authentication/controllers/login_screen_controller.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/src/features/authentication/controllers/login_screen_controller.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/src/features/authentication/view/signup_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/src/features/authentication/view/signup_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/src/routing/routing.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/src/routing/routing.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/screens/auth/modern_login_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/screens/auth/modern_register_screen.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/screens/onboarding/modern_onboarding_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/onboarding/modern_onboarding_screen.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/screens/profile/modern_profile_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/profile/modern_profile_screen.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/screens/shop/screens/shop/cart/CheckoutScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/shop/screens/shop/cart/CheckoutScreen.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/screens/shop/screens/shop/cart/CheckoutScreen_hambren.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/shop/screens/shop/cart/CheckoutScreen_hambren.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/screens/shop/screens/shop/cart/ImprovedCheckoutScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/shop/screens/shop/cart/ImprovedCheckoutScreen.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/screens/shop/screens/shop/cart/SimpleCheckoutScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/shop/screens/shop/cart/SimpleCheckoutScreen.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/screens/shop/screens/shop/full_app/section/AccountSection.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/shop/screens/shop/full_app/section/AccountSection.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/screens/subscription/subscription_selection_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/subscription/subscription_selection_screen.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/utils/AppConfig.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/utils/AppConfig.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/utils/Utilities.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/utils/Utilities.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.yaml" afterDir="false" />
     </list>

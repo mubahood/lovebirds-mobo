@@ -9,6 +9,8 @@ import '../../models/RespondModel.dart';
 import '../../utils/dating_theme.dart';
 import '../../utils/Utilities.dart';
 import '../subscription/subscription_selection_screen.dart';
+import '../subscription/subscription_history_screen.dart';
+import '../dating/AccountEditMainScreen.dart';
 import '../dating/OrbitalSwipeScreen.dart';
 
 class ModernProfileScreen extends StatefulWidget {
@@ -245,6 +247,75 @@ class _ModernProfileScreenState extends State<ModernProfileScreen> {
               ),
             ),
           ),
+        ),
+        // Account menu button
+        PopupMenuButton<String>(
+          icon: Icon(Icons.menu, color: Colors.white),
+          color: DatingTheme.cardBackground,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          onSelected: (value) {
+            switch (value) {
+              case 'subscription_history':
+                Get.to(() => const SubscriptionHistoryScreen());
+                break;
+              case 'account_settings':
+                Get.to(() => const AccountEditMainScreen());
+                break;
+              case 'privacy_settings':
+                Get.snackbar(
+                  'Coming Soon',
+                  'Privacy settings will be available in the next update',
+                  backgroundColor: Colors.blue[100],
+                  colorText: Colors.blue[800],
+                  duration: const Duration(seconds: 2),
+                );
+                break;
+            }
+          },
+          itemBuilder:
+              (context) => [
+                PopupMenuItem(
+                  value: 'subscription_history',
+                  child: Row(
+                    children: [
+                      Icon(Icons.receipt_long, size: 20, color: Colors.white),
+                      SizedBox(width: 12),
+                      Text(
+                        'Subscription History',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'account_settings',
+                  child: Row(
+                    children: [
+                      Icon(Icons.settings, size: 20, color: Colors.white),
+                      SizedBox(width: 12),
+                      Text(
+                        'Account Settings',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'privacy_settings',
+                  child: Row(
+                    children: [
+                      Icon(Icons.privacy_tip, size: 20, color: Colors.white),
+                      SizedBox(width: 12),
+                      Text(
+                        'Privacy Settings',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
         ),
         SizedBox(width: 8),
       ],

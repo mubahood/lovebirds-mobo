@@ -650,19 +650,18 @@ class _SubscriptionSelectionScreenState
     String planId,
   ) async {
     try {
-      final response = await Utils.http_post(
-        'api/create_subscription_payment',
-        {'plan': planId},
-      );
+      final response = await Utils.http_post('create_subscription_payment', {
+        'plan': planId,
+      });
 
-      if (response != null && response.code == 1) {
+      if (response != null && response['code'] == 1) {
         return {
-          'payment_url': response.data['payment_url'],
-          'payment_id': response.data['payment_id'],
+          'payment_url': response['data']['payment_url'],
+          'payment_id': response['data']['payment_id'],
         };
       } else {
         throw Exception(
-          response?.message ?? 'Failed to create payment session',
+          response?['message'] ?? 'Failed to create payment session',
         );
       }
     } catch (e) {
@@ -729,11 +728,11 @@ class _SubscriptionSelectionScreenState
         'payment_id': paymentId,
       });
 
-      if (response != null && response.code == 1) {
+      if (response != null && response['code'] == 1) {
         // Payment verified successfully
         Utils.toast('Subscription activated successfully!');
       } else {
-        throw Exception(response?.message ?? 'Payment verification failed');
+        throw Exception(response?['message'] ?? 'Payment verification failed');
       }
     } catch (e) {
       print('Error verifying payment: $e');

@@ -860,11 +860,11 @@ class Utils {
         ),
       );
 
-  /*          print("============SUCCESS CONNECTION==============");
+            print("============SUCCESS CONNECTION==============");
       print("${AppConfig.API_BASE_URL}/$path");
       print("Response Status: ${response.statusCode}");
       log("Response Data: ${response.data}");
-      print("==========================");*/
+      print("==========================");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return response.data;
@@ -975,8 +975,11 @@ class Utils {
         ),
       );
 
+
+      print("${AppConfig.API_BASE_URL}/$path" .toString());
       return response.data;
     } on dio.DioException catch (e) {
+
       // If the server returned a JSON map, forward it
       if (e.response?.data != null &&
           e.response?.data is Map<String, dynamic>) {
