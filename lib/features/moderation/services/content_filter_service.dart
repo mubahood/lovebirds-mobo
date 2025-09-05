@@ -1,8 +1,10 @@
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../../utils/Utilities.dart';
+import 'package:lovebirds_app/models/LoggedInUserModel.dart';
+
 import '../../../utils/AppConfig.dart';
+import '../../../utils/Utilities.dart';
 
 /// Content Filter Service for automated content moderation
 /// Implements automated filtering for objectionable content as required by App Store guidelines
@@ -266,8 +268,7 @@ class ContentFilterService {
   }) async {
     try {
       // Get token from SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token') ?? '';
+      final token = await LoggedInUserModel.get_token();
 
       final response = await http.post(
         Uri.parse('${AppConfig.API_BASE_URL}/moderation/filter-content'),

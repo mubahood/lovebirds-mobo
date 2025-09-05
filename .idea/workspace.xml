@@ -10,8 +10,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="1b882ce3-1198-472a-b1a3-9e9b778a292b" name="Changes" comment="latest changesxzxzx">
-      <change afterPath="$PROJECT_DIR$/App_Store_Rejection_Response.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RATE_LIMITING_FIX.md" beforeDir="false" afterPath="$PROJECT_DIR$/RATE_LIMITING_FIX.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/features/moderation/services/content_filter_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/features/moderation/services/content_filter_service.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/screens/dating/ProfileSetupWizardScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/dating/ProfileSetupWizardScreen.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/screens/profile/profile_photo_management_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/profile/profile_photo_management_screen.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/screens/shop/screens/shop/chat/chat_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/shop/screens/shop/chat/chat_screen.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/utils/AppConfig.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/utils/AppConfig.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/utils/Utilities.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/utils/Utilities.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/utils/enhanced_error_handling.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/utils/enhanced_error_handling.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/widgets/simple_video_player.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/widgets/simple_video_player.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

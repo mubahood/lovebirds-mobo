@@ -12,6 +12,7 @@ class SimpleVideoPlayer extends StatefulWidget {
   final BorderRadius? borderRadius;
   final VoidCallback? onTap;
 
+
   const SimpleVideoPlayer({
     Key? key,
     required this.videoUrl,
@@ -49,12 +50,15 @@ class _SimpleVideoPlayerState extends State<SimpleVideoPlayer> {
 
   Future<void> _initializePlayer() async {
     try {
-      // Check for emulator
+
+
       bool isEmulator = await _isRunningOnEmulator();
+
 
       if (isEmulator) {
         print('🔧 EMULATOR DETECTED: Simple video player compatibility mode');
       }
+
 
       _controller = VideoPlayerController.networkUrl(
         Uri.parse(widget.videoUrl),

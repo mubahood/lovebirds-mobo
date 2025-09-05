@@ -94,7 +94,9 @@ class _ProfilePhotoManagementScreenState
 
       // Add authorization header
       final token = await LoggedInUserModel.get_token();
+
       request.headers['Authorization'] = 'Bearer $token';
+      request.headers['Tok'] = 'Bearer $token';
 
       // Add user ID
       request.fields['id'] = currentUser.id.toString();

@@ -64,13 +64,6 @@ php artisan route:clear      # Clear route cache
 I/flutter: {message: Too Many Attempts., exception: Illuminate\Http\Exceptions\ThrottleRequestsException...}
 ```
 
-### After Fix
-```bash
-curl http://localhost:8888/lovebirds-api/api/swipe-discovery
-{"code":0,"message":"User not authenticated.","data":""}
-# ✅ No more throttling - now shows proper auth error instead
-```
-
 ## Rate Limiting Strategy by Environment
 
 ### **Development/Testing** (Current)

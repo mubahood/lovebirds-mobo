@@ -814,8 +814,8 @@ class Utils {
 
     // Add logged‐in user ID
     LoggedInUserModel userModel = await LoggedInUserModel.getLoggedInUser();
-    /*    payload['logged_in_user_id'] = userModel.id.toString();
-    print("${AppConfig.API_BASE_URL}/$path");*/
+        payload['logged_in_user_id'] = userModel.id.toString();
+    print("${AppConfig.API_BASE_URL}/$path");
     /*
     print("============START CONNECTION==============");
 
@@ -1260,7 +1260,8 @@ class Utils {
 
     // Retrieve token
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token') ?? '';
+
+    String token = await LoggedInUserModel.get_token();
 
     // Add logged‐in user ID
     LoggedInUserModel userModel = await LoggedInUserModel.getLoggedInUser();

@@ -8,6 +8,7 @@
 
 import 'dart:async';
 import 'dart:io';
+
 import 'package:dio/dio.dart' as dioPackage;
 import 'package:dio/io.dart';
 import 'package:flutter/material.dart';
@@ -206,7 +207,7 @@ class EnhancedUtils {
   // Get enhanced request options
   static Future<dioPackage.Options> _getRequestOptions() async {
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token') ?? '';
+    final token = await LoggedInUserModel.get_token();
     LoggedInUserModel userModel = await LoggedInUserModel.getLoggedInUser();
 
     String platformType = Platform.isIOS ? 'ios' : 'android';

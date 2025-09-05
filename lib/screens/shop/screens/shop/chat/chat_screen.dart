@@ -1351,12 +1351,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildVideoMessage(ChatMessage message, bool isMe) {
+    // Check for emulator
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Use our custom video player
         SimpleVideoPlayer(
-          videoUrl: Utils.img(message.document),
+          videoUrl: Utils.img(message.video),
           width: 220,
           height: 160,
           autoPlay: false,
@@ -1367,7 +1369,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               MaterialPageRoute(
                 builder:
                     (context) => FullScreenVideoPlayer(
-                      videoUrl: Utils.img(message.document),
+                      videoUrl: Utils.img(message.video),
                       title:
                           message.body.isNotEmpty && message.body != 'Video'
                               ? message.body
@@ -2183,11 +2185,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         });
 
         if (_recordingPath != null) {
-          // Send the audio directly without preview for better UX
-          await _sendMultimediaMessage(
-            messageType: 'audio',
-            content: 'Voice message',
-            audioUrl: _recordingPath!,
+          // Upload and send the audio file using the same preview system as other media
+          await _uploadAndSendMedia(
+            mediaType: 'audio',
+            filePath: _recordingPath!,
+            caption: 'Voice message',
           );
         }
       }

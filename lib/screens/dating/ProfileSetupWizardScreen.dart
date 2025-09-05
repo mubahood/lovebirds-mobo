@@ -10,7 +10,6 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../models/LoggedInUserModel.dart';
 import '../../models/RespondModel.dart';
-import '../../src/features/app_introduction/view/onboarding_screens.dart';
 import '../../screens/shop/screens/shop/full_app/full_app.dart';
 import '../../utils/CustomTheme.dart';
 import '../../utils/Utilities.dart';
@@ -683,9 +682,14 @@ class _ProfileSetupWizardScreenState extends State<ProfileSetupWizardScreen> {
       // Add a delay to show the success message and let the UI update
       await Future.delayed(Duration(milliseconds: 800));
 
-      // Return the updated user data so the calling screen can refresh
-      // Navigator.pop(context, widget.user);
-      gt.Get.offAll(() => const OnBoardingScreen());
+      // Navigate to main app after successful profile completion
+      if (widget.isEditing && Navigator.canPop(context)) {
+        // If editing and there's a previous screen to go back to
+        Navigator.pop(context, widget.user);
+      } else {
+        // If completing profile for first time or forced completion, go to main app
+        gt.Get.offAll(() => const HomeScreen());
+      }
     } catch (e) {
       setState(() {
         _error = 'Network error: ${e.toString()}';
@@ -783,128 +787,148 @@ class _ProfileSetupWizardScreenState extends State<ProfileSetupWizardScreen> {
     );
   }
 
+  // Handle back navigation safely
+  void _handleBackNavigation() {
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    } else {
+      // If no previous screen (forced profile completion), go to main app
+      gt.Get.offAll(() => const HomeScreen());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: CustomTheme.background,
-      appBar: AppBar(
-        title: FxText.titleLarge(
-          widget.isEditing ? 'Edit Profile' : 'Set Up Your Profile',
-          color: CustomTheme.accent,
-        ),
-        centerTitle: true,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          _handleBackNavigation();
+        }
+      },
+      child: Scaffold(
         backgroundColor: CustomTheme.background,
-        elevation: 1,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: CustomTheme.accent),
-          onPressed: () => Navigator.pop(context),
+        appBar: AppBar(
+          title: FxText.titleLarge(
+            widget.isEditing ? 'Edit Profile' : 'Set Up Your Profile',
+            color: CustomTheme.accent,
+          ),
+          centerTitle: true,
+          backgroundColor: CustomTheme.background,
+          elevation: 1,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: CustomTheme.accent),
+            onPressed: _handleBackNavigation,
+          ),
         ),
-      ),
-      body: Column(
-        children: [
-          _buildProgressIndicator(),
+        body: Column(
+          children: [
+            _buildProgressIndicator(),
 
-          if (_error.isNotEmpty)
-            Container(
-              margin: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+            if (_error.isNotEmpty)
+              Container(
+                margin: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.error_outline, color: Colors.red, size: 20),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: FxText.bodyMedium(_error, color: Colors.red),
+                    ),
+                    IconButton(
+                      onPressed: () => setState(() => _error = ""),
+                      icon: Icon(Icons.close, color: Colors.red, size: 18),
+                      padding: EdgeInsets.zero,
+                      constraints: BoxConstraints(),
+                    ),
+                  ],
+                ),
               ),
+
+            Expanded(
+              child: Container(
+                key: ValueKey('pageview_container'),
+                child: IndexedStack(
+                  index: _currentStep,
+                  children: [
+                    _buildBasicInfoStep(),
+                    _buildPhotosStep(),
+                    _buildPhysicalAttributesStep(),
+                    _buildLifestyleStep(),
+                    _buildRelationshipGoalsStep(),
+                    _buildInterestsStep(),
+                    _buildPreferencesStep(),
+                  ],
+                ),
+              ),
+            ),
+
+            // Navigation buttons
+            Container(
+              padding: EdgeInsets.all(20),
               child: Row(
                 children: [
-                  Icon(Icons.error_outline, color: Colors.red, size: 20),
-                  SizedBox(width: 12),
-                  Expanded(child: FxText.bodyMedium(_error, color: Colors.red)),
-                  IconButton(
-                    onPressed: () => setState(() => _error = ""),
-                    icon: Icon(Icons.close, color: Colors.red, size: 18),
-                    padding: EdgeInsets.zero,
-                    constraints: BoxConstraints(),
-                  ),
-                ],
-              ),
-            ),
-
-          Expanded(
-            child: Container(
-              key: ValueKey('pageview_container'),
-              child: IndexedStack(
-                index: _currentStep,
-                children: [
-                  _buildBasicInfoStep(),
-                  _buildPhotosStep(),
-                  _buildPhysicalAttributesStep(),
-                  _buildLifestyleStep(),
-                  _buildRelationshipGoalsStep(),
-                  _buildInterestsStep(),
-                  _buildPreferencesStep(),
-                ],
-              ),
-            ),
-          ),
-
-          // Navigation buttons
-          Container(
-            padding: EdgeInsets.all(20),
-            child: Row(
-              children: [
-                if (_currentStep > 0)
-                  Expanded(
-                    child: FxButton(
-                      onPressed: _isSaving ? null : _previousStep,
-                      backgroundColor: CustomTheme.color2,
-                      child: FxText.titleMedium(
-                        'Previous',
-                        color: CustomTheme.color,
-                        fontWeight: 600,
+                  if (_currentStep > 0)
+                    Expanded(
+                      child: FxButton(
+                        onPressed: _isSaving ? null : _previousStep,
+                        backgroundColor: CustomTheme.color2,
+                        child: FxText.titleMedium(
+                          'Previous',
+                          color: CustomTheme.color,
+                          fontWeight: 600,
+                        ),
                       ),
                     ),
-                  ),
 
-                if (_currentStep > 0) SizedBox(width: 12),
+                  if (_currentStep > 0) SizedBox(width: 12),
 
-                Expanded(
-                  flex: _currentStep == 0 ? 1 : 1,
-                  child: FxButton(
-                    onPressed: _isSaving ? null : _nextStep,
-                    backgroundColor: CustomTheme.primary,
-                    child:
-                        _isSaving
-                            ? Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    color: CustomTheme.accent,
-                                    strokeWidth: 2,
+                  Expanded(
+                    flex: _currentStep == 0 ? 1 : 1,
+                    child: FxButton(
+                      onPressed: _isSaving ? null : _nextStep,
+                      backgroundColor: CustomTheme.primary,
+                      child:
+                          _isSaving
+                              ? Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      color: CustomTheme.accent,
+                                      strokeWidth: 2,
+                                    ),
                                   ),
-                                ),
-                                SizedBox(width: 12),
-                                FxText.titleMedium(
-                                  'Saving...',
-                                  color: CustomTheme.accent,
-                                  fontWeight: 600,
-                                ),
-                              ],
-                            )
-                            : FxText.titleMedium(
-                              _currentStep == _stepTitles.length - 1
-                                  ? 'Complete Profile'
-                                  : 'Next',
-                              color: CustomTheme.accent,
-                              fontWeight: 600,
-                            ),
+                                  SizedBox(width: 12),
+                                  FxText.titleMedium(
+                                    'Saving...',
+                                    color: CustomTheme.accent,
+                                    fontWeight: 600,
+                                  ),
+                                ],
+                              )
+                              : FxText.titleMedium(
+                                _currentStep == _stepTitles.length - 1
+                                    ? 'Complete Profile'
+                                    : 'Next',
+                                color: CustomTheme.accent,
+                                fontWeight: 600,
+                              ),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
