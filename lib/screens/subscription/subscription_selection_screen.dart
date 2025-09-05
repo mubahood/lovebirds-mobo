@@ -4,6 +4,7 @@ import 'package:lovebirds_app/features/legal/views/privacy_policy_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../features/legal/views/terms_of_service_screen.dart';
+import '../../src/routing/routing.dart';
 import '../../utils/CustomTheme.dart';
 import '../../utils/Utilities.dart';
 
@@ -597,8 +598,35 @@ class _SubscriptionSelectionScreenState
         selectedPlan['id'],
       );
 
-      if (paymentResponse == null || paymentResponse['payment_url'] == null) {
+      if (paymentResponse == null) {
         throw Exception('Failed to create payment session');
+      }
+
+      // Check if this is a test user bypass
+      if (paymentResponse['test_user_bypass'] == true) {
+        if (paymentResponse['subscription_activated'] == true) {
+          // Show success message for test user
+          Get.snackbar(
+            'Test User - Premium Activated! 🎉',
+            'Your ${selectedPlan['title']} subscription is now active!',
+            backgroundColor: CustomTheme.primary,
+            colorText: Colors.white,
+            snackPosition: SnackPosition.TOP,
+            duration: const Duration(seconds: 4),
+            icon: Icon(Icons.star, color: Colors.white),
+          );
+
+          // Navigate to subscription history to show the activated subscription
+          Get.offAndToNamed(AppRouter.subscriptionHistory);
+          return;
+        } else {
+          throw Exception('Test user subscription activation failed');
+        }
+      }
+
+      // Regular payment flow
+      if (paymentResponse['payment_url'] == null) {
+        throw Exception('Payment URL not provided');
       }
 
       // Step 2: Open payment URL in in-app browser
@@ -622,8 +650,8 @@ class _SubscriptionSelectionScreenState
           icon: Icon(Icons.favorite, color: Colors.white),
         );
 
-        // Navigate back to main app
-        Get.back();
+        // Navigate to subscription history to see the new subscription
+        Get.offAndToNamed(AppRouter.subscriptionHistory);
       } else {
         throw Exception('Payment was cancelled or failed');
       }
@@ -655,9 +683,22 @@ class _SubscriptionSelectionScreenState
       });
 
       if (response != null && response['code'] == 1) {
+        // Check for test user bypass
+        if (response['data']['test_user_bypass'] == true) {
+          return {
+            'test_user_bypass': true,
+            'subscription_activated':
+                response['data']['subscription_activated'],
+            'payment_url': null,
+            'payment_id': null,
+          };
+        }
+
+        // Regular payment flow
         return {
           'payment_url': response['data']['payment_url'],
           'payment_id': response['data']['payment_id'],
+          'test_user_bypass': false,
         };
       } else {
         throw Exception(

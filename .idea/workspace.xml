@@ -10,12 +10,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="1b882ce3-1198-472a-b1a3-9e9b778a292b" name="Changes" comment="latest changesxzxzx">
+      <change afterPath="$PROJECT_DIR$/subscription_flow_test.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/RATE_LIMITING_FIX.md" beforeDir="false" afterPath="$PROJECT_DIR$/RATE_LIMITING_FIX.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/features/moderation/services/content_filter_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/features/moderation/services/content_filter_service.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/screens/dating/ProfileSetupWizardScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/dating/ProfileSetupWizardScreen.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/screens/profile/profile_photo_management_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/profile/profile_photo_management_screen.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/screens/shop/screens/shop/chat/chat_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/shop/screens/shop/chat/chat_screen.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/screens/subscription/subscription_history_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/subscription/subscription_history_screen.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/screens/subscription/subscription_selection_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/subscription/subscription_selection_screen.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/routing/routing.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/src/routing/routing.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/utils/AppConfig.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/utils/AppConfig.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/utils/Utilities.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/utils/Utilities.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/utils/enhanced_error_handling.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/utils/enhanced_error_handling.dart" afterDir="false" />

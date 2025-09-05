@@ -4,6 +4,7 @@ import '../../screens/auth/login_screen.dart';
 import '../../screens/shop/screens/shop/full_app/full_app.dart';
 import '../../screens/shop/screens/shop/full_app/guest/GuestHomeScreen.dart';
 import '../../screens/subscription/subscription_selection_screen.dart';
+import '../../screens/subscription/subscription_history_screen.dart';
 import '../features/app_introduction/view/onboarding_screens.dart';
 import '../features/authentication/view/signup_screen.dart';
 import '../features/home/view/resource_category_screen.dart';
@@ -23,6 +24,7 @@ class AppRouter {
   static const String updateProfile = '/updateProfile';
   static const String moderation = '/moderation';
   static const String subscription = '/subscription';
+  static const String subscriptionHistory = '/subscription-history';
   static const String searchSubCategory = '/subCategory';
   static const String trainingSession = '/trainingSession';
   static const String trainingListScreen = '/trainingListScreen';
@@ -43,6 +45,10 @@ class AppRouter {
     GetPage(
       name: subscription,
       page: () => const SubscriptionSelectionScreen(),
+    ),
+    GetPage(
+      name: subscriptionHistory,
+      page: () => const SubscriptionHistoryScreen(),
     ),
     GetPage(name: searchSubCategory, page: () => SearchSubCategoryScreen()),
   ];

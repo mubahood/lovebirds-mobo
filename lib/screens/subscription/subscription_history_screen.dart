@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/RespondModel.dart';
 import '../../utils/dating_theme.dart';
@@ -33,10 +34,10 @@ class _SubscriptionHistoryScreenState extends State<SubscriptionHistoryScreen> {
 
       if (resp.code == 1) {
         setState(() {
-          _subscriptions = resp.data ?? [];
+          _subscriptions = resp.data['subscriptions'] ?? [];
         });
       } else {
-        Utils.toast('Failed to load subscription history');
+        Utils.toast('Failed to load subscription history: ${resp.message}');
       }
     } catch (e) {
       Utils.toast('Error loading subscription history: $e');
@@ -47,7 +48,8 @@ class _SubscriptionHistoryScreenState extends State<SubscriptionHistoryScreen> {
 
   Future<void> _refreshPaymentStatus(String subscriptionId) async {
     try {
-      final response = await Utils.http_post('refresh-subscription-payment', {
+      // Use the check_subscription_payment endpoint to refresh status
+      final response = await Utils.http_post('check_subscription_payment', {
         'subscription_id': subscriptionId,
       });
 
@@ -56,10 +58,68 @@ class _SubscriptionHistoryScreenState extends State<SubscriptionHistoryScreen> {
         Utils.toast('Payment status refreshed successfully');
         await _loadSubscriptionHistory(); // Reload the list
       } else {
-        Utils.toast('Failed to refresh payment status');
+        Utils.toast('Failed to refresh payment status: ${resp.message}');
       }
     } catch (e) {
       Utils.toast('Error refreshing payment status: $e');
+    }
+  }
+
+  // Handle Pay Now button - opens payment URL and handles completion
+  Future<void> _handlePayNow(dynamic subscription) async {
+    try {
+      final paymentUrl = subscription['stripe_url']?.toString();
+      if (paymentUrl == null || paymentUrl.isEmpty) {
+        Utils.toast('Payment URL not available');
+        return;
+      }
+
+      // Open payment URL in external browser
+      final Uri url = Uri.parse(paymentUrl);
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+
+        // Show confirmation dialog after user returns from payment
+        final result = await Get.dialog<bool>(
+          AlertDialog(
+            title: const Text('Payment Completion'),
+            content: const Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Please complete your payment in the browser.'),
+                SizedBox(height: 16),
+                Text(
+                  'Once payment is complete, return here and tap "Payment Complete"',
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Get.back(result: false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () => Get.back(result: true),
+                child: const Text('Payment Complete'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          barrierDismissible: false,
+        );
+
+        // If user confirmed payment completion, refresh the status
+        if (result == true) {
+          await _refreshPaymentStatus(subscription['id'].toString());
+        }
+      } else {
+        Utils.toast('Could not open payment URL');
+      }
+    } catch (e) {
+      Utils.toast('Error opening payment: $e');
     }
   }
 
@@ -180,6 +240,27 @@ class _SubscriptionHistoryScreenState extends State<SubscriptionHistoryScreen> {
               const SizedBox(height: 16),
               Row(
                 children: [
+                  // Pay Now button (if payment URL exists)
+                  if (subscription['stripe_url'] != null &&
+                      subscription['stripe_url'].toString().isNotEmpty) ...[
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _handlePayNow(subscription),
+                        icon: const Icon(Icons.payment),
+                        label: const Text('Pay Now'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  // Refresh Payment Status button
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed:
@@ -187,7 +268,7 @@ class _SubscriptionHistoryScreenState extends State<SubscriptionHistoryScreen> {
                             subscription['id'].toString(),
                           ),
                       icon: const Icon(Icons.refresh),
-                      label: const Text('Refresh Payment Status'),
+                      label: const Text('Refresh Status'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: DatingTheme.primaryPink,
                         foregroundColor: Colors.white,
