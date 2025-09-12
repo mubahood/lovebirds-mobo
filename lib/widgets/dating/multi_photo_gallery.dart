@@ -11,6 +11,8 @@ class MultiPhotoGallery extends StatefulWidget {
   final bool showIndicators;
   final bool allowSwipe;
   final Function(int)? onPhotoChanged;
+  final bool isBackground; // Performance optimization for background cards
+  final bool enableInteraction; // Control interactions for performance
 
   const MultiPhotoGallery({
     Key? key,
@@ -19,6 +21,8 @@ class MultiPhotoGallery extends StatefulWidget {
     this.showIndicators = true,
     this.allowSwipe = true,
     this.onPhotoChanged,
+    this.isBackground = false,
+    this.enableInteraction = true,
   }) : super(key: key);
 
   @override
@@ -71,6 +75,11 @@ class _MultiPhotoGalleryState extends State<MultiPhotoGallery> {
       return _buildErrorWidget();
     }
 
+    // For background cards, render a simplified static version
+    if (widget.isBackground) {
+      return _buildSimplePhotoView();
+    }
+
     return Container(
       height: widget.height,
       child: Stack(
@@ -105,7 +114,9 @@ class _MultiPhotoGalleryState extends State<MultiPhotoGallery> {
             ),
 
           // Navigation areas (invisible tap zones)
-          if (widget.allowSwipe && _photoUrls.length > 1)
+          if (widget.allowSwipe &&
+              _photoUrls.length > 1 &&
+              widget.enableInteraction)
             _buildNavigationAreas(),
         ],
       ),
@@ -127,50 +138,77 @@ class _MultiPhotoGalleryState extends State<MultiPhotoGallery> {
     return Container(
       width: double.infinity,
       height: widget.height,
-      child: GestureDetector(
-        onTap: () {
-          // Allow tapping photo to open full-screen viewer
-          if (_photoUrls.length > 1) {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder:
-                    (context) => FullScreenPhotoViewer(
-                      photoUrls: _photoUrls,
-                      initialIndex: _currentIndex,
-                      userName:
-                          widget.user.first_name.isNotEmpty
-                              ? '${widget.user.first_name} ${widget.user.last_name}'
-                              : 'User',
+      child:
+          widget.enableInteraction
+              ? GestureDetector(
+                onTap: () {
+                  // Allow tapping photo to open full-screen viewer
+                  if (_photoUrls.length > 1) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder:
+                            (context) => FullScreenPhotoViewer(
+                              photoUrls: _photoUrls,
+                              initialIndex: _currentIndex,
+                              userName:
+                                  widget.user.first_name.isNotEmpty
+                                      ? '${widget.user.first_name} ${widget.user.last_name}'
+                                      : 'User',
+                            ),
+                      ),
+                    );
+                  }
+                },
+                child: _buildImageWidget(imageUrl),
+              )
+              : _buildImageWidget(imageUrl),
+    );
+  }
+
+  Widget _buildImageWidget(String imageUrl) {
+    return CachedNetworkImage(
+      imageUrl: imageUrl,
+      fit: BoxFit.cover,
+      memCacheWidth:
+          widget.isBackground
+              ? 300
+              : null, // Reduce memory for background cards
+      memCacheHeight: widget.isBackground ? 400 : null,
+      placeholder:
+          (context, url) => Container(
+            color: CustomTheme.primary.withValues(alpha: 0.1),
+            child:
+                widget.isBackground
+                    ? null
+                    : const Center(child: CircularProgressIndicator()),
+          ),
+      errorWidget:
+          (context, url, error) => Container(
+            color: CustomTheme.primary.withValues(alpha: 0.1),
+            child:
+                widget.isBackground
+                    ? null
+                    : const Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.person, size: 80, color: Colors.grey),
+                        SizedBox(height: 8),
+                        Text(
+                          'Image not available',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ],
                     ),
-              ),
-            );
-          }
-        },
-        child: CachedNetworkImage(
-          imageUrl: imageUrl,
-          fit: BoxFit.cover,
-          placeholder:
-              (context, url) => Container(
-                color: CustomTheme.primary.withValues(alpha: 0.1),
-                child: const Center(child: CircularProgressIndicator()),
-              ),
-          errorWidget:
-              (context, url, error) => Container(
-                color: CustomTheme.primary.withValues(alpha: 0.1),
-                child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.person, size: 80, color: Colors.grey),
-                    SizedBox(height: 8),
-                    Text(
-                      'Image not available',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ),
-        ),
-      ),
+          ),
+    );
+  }
+
+  // Simplified photo view for background cards
+  Widget _buildSimplePhotoView() {
+    return Container(
+      width: double.infinity,
+      height: widget.height,
+      child: _buildImageWidget(_photoUrls.first),
     );
   }
 

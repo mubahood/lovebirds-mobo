@@ -11,6 +11,8 @@ class SwipeCard extends StatefulWidget {
   final double opacity;
   final VoidCallback? onTap;
   final double? distance;
+  final bool isBackground; // New parameter for performance optimization
+  final bool enableAnimations; // Control animations for performance
 
   const SwipeCard({
     Key? key,
@@ -19,6 +21,8 @@ class SwipeCard extends StatefulWidget {
     this.opacity = 1.0,
     this.onTap,
     this.distance,
+    this.isBackground = false, // Default to active card
+    this.enableAnimations = true, // Default to full animations
   }) : super(key: key);
 
   @override
@@ -36,47 +40,68 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   void initState() {
     super.initState();
 
-    // Initialize badge animation controller
-    _badgeAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
+    // Only initialize animations for active cards to improve performance
+    if (widget.enableAnimations && !widget.isBackground) {
+      // Initialize badge animation controller
+      _badgeAnimationController = AnimationController(
+        duration: const Duration(milliseconds: 800),
+        vsync: this,
+      );
 
-    // Initialize pulse animation controller for verification badge
-    _pulseAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    );
+      // Initialize pulse animation controller for verification badge
+      _pulseAnimationController = AnimationController(
+        duration: const Duration(milliseconds: 2000),
+        vsync: this,
+      );
 
-    // Create scale animation for badge entrance
-    _badgeScaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _badgeAnimationController,
-        curve: Curves.elasticOut,
-      ),
-    );
+      // Create scale animation for badge entrance
+      _badgeScaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(
+          parent: _badgeAnimationController,
+          curve: Curves.elasticOut,
+        ),
+      );
 
-    // Create opacity animation for smooth fade-in
-    _badgeOpacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _badgeAnimationController,
-        curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
-      ),
-    );
+      // Create opacity animation for smooth fade-in
+      _badgeOpacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(
+          parent: _badgeAnimationController,
+          curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
+        ),
+      );
 
-    // Create pulse animation for verification badge
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.15).animate(
-      CurvedAnimation(
-        parent: _pulseAnimationController,
-        curve: Curves.easeInOut,
-      ),
-    );
+      // Create pulse animation for verification badge
+      _pulseAnimation = Tween<double>(begin: 1.0, end: 1.15).animate(
+        CurvedAnimation(
+          parent: _pulseAnimationController,
+          curve: Curves.easeInOut,
+        ),
+      );
 
-    // Start animations with staggered delays
-    _startBadgeAnimations();
+      // Start animations with staggered delays
+      _startBadgeAnimations();
+    } else {
+      // For background cards, use dummy controllers to avoid null errors
+      _badgeAnimationController = AnimationController(
+        duration: const Duration(milliseconds: 1),
+        vsync: this,
+      );
+      _pulseAnimationController = AnimationController(
+        duration: const Duration(milliseconds: 1),
+        vsync: this,
+      );
+
+      // Static animations for background cards
+      _badgeScaleAnimation = AlwaysStoppedAnimation(1.0);
+      _badgeOpacityAnimation = AlwaysStoppedAnimation(0.7);
+      _pulseAnimation = AlwaysStoppedAnimation(1.0);
+    }
   }
 
   void _startBadgeAnimations() {
+    // Only start animations for active cards
+    if (!widget.enableAnimations || widget.isBackground) return;
+
     // Start badge animation after a short delay for card entrance
     Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) {
@@ -193,11 +218,17 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
         child: MultiPhotoGallery(
           user: widget.user,
           height: double.infinity,
-          showIndicators: true,
-          allowSwipe: true,
-          onPhotoChanged: (index) {
-            // Could add haptic feedback or analytics here
-          },
+          showIndicators:
+              !widget.isBackground, // Only show indicators for active cards
+          allowSwipe: !widget.isBackground && widget.enableAnimations,
+          isBackground: widget.isBackground,
+          enableInteraction: !widget.isBackground,
+          onPhotoChanged:
+              widget.isBackground
+                  ? null
+                  : (index) {
+                    // Could add haptic feedback or analytics here
+                  },
         ),
       ),
     );

@@ -481,7 +481,7 @@ class _SwipeScreenState extends State<SwipeScreen>
   Widget _buildCardStack() {
     return Stack(
       children: [
-        // Background cards (next 2 users)
+        // Background cards (next 2 users) - optimized for performance
         for (int i = math.min(2, users.length - currentIndex - 1); i > 0; i--)
           if (currentIndex + i < users.length)
             Positioned.fill(
@@ -491,6 +491,9 @@ class _SwipeScreenState extends State<SwipeScreen>
                   scale: 1.0 - (i * 0.02),
                   child: SwipeCard(
                     user: users[currentIndex + i],
+                    isBackground: true, // Optimize for background rendering
+                    enableAnimations:
+                        false, // Disable animations for performance
                     onTap: () {
                       // Navigate to profile view
                     },
@@ -499,7 +502,7 @@ class _SwipeScreenState extends State<SwipeScreen>
               ),
             ),
 
-        // Active card
+        // Active card - full features and animations enabled
         if (currentIndex < users.length)
           Positioned.fill(
             child: ValueListenableBuilder<Offset>(
@@ -518,6 +521,10 @@ class _SwipeScreenState extends State<SwipeScreen>
                           onPanEnd: _onPanEnd,
                           child: SwipeCard(
                             user: users[currentIndex],
+                            isBackground:
+                                false, // Active card gets full features
+                            enableAnimations:
+                                true, // Full animations for active card
                             onTap: () {
                               // Navigate to profile view
                             },
