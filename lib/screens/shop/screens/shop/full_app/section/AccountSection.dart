@@ -26,6 +26,7 @@ import '../../../../../../features/moderation/screens/blocked_users_screen.dart'
 import '../../../../../../features/moderation/screens/legal_consent_screen.dart';
 import '../../../../../../features/account/screens/how_it_works_screen.dart';
 import '../../../../../../features/account/screens/contact_us_screen.dart';
+import '../../../../../super_admin/super_admin_chat_heads_screen.dart';
 
 class AccountSection extends StatefulWidget {
   const AccountSection({Key? key}) : super(key: key);
@@ -253,6 +254,29 @@ class _AccountSectionState extends State<AccountSection> {
                     subtitle: "Get in touch with us",
                     onTap: () => Get.to(() => const ContactUsScreen()),
                   ),
+
+                  // Super Admin Section (Only for user ID = 1)
+                  if (mainController.loggedInUser.id == 1) ...[
+                    // Super Admin Section Divider
+                    Container(
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      child: FxText.bodyMedium(
+                        "Super Admin Tools",
+                        color: CustomTheme.primary,
+                        fontWeight: 700,
+                      ),
+                    ),
+                    _buildTile(
+                      icon: FeatherIcons.settings,
+                      label: "Test Account Chats",
+                      subtitle: "Manage and monitor test account conversations",
+                      onTap:
+                          () => Get.to(() => const SuperAdminChatHeadsScreen()),
+                    ),
+                  ],
 
                   // Account Actions Section Divider
                   Container(
