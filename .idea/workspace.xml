@@ -10,7 +10,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="1b882ce3-1198-472a-b1a3-9e9b778a292b" name="Changes" comment="latest changesxzxzx">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/screens/super_admin/super_admin_chat_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/super_admin/super_admin_chat_screen.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

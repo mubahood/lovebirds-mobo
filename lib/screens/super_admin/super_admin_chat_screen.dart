@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:video_player/video_player.dart';
 import 'dart:io';
 import '../../models/RespondModel.dart';
 import '../../utils/Utilities.dart';
@@ -385,7 +387,7 @@ class _SuperAdminChatScreenState extends State<SuperAdminChatScreen>
       );
 
       if (image != null) {
-        _showImageUploadDialog(image.path);
+        await _showMediaPreview(mediaType: 'photo', filePath: image.path);
       }
     } catch (e) {
       Utils.toast('Error selecting image: ${e.toString()}', color: Colors.red);
@@ -401,7 +403,7 @@ class _SuperAdminChatScreenState extends State<SuperAdminChatScreen>
       );
 
       if (video != null) {
-        _showVideoUploadDialog(video.path);
+        await _showMediaPreview(mediaType: 'video', filePath: video.path);
       }
     } catch (e) {
       Utils.toast('Error selecting video: ${e.toString()}', color: Colors.red);
@@ -414,6 +416,141 @@ class _SuperAdminChatScreenState extends State<SuperAdminChatScreen>
       color: CustomTheme.primary,
     );
     // Audio recording implementation would go here
+  }
+
+  // Show multimedia preview dialog
+  Future<void> _showMediaPreview({
+    required String mediaType,
+    required String filePath,
+  }) async {
+    File file = File(filePath);
+    if (!await file.exists()) {
+      Utils.toast('File not found');
+      return;
+    }
+
+    String? caption;
+
+    showDialog(
+      context: context,
+      builder:
+          (BuildContext context) => _MediaPreviewDialog(
+            type: mediaType,
+            filePath: filePath,
+            onSend: () async {
+              Navigator.pop(context);
+              await _uploadAndSendMedia(
+                mediaType: mediaType,
+                filePath: filePath,
+                caption: caption,
+              );
+            },
+            onCancel: () {
+              Navigator.pop(context);
+            },
+            onCaptionChanged: (String newCaption) {
+              caption = newCaption;
+            },
+          ),
+    );
+  }
+
+  // Upload media for preview then send message
+  Future<void> _uploadAndSendMedia({
+    required String mediaType,
+    required String filePath,
+    String? caption,
+  }) async {
+    try {
+      // Show loading
+      Utils.showLoading();
+
+      // Upload file to server for preview
+      final response = await Utils.http_post_with_files(
+        'upload-media-preview',
+        data: {'media_type': mediaType},
+        files: {mediaType: filePath},
+      );
+
+      Utils.hideLoading();
+
+      final resp = RespondModel(response);
+      if (resp.code == 1 && resp.data != null) {
+        final uploadData = resp.data as Map<String, dynamic>;
+        final fileName = uploadData['file_name'] as String?;
+
+        if (fileName != null) {
+          // Send message with uploaded file
+          await _sendMultimediaMessage(
+            messageType: mediaType,
+            content: caption ?? _getDefaultCaption(mediaType),
+            previewFileName: fileName,
+          );
+        } else {
+          Utils.toast('Failed to upload $mediaType file');
+        }
+      } else {
+        Utils.toast('Upload failed: ${resp.message}');
+      }
+    } catch (e) {
+      Utils.hideLoading();
+      Utils.toast('Error uploading $mediaType: $e');
+    }
+  }
+
+  String _getDefaultCaption(String mediaType) {
+    switch (mediaType) {
+      case 'photo':
+        return 'Photo';
+      case 'video':
+        return 'Video';
+      case 'audio':
+        return 'Voice message';
+      case 'document':
+        return 'Document';
+      default:
+        return 'Media file';
+    }
+  }
+
+  // Send multimedia message
+  Future<void> _sendMultimediaMessage({
+    required String messageType,
+    required String content,
+    String? previewFileName,
+  }) async {
+    try {
+      Map<String, dynamic> requestData = {
+        'sender_id': chatHead['test_account_id'].toString(),
+        'receiver_id': chatHead['user_id'].toString(),
+        'body': content,
+        'message_type': messageType,
+        'chat_head_id': chatHead['id'],
+      };
+
+      // Add multimedia specific fields
+      if (previewFileName != null && previewFileName.isNotEmpty) {
+        requestData['preview_file_name'] = previewFileName;
+      }
+
+      final response = await Utils.http_post(
+        'super-admin-send-message',
+        requestData,
+      );
+
+      final resp = RespondModel(response);
+      if (resp.code == 1) {
+        Utils.toast('Message sent successfully!', color: CustomTheme.primary);
+        await _refreshMessages();
+      } else {
+        Utils.toast(
+          'Failed to send message: ${resp.message}',
+          color: Colors.red,
+        );
+      }
+    } catch (e) {
+      Utils.toast('Error sending message: $e', color: Colors.red);
+    }
   }
 
   void _shareLocation() async {
@@ -442,301 +579,374 @@ class _SuperAdminChatScreenState extends State<SuperAdminChatScreen>
     }
   }
 
-  void _showImageUploadDialog(String imagePath) {
-    Get.dialog(
-      Dialog(
-        backgroundColor: Colors.transparent,
-        child: Container(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.7,
-            maxWidth: MediaQuery.of(context).size.width * 0.9,
-          ),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [CustomTheme.card, CustomTheme.cardDark],
+  Future<void> _refreshMessages() async {
+    // Fetch fresh messages from the server
+    // This should call your API to get updated chat messages
+    setState(() {
+      // Update your message list here
+    });
+  }
+
+  Widget _MediaPreviewDialog({
+    required String filePath,
+    required String type,
+    required VoidCallback onSend,
+    required VoidCallback onCancel,
+    required Function(String) onCaptionChanged,
+    String? thumbnailPath,
+  }) {
+    VideoPlayerController? videoController;
+    AudioPlayer? audioPlayer;
+
+    if (type == 'video') {
+      videoController = VideoPlayerController.file(File(filePath));
+      videoController.initialize();
+    }
+
+    if (type == 'audio') {
+      audioPlayer = AudioPlayer();
+    }
+
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        width: Get.width * 0.9,
+        height: Get.height * 0.8,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          children: [
+            // Header
+            Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: CustomTheme.primary,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Preview ${type.toUpperCase()}',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      videoController?.dispose();
+                      audioPlayer?.dispose();
+                      onCancel();
+                    },
+                    child: Icon(Icons.close, color: Colors.white, size: 24),
+                  ),
+                ],
+              ),
             ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.3),
-                blurRadius: 16,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      CustomTheme.primary.withValues(alpha: 0.2),
-                      CustomTheme.primary.withValues(alpha: 0.1),
-                    ],
-                  ),
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20),
-                  ),
-                ),
-                child: Row(
+
+            // Media Preview
+            Expanded(
+              child: Container(
+                padding: EdgeInsets.all(16),
+                child: Column(
                   children: [
-                    Icon(Icons.photo, color: CustomTheme.primary),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Send Image',
-                      style: TextStyle(
-                        color: CustomTheme.accent,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                    // Media Display
+                    Expanded(
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: _buildMediaPreview(
+                          type: type,
+                          filePath: filePath,
+                          videoController: videoController,
+                          audioPlayer: audioPlayer,
+                          thumbnailPath: thumbnailPath,
+                        ),
                       ),
                     ),
-                    const Spacer(),
-                    IconButton(
-                      onPressed: () => Get.back(),
-                      icon: Icon(Icons.close, color: CustomTheme.color2),
+
+                    SizedBox(height: 16),
+
+                    // Caption Input
+                    TextField(
+                      decoration: InputDecoration(
+                        hintText: 'Add a caption...',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey[100],
+                      ),
+                      maxLines: 3,
+                      onChanged: onCaptionChanged,
                     ),
                   ],
                 ),
               ),
-              Flexible(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.file(File(imagePath), fit: BoxFit.contain),
+            ),
+
+            // Bottom Actions
+            Container(
+              padding: EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        videoController?.dispose();
+                        audioPlayer?.dispose();
+                        onCancel();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey[300],
+                        foregroundColor: Colors.black,
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Text('Cancel'),
+                    ),
                   ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(20),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: CustomTheme.color2.withValues(alpha: 0.3),
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: TextButton(
-                          onPressed: () => Get.back(),
-                          child: Text(
-                            'Cancel',
-                            style: TextStyle(color: CustomTheme.color2),
-                          ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        videoController?.dispose();
+                        audioPlayer?.dispose();
+                        onSend();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: CustomTheme.primary,
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
                         ),
                       ),
+                      child: Text('Send'),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              CustomTheme.primary,
-                              CustomTheme.primaryDark,
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            Get.back();
-                            // Here you would upload the image and send the message
-                            Utils.toast(
-                              'Image upload feature coming soon!',
-                              color: CustomTheme.primary,
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.transparent,
-                            shadowColor: Colors.transparent,
-                          ),
-                          child: const Text(
-                            'Send',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  void _showVideoUploadDialog(String videoPath) {
-    Get.dialog(
-      Dialog(
-        backgroundColor: Colors.transparent,
-        child: Container(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.6,
-            maxWidth: MediaQuery.of(context).size.width * 0.9,
+  Widget _buildMediaPreview({
+    required String type,
+    required String filePath,
+    VideoPlayerController? videoController,
+    AudioPlayer? audioPlayer,
+    String? thumbnailPath,
+  }) {
+    switch (type) {
+      case 'photo':
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.file(
+            File(filePath),
+            fit: BoxFit.contain,
+            width: double.infinity,
+            height: double.infinity,
           ),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [CustomTheme.card, CustomTheme.cardDark],
-            ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.3),
-                blurRadius: 16,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      CustomTheme.color2.withValues(alpha: 0.2),
-                      CustomTheme.color2.withValues(alpha: 0.1),
-                    ],
-                  ),
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.videocam, color: CustomTheme.color2),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Send Video',
-                      style: TextStyle(
-                        color: CustomTheme.accent,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      onPressed: () => Get.back(),
-                      icon: Icon(Icons.close, color: CustomTheme.color2),
-                    ),
-                  ],
-                ),
-              ),
-              Flexible(
-                child: Container(
-                  margin: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    color: Colors.black12,
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.videocam,
-                          size: 64,
-                          color: CustomTheme.color2,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Video Preview',
-                          style: TextStyle(
-                            color: CustomTheme.color,
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          videoPath.split('/').last,
-                          style: TextStyle(
-                            color: CustomTheme.color2,
-                            fontSize: 12,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(20),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: CustomTheme.color2.withValues(alpha: 0.3),
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: TextButton(
-                          onPressed: () => Get.back(),
-                          child: Text(
-                            'Cancel',
-                            style: TextStyle(color: CustomTheme.color2),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              CustomTheme.color2,
-                              CustomTheme.color2.withValues(red: 0.8),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            Get.back();
-                            // Here you would upload the video and send the message
-                            Utils.toast(
-                              'Video upload feature coming soon!',
-                              color: CustomTheme.color2,
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.transparent,
-                            shadowColor: Colors.transparent,
-                          ),
-                          child: const Text(
-                            'Send',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
+        );
+
+      case 'video':
+        return StatefulBuilder(
+          builder: (context, setState) {
+            bool isPlaying = videoController?.value.isPlaying ?? false;
+
+            return Stack(
+              alignment: Alignment.center,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child:
+                      videoController != null &&
+                              videoController.value.isInitialized
+                          ? AspectRatio(
+                            aspectRatio: videoController.value.aspectRatio,
+                            child: VideoPlayer(videoController),
+                          )
+                          : Container(
+                            width: double.infinity,
+                            height: double.infinity,
+                            color: Colors.grey[300],
+                            child: Icon(
+                              Icons.video_library,
+                              size: 64,
+                              color: Colors.grey[600],
                             ),
                           ),
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    onPressed: () {
+                      if (videoController != null) {
+                        if (isPlaying) {
+                          videoController.pause();
+                        } else {
+                          videoController.play();
+                        }
+                        setState(() {
+                          // Update will be handled by the video controller state
+                        });
+                      }
+                    },
+                    icon: Icon(
+                      isPlaying ? Icons.pause : Icons.play_arrow,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+
+      case 'audio':
+        return StatefulBuilder(
+          builder: (context, setState) {
+            bool isPlaying = false;
+            Duration duration = Duration.zero;
+            Duration position = Duration.zero;
+
+            if (audioPlayer != null) {
+              audioPlayer.onDurationChanged.listen((newDuration) {
+                setState(() {
+                  duration = newDuration;
+                });
+              });
+
+              audioPlayer.onPositionChanged.listen((newPosition) {
+                setState(() {
+                  position = newPosition;
+                });
+              });
+
+              audioPlayer.onPlayerStateChanged.listen((state) {
+                setState(() {
+                  isPlaying = state == PlayerState.playing;
+                });
+              });
+            }
+
+            return Container(
+              padding: EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.audiotrack, size: 64, color: CustomTheme.primary),
+                  SizedBox(height: 24),
+                  Text(
+                    'Audio Recording',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          color: CustomTheme.primary,
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          onPressed: () async {
+                            if (audioPlayer != null) {
+                              if (isPlaying) {
+                                await audioPlayer.pause();
+                              } else {
+                                await audioPlayer.play(
+                                  DeviceFileSource(filePath),
+                                );
+                              }
+                            }
+                          },
+                          icon: Icon(
+                            isPlaying ? Icons.pause : Icons.play_arrow,
+                            color: Colors.white,
+                            size: 24,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                      SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            LinearProgressIndicator(
+                              value:
+                                  duration.inMilliseconds > 0
+                                      ? position.inMilliseconds /
+                                          duration.inMilliseconds
+                                      : 0.0,
+                              backgroundColor: Colors.grey[300],
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                CustomTheme.primary,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  _formatDuration(position),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                Text(
+                                  _formatDuration(duration),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
-      ),
-    );
+            );
+          },
+        );
+
+      default:
+        return Container(
+          child: Icon(Icons.attach_file, size: 64, color: Colors.grey[600]),
+        );
+    }
+  }
+
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, "0");
+    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+    return "$twoDigitMinutes:$twoDigitSeconds";
   }
 
   String _formatTime(String? timeString) {
@@ -761,22 +971,24 @@ class _SuperAdminChatScreenState extends State<SuperAdminChatScreen>
   }
 
   Widget _buildMessage(dynamic message) {
-    final bool isTestAccount =
-        message['sender_id'] == chatHead['test_account_id'];
     final String senderName = message['sender_details']['name'] ?? 'Unknown';
     final String messageBody = message['body'] ?? '';
     final String messageTime = _formatTime(message['created_at']);
     final String senderPhoto = message['sender_details']['photo'] ?? '';
     final String messageType = message['message_type'] ?? 'text';
 
+    // Determine if this is from the test account (admin) for styling
+    final bool isFromAdmin =
+        message['sender_id'] == chatHead['test_account_id'];
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Row(
         mainAxisAlignment:
-            isTestAccount ? MainAxisAlignment.end : MainAxisAlignment.start,
+            isFromAdmin ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (!isTestAccount) ...[
+          if (!isFromAdmin) ...[
             Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
@@ -821,7 +1033,7 @@ class _SuperAdminChatScreenState extends State<SuperAdminChatScreen>
           Flexible(
             child: Column(
               crossAxisAlignment:
-                  isTestAccount
+                  isFromAdmin
                       ? CrossAxisAlignment.end
                       : CrossAxisAlignment.start,
               children: [
@@ -832,21 +1044,21 @@ class _SuperAdminChatScreenState extends State<SuperAdminChatScreen>
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors:
-                          isTestAccount
+                          isFromAdmin
                               ? [CustomTheme.primary, CustomTheme.primaryDark]
                               : [CustomTheme.card, CustomTheme.cardDark],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(isTestAccount ? 20 : 6),
-                      topRight: Radius.circular(isTestAccount ? 6 : 20),
+                      topLeft: Radius.circular(isFromAdmin ? 20 : 6),
+                      topRight: Radius.circular(isFromAdmin ? 6 : 20),
                       bottomLeft: const Radius.circular(20),
                       bottomRight: const Radius.circular(20),
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: (isTestAccount
+                        color: (isFromAdmin
                                 ? CustomTheme.primary
                                 : Colors.black)
                             .withValues(alpha: 0.2),
@@ -858,64 +1070,12 @@ class _SuperAdminChatScreenState extends State<SuperAdminChatScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (isTestAccount)
-                        Container(
-                          margin: const EdgeInsets.only(
-                            left: 16,
-                            right: 16,
-                            top: 12,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 3,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.25),
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                    color: Colors.white.withValues(alpha: 0.3),
-                                    width: 0.5,
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.science,
-                                      color: Colors.white,
-                                      size: 12,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    const Text(
-                                      'TEST ACCOUNT',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
                       Padding(
-                        padding: EdgeInsets.only(
-                          left: 16,
-                          right: 16,
-                          top: isTestAccount ? 8 : 16,
-                          bottom: 16,
-                        ),
+                        padding: const EdgeInsets.all(16),
                         child: _buildMessageContent(
                           messageType,
                           messageBody,
-                          isTestAccount,
+                          isFromAdmin,
                         ),
                       ),
                     ],
@@ -924,8 +1084,8 @@ class _SuperAdminChatScreenState extends State<SuperAdminChatScreen>
                 const SizedBox(height: 4),
                 Padding(
                   padding: EdgeInsets.only(
-                    left: isTestAccount ? 0 : 4,
-                    right: isTestAccount ? 4 : 0,
+                    left: isFromAdmin ? 0 : 4,
+                    right: isFromAdmin ? 4 : 0,
                   ),
                   child: Text(
                     messageTime,
@@ -939,7 +1099,7 @@ class _SuperAdminChatScreenState extends State<SuperAdminChatScreen>
               ],
             ),
           ),
-          if (isTestAccount) ...[
+          if (isFromAdmin) ...[
             const SizedBox(width: 12),
             Container(
               decoration: BoxDecoration(
@@ -980,23 +1140,23 @@ class _SuperAdminChatScreenState extends State<SuperAdminChatScreen>
   Widget _buildMessageContent(
     String messageType,
     String content,
-    bool isTestAccount,
+    bool isFromAdmin,
   ) {
     switch (messageType) {
       case 'image':
-        return _buildImageMessage(content, isTestAccount);
+        return _buildImageMessage(content, isFromAdmin);
       case 'video':
-        return _buildVideoMessage(content, isTestAccount);
+        return _buildVideoMessage(content, isFromAdmin);
       case 'audio':
-        return _buildAudioMessage(content, isTestAccount);
+        return _buildAudioMessage(content, isFromAdmin);
       case 'location':
-        return _buildLocationMessage(content, isTestAccount);
+        return _buildLocationMessage(content, isFromAdmin);
       case 'text':
       default:
         return Text(
           content,
           style: TextStyle(
-            color: isTestAccount ? Colors.white : CustomTheme.color,
+            color: isFromAdmin ? Colors.white : CustomTheme.color,
             fontSize: 15,
             height: 1.4,
             fontWeight: FontWeight.w400,
@@ -1005,7 +1165,7 @@ class _SuperAdminChatScreenState extends State<SuperAdminChatScreen>
     }
   }
 
-  Widget _buildImageMessage(String imageUrl, bool isTestAccount) {
+  Widget _buildImageMessage(String imageUrl, bool isFromAdmin) {
     return GestureDetector(
       onTap: () => _showImagePreview(imageUrl),
       child: Container(
@@ -1028,12 +1188,12 @@ class _SuperAdminChatScreenState extends State<SuperAdminChatScreen>
             placeholder:
                 (context, url) => Container(
                   height: 200,
-                  color: (isTestAccount ? Colors.white : CustomTheme.color2)
+                  color: (isFromAdmin ? Colors.white : CustomTheme.color2)
                       .withValues(alpha: 0.1),
                   child: Center(
                     child: CircularProgressIndicator(
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        isTestAccount ? Colors.white : CustomTheme.primary,
+                        isFromAdmin ? Colors.white : CustomTheme.primary,
                       ),
                       strokeWidth: 2,
                     ),
@@ -1042,11 +1202,11 @@ class _SuperAdminChatScreenState extends State<SuperAdminChatScreen>
             errorWidget:
                 (context, url, error) => Container(
                   height: 200,
-                  color: (isTestAccount ? Colors.white : CustomTheme.color2)
+                  color: (isFromAdmin ? Colors.white : CustomTheme.color2)
                       .withValues(alpha: 0.1),
                   child: Icon(
                     Icons.broken_image,
-                    color: isTestAccount ? Colors.white : CustomTheme.color2,
+                    color: isFromAdmin ? Colors.white : CustomTheme.color2,
                     size: 40,
                   ),
                 ),
@@ -1056,7 +1216,7 @@ class _SuperAdminChatScreenState extends State<SuperAdminChatScreen>
     );
   }
 
-  Widget _buildVideoMessage(String videoUrl, bool isTestAccount) {
+  Widget _buildVideoMessage(String videoUrl, bool isFromAdmin) {
     return GestureDetector(
       onTap: () => _showVideoPreview(videoUrl),
       child: Container(
@@ -1064,7 +1224,7 @@ class _SuperAdminChatScreenState extends State<SuperAdminChatScreen>
         height: 140,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          color: (isTestAccount ? Colors.white : CustomTheme.color2).withValues(
+          color: (isFromAdmin ? Colors.white : CustomTheme.color2).withValues(
             alpha: 0.1,
           ),
           boxShadow: [
@@ -1080,7 +1240,7 @@ class _SuperAdminChatScreenState extends State<SuperAdminChatScreen>
           children: [
             Icon(
               Icons.videocam,
-              color: isTestAccount ? Colors.white : CustomTheme.primary,
+              color: isFromAdmin ? Colors.white : CustomTheme.primary,
               size: 32,
             ),
             Positioned(
@@ -1090,7 +1250,7 @@ class _SuperAdminChatScreenState extends State<SuperAdminChatScreen>
               child: Text(
                 'Video Message',
                 style: TextStyle(
-                  color: isTestAccount ? Colors.white : CustomTheme.color,
+                  color: isFromAdmin ? Colors.white : CustomTheme.color,
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
@@ -1100,13 +1260,13 @@ class _SuperAdminChatScreenState extends State<SuperAdminChatScreen>
             Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: (isTestAccount ? Colors.white : CustomTheme.primary)
+                color: (isFromAdmin ? Colors.white : CustomTheme.primary)
                     .withValues(alpha: 0.9),
               ),
               padding: const EdgeInsets.all(12),
               child: Icon(
                 Icons.play_arrow,
-                color: isTestAccount ? CustomTheme.primary : Colors.white,
+                color: isFromAdmin ? CustomTheme.primary : Colors.white,
                 size: 24,
               ),
             ),
@@ -1116,18 +1276,19 @@ class _SuperAdminChatScreenState extends State<SuperAdminChatScreen>
     );
   }
 
-  Widget _buildAudioMessage(String audioUrl, bool isTestAccount) {
+  Widget _buildAudioMessage(String audioUrl, bool isFromAdmin) {
     return Container(
       width: 220,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(25),
-        color: (isTestAccount ? Colors.white : CustomTheme.primary).withValues(
+        color: (isFromAdmin ? Colors.white : CustomTheme.primary).withValues(
           alpha: 0.1,
         ),
         border: Border.all(
-          color: (isTestAccount ? Colors.white : CustomTheme.primary)
-              .withValues(alpha: 0.3),
+          color: (isFromAdmin ? Colors.white : CustomTheme.primary).withValues(
+            alpha: 0.3,
+          ),
         ),
       ),
       child: Row(
@@ -1138,12 +1299,12 @@ class _SuperAdminChatScreenState extends State<SuperAdminChatScreen>
             child: Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isTestAccount ? Colors.white : CustomTheme.primary,
+                color: isFromAdmin ? Colors.white : CustomTheme.primary,
               ),
               padding: const EdgeInsets.all(8),
               child: Icon(
                 Icons.play_arrow,
-                color: isTestAccount ? CustomTheme.primary : Colors.white,
+                color: isFromAdmin ? CustomTheme.primary : Colors.white,
                 size: 16,
               ),
             ),
@@ -1157,14 +1318,14 @@ class _SuperAdminChatScreenState extends State<SuperAdminChatScreen>
                   height: 2,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(1),
-                    color: (isTestAccount ? Colors.white : CustomTheme.primary)
+                    color: (isFromAdmin ? Colors.white : CustomTheme.primary)
                         .withValues(alpha: 0.3),
                   ),
                   child: LinearProgressIndicator(
                     value: 0.0,
                     backgroundColor: Colors.transparent,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      isTestAccount ? Colors.white : CustomTheme.primary,
+                      isFromAdmin ? Colors.white : CustomTheme.primary,
                     ),
                   ),
                 ),
@@ -1172,7 +1333,7 @@ class _SuperAdminChatScreenState extends State<SuperAdminChatScreen>
                 Text(
                   'Audio Message',
                   style: TextStyle(
-                    color: isTestAccount ? Colors.white : CustomTheme.color,
+                    color: isFromAdmin ? Colors.white : CustomTheme.color,
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                   ),
@@ -1185,7 +1346,7 @@ class _SuperAdminChatScreenState extends State<SuperAdminChatScreen>
     );
   }
 
-  Widget _buildLocationMessage(String locationData, bool isTestAccount) {
+  Widget _buildLocationMessage(String locationData, bool isFromAdmin) {
     return GestureDetector(
       onTap: () => _showLocationPreview(locationData),
       child: Container(
@@ -1193,10 +1354,11 @@ class _SuperAdminChatScreenState extends State<SuperAdminChatScreen>
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          color: (isTestAccount ? Colors.white : CustomTheme.primary)
-              .withValues(alpha: 0.1),
+          color: (isFromAdmin ? Colors.white : CustomTheme.primary).withValues(
+            alpha: 0.1,
+          ),
           border: Border.all(
-            color: (isTestAccount ? Colors.white : CustomTheme.primary)
+            color: (isFromAdmin ? Colors.white : CustomTheme.primary)
                 .withValues(alpha: 0.3),
           ),
           boxShadow: [
@@ -1211,14 +1373,14 @@ class _SuperAdminChatScreenState extends State<SuperAdminChatScreen>
           children: [
             Icon(
               Icons.location_on,
-              color: isTestAccount ? Colors.white : CustomTheme.primary,
+              color: isFromAdmin ? Colors.white : CustomTheme.primary,
               size: 32,
             ),
             const SizedBox(height: 8),
             Text(
               'Location Shared',
               style: TextStyle(
-                color: isTestAccount ? Colors.white : CustomTheme.color,
+                color: isFromAdmin ? Colors.white : CustomTheme.color,
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
@@ -1227,7 +1389,7 @@ class _SuperAdminChatScreenState extends State<SuperAdminChatScreen>
             Text(
               'Tap to view on map',
               style: TextStyle(
-                color: (isTestAccount ? Colors.white : CustomTheme.color2)
+                color: (isFromAdmin ? Colors.white : CustomTheme.color2)
                     .withValues(alpha: 0.8),
                 fontSize: 12,
               ),
