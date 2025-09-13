@@ -11,10 +11,7 @@
   <component name="ChangeListManager">
     <list default="true" id="1b882ce3-1198-472a-b1a3-9e9b778a292b" name="Changes" comment="latest changesxzxzx">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/dating/SwipeScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/dating/SwipeScreen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/utils/AppConfig.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/utils/AppConfig.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/widgets/dating/multi_photo_gallery.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/widgets/dating/multi_photo_gallery.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/widgets/dating/swipe_card.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/widgets/dating/swipe_card.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/screens/dating/ProfileViewScreen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/dating/ProfileViewScreen.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

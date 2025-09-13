@@ -836,7 +836,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen>
               crossAxisCount: 2,
               crossAxisSpacing: 8,
               mainAxisSpacing: 8,
-              childAspectRatio: 3.2, // Increased from 2.5 to give more height
+              childAspectRatio: 3.0, // Increased from 2.5 to give more height
             ),
             itemCount: lifestyle.length,
             itemBuilder: (context, index) {
@@ -855,7 +855,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen>
 
   Widget _buildLifestyleCard(String emoji, String title, String value) {
     return Container(
-      padding: EdgeInsets.all(8), // Reduced from 12 to 8
+      padding: EdgeInsets.all(5), // Reduced from 12 to 8
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -873,7 +873,10 @@ class _ProfileViewScreenState extends State<ProfileViewScreen>
         children: [
           Row(
             children: [
-              Text(emoji, style: TextStyle(fontSize: 16)), // Reduced from 20
+              Text(
+                emoji,
+                style: TextStyle(fontSize: 15, height: 1),
+              ), // Reduced from 20
               SizedBox(width: 6), // Reduced from 8
               Expanded(
                 child: Text(
@@ -898,6 +901,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen>
                 color: Colors.white,
                 fontSize: 12, // Reduced from 14
                 fontWeight: FontWeight.w500,
+                height: 1,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
