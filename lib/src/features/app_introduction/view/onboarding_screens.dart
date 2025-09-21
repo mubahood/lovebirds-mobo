@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lovebirds_app/features/moderation/screens/force_consent_screen.dart';
@@ -200,7 +201,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen>
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Column(
                     children: [
-                      SizedBox(height: isSmallScreen ? 40 : 60),
+                      SizedBox(height: isSmallScreen ? 0 : 10),
 
                       // Animated Logo with enhanced effects
                       AnimatedBuilder(
@@ -211,8 +212,8 @@ class _OnBoardingScreenState extends State<OnBoardingScreen>
                             child: Transform.rotate(
                               angle: _logoRotation.value,
                               child: Container(
-                                width: isSmallScreen ? 100 : 120,
-                                height: isSmallScreen ? 100 : 120,
+                                width: isSmallScreen ? 80 : 80,
+                                height: isSmallScreen ? 80 : 80,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   color: Colors.white.withValues(alpha: 0.15),
@@ -249,7 +250,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen>
                         },
                       ),
 
-                      SizedBox(height: isSmallScreen ? 30 : 40),
+                      SizedBox(height: isSmallScreen ? 10 : 20),
 
                       // Animated Welcome Text
                       AnimatedBuilder(
@@ -279,25 +280,13 @@ class _OnBoardingScreenState extends State<OnBoardingScreen>
                                   textAlign: TextAlign.center,
                                 ),
 
-                                SizedBox(height: isSmallScreen ? 12 : 16),
-
-                                Text(
-                                  'Find meaningful connections\nand authentic relationships',
-                                  style: TextStyle(
-                                    color: Colors.white.withValues(alpha: 0.9),
-                                    fontSize: isSmallScreen ? 16 : 18,
-                                    height: 1.4,
-                                    fontWeight: FontWeight.w300,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
                               ],
                             ),
                           );
                         },
                       ),
 
-                      SizedBox(height: isSmallScreen ? 25 : 35),
+                      SizedBox(height: isSmallScreen ? 15 : 15),
 
                       // Animated loading message
                       AnimatedBuilder(
@@ -346,7 +335,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen>
                         },
                       ),
 
-                      SizedBox(height: isSmallScreen ? 25 : 35),
+                      SizedBox(height: isSmallScreen ? 15 : 15),
 
                       // Enhanced Features Preview with animations
                       AnimatedBuilder(
@@ -375,21 +364,21 @@ class _OnBoardingScreenState extends State<OnBoardingScreen>
                                   _buildAnimatedFeatureItem(
                                     Icons.verified_user,
                                     'Verified Profiles',
-                                    'Meet real people with verified photos',
+                                    'Meet real people with photos',
                                     0,
                                   ),
                                   const SizedBox(height: 20),
                                   _buildAnimatedFeatureItem(
                                     Icons.psychology,
                                     'Smart Matching',
-                                    'AI-powered compatibility matching',
+                                    'AI-powered matching',
                                     1,
                                   ),
                                   const SizedBox(height: 20),
                                   _buildAnimatedFeatureItem(
                                     Icons.security,
                                     'Safe & Secure',
-                                    'Private messaging with safety features',
+                                    'Private messaging with',
                                     2,
                                   ),
                                 ],
@@ -399,7 +388,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen>
                         },
                       ),
 
-                      SizedBox(height: isSmallScreen ? 25 : 35),
+                      SizedBox(height: isSmallScreen ? 15 : 15),
 
                       // Animated floating emojis with message
                       AnimatedBuilder(
@@ -409,49 +398,6 @@ class _OnBoardingScreenState extends State<OnBoardingScreen>
                             opacity: _fadeAnimation.value * 0.8,
                             child: Column(
                               children: [
-                                // Floating hearts with pulse effect
-                                AnimatedBuilder(
-                                  animation: _pulseController,
-                                  builder: (context, child) {
-                                    return Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Transform.scale(
-                                          scale:
-                                              0.8 +
-                                              (_pulseAnimation.value - 1) * 0.3,
-                                          child: const Text(
-                                            "💖",
-                                            style: TextStyle(fontSize: 24),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 20),
-                                        Transform.scale(
-                                          scale:
-                                              1.2 -
-                                              (_pulseAnimation.value - 1) * 0.3,
-                                          child: const Text(
-                                            "✨",
-                                            style: TextStyle(fontSize: 22),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 20),
-                                        Transform.scale(
-                                          scale:
-                                              0.8 +
-                                              (_pulseAnimation.value - 1) * 0.3,
-                                          child: const Text(
-                                            "💫",
-                                            style: TextStyle(fontSize: 24),
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                ),
-
-                                const SizedBox(height: 20),
 
                                 Text(
                                   'Your love story begins here... ❤️',
@@ -631,7 +577,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen>
     u = await LoggedInUserModel.getLoggedInUser();
 
     // Enhanced delay with animations (minimum 10 seconds)
-    await Future.delayed(const Duration(seconds: 10));
+    await Future.delayed(const Duration(seconds: 5));
 
     if (u.id < 1) {
       debugPrint('👤 No user logged in, redirecting to login');

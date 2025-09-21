@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/RespondModel.dart';
 import '../../models/UserModel.dart';
@@ -63,8 +64,8 @@ class _OrbitalSwipeScreenState extends State<OrbitalSwipeScreen>
   UserModel? _selectedUser;
 
   // Stats and premium features
-  int likesRemaining = 10; // Updated to 10 for free users
-  int messagesRemaining = 10; // New: message limits for free users
+  int likesRemaining = 0; // Initialize with 0, will be loaded from server
+  int messagesRemaining = 0; // Initialize with 0, will be loaded from server
   bool hasPremium = false;
 
   // Analytics data
@@ -74,8 +75,9 @@ class _OrbitalSwipeScreenState extends State<OrbitalSwipeScreen>
   void initState() {
     super.initState();
     _setupAnimations();
+    _loadCachedLimits(); // Load cached values first
     _loadUsers();
-    _loadStats();
+    _loadStats(); // Then load from server
   }
 
   void _setupAnimations() {
@@ -189,38 +191,138 @@ class _OrbitalSwipeScreenState extends State<OrbitalSwipeScreen>
       // Load user stats and analytics in parallel
       await Future.wait([_loadUserStats(), _loadAnalyticsData()]);
 
-      setState(() {
-        likesRemaining = 10; // Updated: Will be updated from user stats
-        messagesRemaining = 10; // New: Will be updated from user stats
-        _updatePremiumStatus();
-      });
+      // Update premium status after loading stats
+      _updatePremiumStatus();
     } catch (e) {
       print('Error loading stats: $e');
+      // ONLY set fallbacks if premium status is known
+      if (hasPremium) {
+        setState(() {
+          likesRemaining = 999; // Unlimited for premium
+          messagesRemaining = 999; // Unlimited for premium
+        });
+      }
+      // For free users, keep 0 to force subscription when server is unavailable
     }
   }
 
   Future<Map<String, dynamic>> _loadUserStats() async {
     try {
-      // You can implement API call to get user stats
-      final response = await Utils.http_get('user-stats', {});
+      // Use the swipe-stats API endpoint for accurate real-time limits
+      final response = await Utils.http_get('swipe-stats', {});
+      final resp = RespondModel(response);
+
+      if (resp.code == 1) {
+        final data = resp.data ?? {};
+        setState(() {
+          // STRICT ENFORCEMENT: Use server-side calculated limits
+          likesRemaining =
+              int.tryParse(data['daily_likes_remaining']?.toString() ?? '0') ??
+              0;
+          messagesRemaining =
+              int.tryParse(
+                data['daily_messages_remaining']?.toString() ?? '0',
+              ) ??
+              0;
+
+          // Ensure non-premium users can't exceed 10 likes/messages per day
+          if (!hasPremium) {
+            likesRemaining = math.min(likesRemaining, 10);
+            messagesRemaining = math.min(messagesRemaining, 10);
+          }
+        });
+        return data;
+      }
+
+      // API call failed - don't set fallback values that might be wrong
+      // Keep current values or 0 if not loaded yet
+      print('Failed to load user stats from API - keeping current values');
+      return {};
+    } catch (e) {
+      print('Error loading user stats: $e');
+      // On error, don't override current values
+      return {};
+    }
+  }
+
+  // STRICT ENFORCEMENT: Refresh user stats after actions to ensure accurate limits
+  Future<void> _refreshUserStats() async {
+    try {
+      final response = await Utils.http_get('swipe-stats', {});
       final resp = RespondModel(response);
 
       if (resp.code == 1) {
         final data = resp.data ?? {};
         setState(() {
           likesRemaining =
-              int.tryParse(data['likes_remaining']?.toString() ?? '10') ??
-              10; // Updated default
+              int.tryParse(data['daily_likes_remaining']?.toString() ?? '0') ??
+              0;
           messagesRemaining =
-              int.tryParse(data['messages_remaining']?.toString() ?? '10') ??
-              10; // New: message limits
+              int.tryParse(
+                data['daily_messages_remaining']?.toString() ?? '0',
+              ) ??
+              0;
+
+          // Ensure non-premium users can't exceed 10 likes/messages per day
+          if (!hasPremium) {
+            likesRemaining = math.min(likesRemaining, 10);
+            messagesRemaining = math.min(messagesRemaining, 10);
+          }
         });
-        return data;
+
+        // STORED REFERENCE SYSTEM: Save updated limits to cache
+        await _saveLimitsToCache();
       }
-      return {};
     } catch (e) {
-      print('Error loading user stats: $e');
-      return {};
+      print('Error refreshing user stats: $e');
+    }
+  }
+
+  // STORED REFERENCE SYSTEM: Load cached limits from local storage
+  Future<void> _loadCachedLimits() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userId = _mainC.userModel.id.toString();
+
+      // Load cached values with user-specific keys
+      final cachedLikes = prefs.getInt('likes_remaining_$userId');
+      final cachedMessages = prefs.getInt('messages_remaining_$userId');
+      final lastUpdated = prefs.getString('limits_last_updated_$userId');
+
+      // Only use cached values if they exist and are from today
+      final today = DateTime.now().toIso8601String().substring(0, 10);
+      if (lastUpdated == today &&
+          cachedLikes != null &&
+          cachedMessages != null) {
+        setState(() {
+          likesRemaining = cachedLikes;
+          messagesRemaining = cachedMessages;
+        });
+        print(
+          'Loaded cached limits: $likesRemaining likes, $messagesRemaining messages',
+        );
+      }
+    } catch (e) {
+      print('Error loading cached limits: $e');
+    }
+  }
+
+  // STORED REFERENCE SYSTEM: Save current limits to local storage
+  Future<void> _saveLimitsToCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userId = _mainC.userModel.id.toString();
+      final today = DateTime.now().toIso8601String().substring(0, 10);
+
+      await prefs.setInt('likes_remaining_$userId', likesRemaining);
+      await prefs.setInt('messages_remaining_$userId', messagesRemaining);
+      await prefs.setString('limits_last_updated_$userId', today);
+
+      print(
+        'Saved limits to cache: $likesRemaining likes, $messagesRemaining messages',
+      );
+    } catch (e) {
+      print('Error saving limits to cache: $e');
     }
   }
 
@@ -363,6 +465,18 @@ class _OrbitalSwipeScreenState extends State<OrbitalSwipeScreen>
   Future<void> _performAction(String action) async {
     if (_selectedUser == null || _isAnimating) return;
 
+    // STRICT SUBSCRIPTION ENFORCEMENT: Check limits before making API call
+    if (!hasPremium && action == 'like') {
+      if (likesRemaining <= 0) {
+        _showUpgradeDialog('likes');
+        Utils.toast(
+          'Daily like limit reached (0/10). Upgrade to premium for unlimited likes!',
+          color: Colors.red,
+        );
+        return; // Prevent API call
+      }
+    }
+
     _actionController.forward().then((_) {
       _actionController.reverse();
     });
@@ -374,12 +488,8 @@ class _OrbitalSwipeScreenState extends State<OrbitalSwipeScreen>
       );
 
       if (result.success) {
-        // Update like limits for non-premium users when liking
-        if (!hasPremium && action == 'like') {
-          setState(() {
-            likesRemaining = math.max(0, likesRemaining - 1);
-          });
-        }
+        // REFRESH LIMITS: Get updated stats from server after successful action
+        await _refreshUserStats();
 
         // Remove current user
         setState(() {
@@ -616,14 +726,14 @@ class _OrbitalSwipeScreenState extends State<OrbitalSwipeScreen>
                 children: [
                   Icon(
                     FeatherIcons.heart,
-                    color: Colors.red,
+                    color: likesRemaining > 0 ? Colors.red : Colors.grey,
                     size: 10,
                   ), // Smaller icons
                   SizedBox(width: 2), // Reduced spacing
                   Text(
-                    '$likesRemaining',
+                    '$likesRemaining/10',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: likesRemaining > 0 ? Colors.white : Colors.grey,
                       fontSize: 10, // Smaller text
                       fontWeight: FontWeight.bold,
                     ),
@@ -631,14 +741,17 @@ class _OrbitalSwipeScreenState extends State<OrbitalSwipeScreen>
                   SizedBox(width: 6), // Reduced spacing
                   Icon(
                     FeatherIcons.messageCircle,
-                    color: CustomTheme.accent,
+                    color:
+                        messagesRemaining > 0
+                            ? CustomTheme.accent
+                            : Colors.grey,
                     size: 10,
                   ),
                   SizedBox(width: 2),
                   Text(
-                    '$messagesRemaining',
+                    '$messagesRemaining/10',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: messagesRemaining > 0 ? Colors.white : Colors.grey,
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                     ),
@@ -1356,17 +1469,23 @@ class _OrbitalSwipeScreenState extends State<OrbitalSwipeScreen>
             onPressed: () => _performAction('pass'),
           ),
 
-          // Like button
+          // Like button - STRICT enforcement for non-premium users
           _buildModernActionButtonWithText(
             icon: FeatherIcons.heart,
             color: Colors.red[400]!,
             size: 60, // Slightly reduced size
             label: 'Like',
             onPressed:
-                likesRemaining > 0
+                (hasPremium || likesRemaining > 0)
                     ? () => _performAction('like')
-                    : () => _showUpgradeDialog('likes'),
-            badge: likesRemaining > 0 ? null : '0',
+                    : () {
+                      _showUpgradeDialog('likes');
+                      Utils.toast(
+                        'You\'ve used all 10 free likes today! Upgrade for unlimited likes.',
+                        color: Colors.red,
+                      );
+                    },
+            badge: (!hasPremium && likesRemaining <= 0) ? '0' : null,
           ),
 
           // View Profile button (replaces Boost)
@@ -1382,17 +1501,23 @@ class _OrbitalSwipeScreenState extends State<OrbitalSwipeScreen>
             badge: null,
           ),
 
-          // Message/Chat button
+          // Message/Chat button - STRICT enforcement for non-premium users
           _buildModernActionButtonWithText(
             icon: FeatherIcons.messageCircle,
             color: CustomTheme.accent,
             size: 50, // Reduced size to fit 4 buttons
             label: 'Message',
             onPressed:
-                hasPremium || messagesRemaining > 0
+                (hasPremium || messagesRemaining > 0)
                     ? () => _showMessageDialog()
-                    : () => _showUpgradeDialog('messages'),
-            badge: messagesRemaining > 0 || hasPremium ? null : '0',
+                    : () {
+                      _showUpgradeDialog('messages');
+                      Utils.toast(
+                        'You\'ve used all 10 free messages today! Upgrade for unlimited messaging.',
+                        color: Colors.red,
+                      );
+                    },
+            badge: (!hasPremium && messagesRemaining <= 0) ? '0' : null,
           ),
         ],
       ),
@@ -1718,7 +1843,7 @@ class _OrbitalSwipeScreenState extends State<OrbitalSwipeScreen>
                               Icon(
                                 messagesRemaining > 0
                                     ? FeatherIcons.messageCircle
-                                    : FeatherIcons.alertTriangle,
+                                    : FeatherIcons.xCircle,
                                 color:
                                     messagesRemaining > 0
                                         ? Colors.blue
@@ -1729,8 +1854,8 @@ class _OrbitalSwipeScreenState extends State<OrbitalSwipeScreen>
                               Expanded(
                                 child: Text(
                                   messagesRemaining > 0
-                                      ? '$messagesRemaining messages remaining today'
-                                      : 'Daily message limit reached (0/10)',
+                                      ? '$messagesRemaining of 10 messages remaining today'
+                                      : 'Daily limit reached! You\'ve used all 10 free messages today.',
                                   style: TextStyle(
                                     color:
                                         messagesRemaining > 0
@@ -1982,9 +2107,19 @@ class _OrbitalSwipeScreenState extends State<OrbitalSwipeScreen>
   void _sendMessage(String message) async {
     if (_selectedUser == null) return;
 
-    // Check message limits for non-premium users
+    // STRICT SUBSCRIPTION ENFORCEMENT: Check message limits for non-premium users
     if (!hasPremium && messagesRemaining <= 0) {
       _showUpgradeDialog('messages');
+      Utils.toast(
+        'Daily message limit reached (0/10). Upgrade to premium for unlimited messaging!',
+        color: Colors.red,
+      );
+      return; // Prevent API call
+    }
+
+    // Additional validation: Empty message check
+    if (message.trim().isEmpty) {
+      Utils.toast('Please enter a message', color: Colors.orange);
       return;
     }
 
@@ -2005,12 +2140,8 @@ class _OrbitalSwipeScreenState extends State<OrbitalSwipeScreen>
         // Success - message sent and chat head created/found
         Utils.toast('Message sent successfully! 💖', color: Colors.green);
 
-        // Update message limits for non-premium users
-        if (!hasPremium) {
-          setState(() {
-            messagesRemaining = math.max(0, messagesRemaining - 1);
-          });
-        }
+        // REFRESH LIMITS: Get updated stats from server after successful message
+        await _refreshUserStats();
 
         // Optional: Navigate to chat screen for continued conversation
         _navigateToChat();

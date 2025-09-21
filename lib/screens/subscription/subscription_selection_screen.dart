@@ -34,7 +34,7 @@ class _SubscriptionSelectionScreenState
     {
       'id': 'weekly',
       'title': 'Weekly Trial',
-      'price': '\$10',
+      'price': Utils.money('10'),
       'period': '/week',
       'originalPrice': null,
       'savings': null,
@@ -51,10 +51,10 @@ class _SubscriptionSelectionScreenState
     {
       'id': 'monthly',
       'title': 'Monthly Premium',
-      'price': '\$30',
+      'price': Utils.money('30'),
       'period': '/month',
-      'originalPrice': '\$40',
-      'savings': 'Save \$10',
+      'originalPrice': Utils.money('40'),
+      'savings': 'Save ${Utils.money('10')}',
       'badge': 'MOST POPULAR',
       'color': CustomTheme.primary,
       'features': [
@@ -69,10 +69,10 @@ class _SubscriptionSelectionScreenState
     {
       'id': 'quarterly',
       'title': '3 Month Premium',
-      'price': '\$70',
+      'price': Utils.money('70'),
       'period': '/3 months',
-      'originalPrice': '\$90',
-      'savings': 'Save \$20 + 1 FREE month',
+      'originalPrice': Utils.money('90'),
+      'savings': 'Save ${Utils.money('20')} + 1 FREE month',
       'badge': 'BEST VALUE',
       'color': Colors.green,
       'features': [
@@ -167,8 +167,13 @@ class _SubscriptionSelectionScreenState
   }
 
   Widget _buildHeader() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 360;
+
     return Padding(
-      padding: const EdgeInsets.all(20.0),
+      padding: EdgeInsets.all(
+        screenWidth * 0.05,
+      ), // Responsive padding (5% of screen width)
       child: Column(
         children: [
           // Close button and title
@@ -176,7 +181,11 @@ class _SubscriptionSelectionScreenState
             children: [
               IconButton(
                 onPressed: () => Get.back(),
-                icon: Icon(Icons.close, color: Colors.white, size: 28),
+                icon: Icon(
+                  Icons.close,
+                  color: Colors.white,
+                  size: isSmallScreen ? 24 : 28,
+                ),
               ),
               Spacer(),
               if (widget.triggerReason != 'paywall')
@@ -184,7 +193,10 @@ class _SubscriptionSelectionScreenState
                   onPressed: () => Get.back(),
                   child: Text(
                     'Maybe Later',
-                    style: TextStyle(color: Colors.grey[400]),
+                    style: TextStyle(
+                      color: Colors.grey[400],
+                      fontSize: isSmallScreen ? 14 : 16,
+                    ),
                   ),
                 ),
             ],
@@ -199,9 +211,10 @@ class _SubscriptionSelectionScreenState
               return Transform.scale(
                 scale: _cardAnimation.value,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 8,
+                  padding: EdgeInsets.symmetric(
+                    horizontal:
+                        screenWidth * 0.05, // Responsive horizontal padding
+                    vertical: isSmallScreen ? 6 : 8,
                   ),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -212,14 +225,18 @@ class _SubscriptionSelectionScreenState
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.favorite, color: Colors.white, size: 18),
-                      const SizedBox(width: 8),
+                      Icon(
+                        Icons.favorite,
+                        color: Colors.white,
+                        size: isSmallScreen ? 16 : 18,
+                      ),
+                      SizedBox(width: isSmallScreen ? 6 : 8),
                       Text(
                         'LOVEBIRDS PREMIUM',
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          fontSize: isSmallScreen ? 12 : 14,
                         ),
                       ),
                     ],
@@ -236,18 +253,21 @@ class _SubscriptionSelectionScreenState
             'Find Your Perfect Match',
             style: TextStyle(
               color: Colors.white,
-              fontSize: 20,
+              fontSize: isSmallScreen ? 18 : 20,
               fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
           ),
 
-          const SizedBox(height: 0),
+          const SizedBox(height: 8),
 
-          // Subtitle based on trigger reason
+          // Subtitle
           Text(
             _getSubtitleText(),
-            style: TextStyle(color: Colors.grey[300], fontSize: 16),
+            style: TextStyle(
+              color: Colors.grey[300],
+              fontSize: isSmallScreen ? 14 : 16,
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -267,6 +287,11 @@ class _SubscriptionSelectionScreenState
   }
 
   Widget _buildSubscriptionCards() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenWidth < 360;
+    final isShortScreen = screenHeight < 700;
+
     return AnimatedBuilder(
       animation: _cardAnimation,
       builder: (context, child) {
@@ -279,7 +304,9 @@ class _SubscriptionSelectionScreenState
           child: Opacity(
             opacity: clampedOpacity,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              padding: EdgeInsets.symmetric(
+                horizontal: screenWidth * 0.05,
+              ), // Responsive padding
               child: Column(
                 children: [
                   // Plans grid
@@ -298,7 +325,9 @@ class _SubscriptionSelectionScreenState
                           },
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 300),
-                            margin: const EdgeInsets.only(bottom: 15),
+                            margin: EdgeInsets.only(
+                              bottom: isShortScreen ? 10 : 15,
+                            ), // Responsive margin
                             decoration: BoxDecoration(
                               gradient:
                                   isSelected
@@ -331,7 +360,12 @@ class _SubscriptionSelectionScreenState
                                       ]
                                       : null,
                             ),
-                            child: _buildPlanCard(plan, isSelected),
+                            child: _buildPlanCard(
+                              plan,
+                              isSelected,
+                              isSmallScreen,
+                              isShortScreen,
+                            ),
                           ),
                         );
                       },
@@ -346,9 +380,16 @@ class _SubscriptionSelectionScreenState
     );
   }
 
-  Widget _buildPlanCard(Map<String, dynamic> plan, bool isSelected) {
+  Widget _buildPlanCard(
+    Map<String, dynamic> plan,
+    bool isSelected,
+    bool isSmallScreen,
+    bool isShortScreen,
+  ) {
     return Padding(
-      padding: const EdgeInsets.all(20.0),
+      padding: EdgeInsets.all(
+        isShortScreen ? 15.0 : 20.0,
+      ), // Responsive padding
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -357,9 +398,9 @@ class _SubscriptionSelectionScreenState
             children: [
               // Badge
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 4,
+                padding: EdgeInsets.symmetric(
+                  horizontal: isSmallScreen ? 10 : 12,
+                  vertical: isSmallScreen ? 3 : 4,
                 ),
                 decoration: BoxDecoration(
                   color: plan['color'],
@@ -369,7 +410,7 @@ class _SubscriptionSelectionScreenState
                   plan['badge'],
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 11,
+                    fontSize: isSmallScreen ? 10 : 11,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -380,8 +421,8 @@ class _SubscriptionSelectionScreenState
               // Selection indicator
               AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                width: 24,
-                height: 24,
+                width: isSmallScreen ? 20 : 24,
+                height: isSmallScreen ? 20 : 24,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: isSelected ? plan['color'] : Colors.transparent,
@@ -392,43 +433,49 @@ class _SubscriptionSelectionScreenState
                 ),
                 child:
                     isSelected
-                        ? Icon(Icons.check, color: Colors.white, size: 16)
+                        ? Icon(
+                          Icons.check,
+                          color: Colors.white,
+                          size: isSmallScreen ? 12 : 16,
+                        )
                         : null,
               ),
             ],
           ),
 
-          const SizedBox(height: 15),
+          SizedBox(height: isShortScreen ? 12 : 15),
 
           // Title and price
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    plan['title'],
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  if (plan['savings'] != null)
+              Expanded(
+                // Make title section flexible
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      plan['savings'],
+                      plan['title'],
                       style: TextStyle(
-                        color: Colors.green,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                        fontSize: isSmallScreen ? 18 : 20,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                ],
+                    if (plan['savings'] != null)
+                      Text(
+                        plan['savings'],
+                        style: TextStyle(
+                          color: Colors.green,
+                          fontSize: isSmallScreen ? 12 : 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                  ],
+                ),
               ),
 
-              Spacer(),
-
+              SizedBox(width: 8), // Add spacing between title and price
               // Price
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -438,24 +485,32 @@ class _SubscriptionSelectionScreenState
                       plan['originalPrice'],
                       style: TextStyle(
                         color: Colors.grey[500],
-                        fontSize: 16,
+                        fontSize: isSmallScreen ? 14 : 16,
                         decoration: TextDecoration.lineThrough,
                       ),
                     ),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min, // Prevent overflow
                     children: [
-                      Text(
-                        plan['price'],
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
+                      Flexible(
+                        // Allow price text to wrap if needed
+                        child: Text(
+                          plan['price'],
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: isSmallScreen ? 24 : 32,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       Text(
                         plan['period'],
-                        style: TextStyle(color: Colors.grey[400], fontSize: 16),
+                        style: TextStyle(
+                          color: Colors.grey[400],
+                          fontSize: isSmallScreen ? 12 : 16,
+                        ),
                       ),
                     ],
                   ),
@@ -464,28 +519,38 @@ class _SubscriptionSelectionScreenState
             ],
           ),
 
-          const SizedBox(height: 15),
+          SizedBox(height: isShortScreen ? 12 : 15),
 
           // Description
           Text(
             plan['description'],
-            style: TextStyle(color: Colors.grey[400], fontSize: 14),
+            style: TextStyle(
+              color: Colors.grey[400],
+              fontSize: isSmallScreen ? 12 : 14,
+            ),
           ),
 
-          const SizedBox(height: 15),
+          SizedBox(height: isShortScreen ? 12 : 15),
 
           // Features list
           ...plan['features'].map<Widget>((feature) {
             return Padding(
-              padding: const EdgeInsets.only(bottom: 8.0),
+              padding: EdgeInsets.only(bottom: isShortScreen ? 6.0 : 8.0),
               child: Row(
                 children: [
-                  Icon(Icons.check_circle, color: plan['color'], size: 18),
-                  const SizedBox(width: 10),
+                  Icon(
+                    Icons.check_circle,
+                    color: plan['color'],
+                    size: isSmallScreen ? 16 : 18,
+                  ),
+                  SizedBox(width: isSmallScreen ? 8 : 10),
                   Expanded(
                     child: Text(
                       feature,
-                      style: TextStyle(color: Colors.white, fontSize: 14),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: isSmallScreen ? 12 : 14,
+                      ),
                     ),
                   ),
                 ],
@@ -499,9 +564,15 @@ class _SubscriptionSelectionScreenState
 
   Widget _buildFooter() {
     final selectedPlan = subscriptionPlans[selectedPlanIndex];
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 360;
 
     return Padding(
-      padding: const EdgeInsets.only(left: 15, right: 15, top: 5),
+      padding: EdgeInsets.only(
+        left: screenWidth * 0.04, // Responsive padding
+        right: screenWidth * 0.04,
+        top: 5,
+      ),
       child: Column(
         children: [
           // Subscribe button
@@ -511,7 +582,9 @@ class _SubscriptionSelectionScreenState
               onPressed: _isLoading ? null : _handleSubscribe,
               style: ElevatedButton.styleFrom(
                 backgroundColor: selectedPlan['color'],
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: EdgeInsets.symmetric(
+                  vertical: isSmallScreen ? 14 : 16,
+                ), // Responsive padding
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15),
                 ),
@@ -531,9 +604,12 @@ class _SubscriptionSelectionScreenState
                         'Start Premium - ${selectedPlan['price']}${selectedPlan['period']}',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 18,
+                          fontSize:
+                              isSmallScreen ? 16 : 18, // Responsive font size
                           fontWeight: FontWeight.bold,
                         ),
+                        overflow:
+                            TextOverflow.ellipsis, // Prevent text overflow
                       ),
             ),
           ),
@@ -541,44 +617,55 @@ class _SubscriptionSelectionScreenState
           const SizedBox(height: 5),
 
           // Terms and conditions
-          Wrap(
-            alignment: WrapAlignment.center,
-            children: [
-              Text(
-                'By subscribing, you agree to our ',
-                style: TextStyle(color: Colors.grey[500], fontSize: 12),
-              ),
-              GestureDetector(
-                onTap: () {
-                  Get.to(() => const TermsOfServiceScreen());
-                },
-                child: Text(
-                  'Terms of Service',
+          Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: screenWidth * 0.02,
+            ), // Responsive padding
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              children: [
+                Text(
+                  'By subscribing, you agree to our ',
                   style: TextStyle(
-                    color: CustomTheme.primary,
-                    fontSize: 12,
-                    decoration: TextDecoration.underline,
+                    color: Colors.grey[500],
+                    fontSize: isSmallScreen ? 10 : 12, // Responsive font size
                   ),
                 ),
-              ),
-              Text(
-                ' and ',
-                style: TextStyle(color: Colors.grey[500], fontSize: 12),
-              ),
-              GestureDetector(
-                onTap: () {
-                  Get.to(() => const PrivacyPolicyScreen());
-                },
-                child: Text(
-                  'Privacy Policy',
-                  style: TextStyle(
-                    color: CustomTheme.primary,
-                    fontSize: 12,
-                    decoration: TextDecoration.underline,
+                GestureDetector(
+                  onTap: () {
+                    Get.to(() => const TermsOfServiceScreen());
+                  },
+                  child: Text(
+                    'Terms of Service',
+                    style: TextStyle(
+                      color: CustomTheme.primary,
+                      fontSize: isSmallScreen ? 10 : 12, // Responsive font size
+                      decoration: TextDecoration.underline,
+                    ),
                   ),
                 ),
-              ),
-            ],
+                Text(
+                  ' and ',
+                  style: TextStyle(
+                    color: Colors.grey[500],
+                    fontSize: isSmallScreen ? 10 : 12, // Responsive font size
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    Get.to(() => const PrivacyPolicyScreen());
+                  },
+                  child: Text(
+                    'Privacy Policy',
+                    style: TextStyle(
+                      color: CustomTheme.primary,
+                      fontSize: isSmallScreen ? 10 : 12, // Responsive font size
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

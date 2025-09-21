@@ -33,6 +33,8 @@ class _EnhancedProductDetailsPageState extends State<EnhancedProductDetailsPage>
     with TickerProviderStateMixin {
   late TabController _tabController;
   late AnimationController _favoriteController;
+  late AnimationController _shippingAccordionController;
+  late AnimationController _returnsAccordionController;
   late CarouselSliderController _carouselController;
 
   int _currentImageIndex = 0;
@@ -40,13 +42,25 @@ class _EnhancedProductDetailsPageState extends State<EnhancedProductDetailsPage>
   int _quantity = 1;
   String? _selectedVariant;
   final List<String> _productImages = [];
+  
+  // Accordion states
+  bool _isShippingExpanded = false;
+  bool _isReturnsExpanded = false;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 2, vsync: this); // Reduced to 2 for Description and Specifications
     _favoriteController = AnimationController(
       duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    _shippingAccordionController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _returnsAccordionController = AnimationController(
+      duration: const Duration(milliseconds: 300),
       vsync: this,
     );
     _carouselController = CarouselSliderController();
@@ -77,6 +91,7 @@ class _EnhancedProductDetailsPageState extends State<EnhancedProductDetailsPage>
                 _buildProductInfo(),
                 _buildActionButtons(),
                 _buildTabSection(),
+                _buildShippingReturnsAccordion(), // New accordion section
               ],
             ),
           ),
@@ -667,7 +682,7 @@ class _EnhancedProductDetailsPageState extends State<EnhancedProductDetailsPage>
 
   Widget _buildTabSection() {
     return Container(
-      height: 400,
+      height: 300, // Reduced height since we removed 2 tabs
       child: Column(
         children: [
           Container(
@@ -690,9 +705,7 @@ class _EnhancedProductDetailsPageState extends State<EnhancedProductDetailsPage>
               ),
               tabs: const [
                 Tab(text: 'Description'),
-                Tab(text: 'Reviews'),
-                Tab(text: 'Shipping'),
-                Tab(text: 'Returns'),
+                Tab(text: 'Specifications'),
               ],
             ),
           ),
@@ -701,9 +714,7 @@ class _EnhancedProductDetailsPageState extends State<EnhancedProductDetailsPage>
               controller: _tabController,
               children: [
                 _buildDescriptionTab(),
-                _buildReviewsTab(),
-                _buildShippingTab(),
-                _buildReturnsTab(),
+                _buildSpecificationsTab(),
               ],
             ),
           ),
@@ -769,7 +780,76 @@ class _EnhancedProductDetailsPageState extends State<EnhancedProductDetailsPage>
     );
   }
 
-  Widget _buildReviewsTab() {
+  Widget _buildSpecificationsTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSpecRow('SKU', widget.product.id.toString()),
+          _buildSpecRow('Category', widget.product.category_id.toString()),
+          _buildSpecRow('Availability', 'In Stock'),
+          _buildSpecRow('Weight', '${widget.product.id % 5 + 1}kg'),
+          _buildSpecRow('Dimensions', '${widget.product.id % 30 + 10}cm x ${widget.product.id % 20 + 15}cm'),
+          if (widget.product.description.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            const Text(
+              'Additional Details',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: DatingTheme.primaryText,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              widget.product.description,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[700],
+                height: 1.6,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSpecRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[600],
+                fontSize: 14,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 14,
+                color: DatingTheme.primaryText,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
     final reviews = _getProductReviews();
 
     return SingleChildScrollView(
@@ -1222,6 +1302,8 @@ class _EnhancedProductDetailsPageState extends State<EnhancedProductDetailsPage>
   void dispose() {
     _tabController.dispose();
     _favoriteController.dispose();
+    _shippingAccordionController.dispose();
+    _returnsAccordionController.dispose();
     super.dispose();
   }
 }

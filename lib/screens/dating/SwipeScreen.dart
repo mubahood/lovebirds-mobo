@@ -8,6 +8,7 @@ import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import '../../models/UserModel.dart';
 import '../../services/swipe_service.dart';
 import '../../utils/CustomTheme.dart';
+import '../../utils/Utilities.dart';
 import '../../widgets/dating/match_celebration_widget.dart';
 import '../../widgets/dating/swipe_card.dart';
 import '../../widgets/dating/swipe_shimmer.dart';
@@ -210,6 +211,25 @@ class _SwipeScreenState extends State<SwipeScreen>
   // Perform swipe action
   Future<void> _performSwipe(String action) async {
     if (currentIndex >= users.length || _isAnimating) return;
+
+    // STRICT SUBSCRIPTION ENFORCEMENT: Check limits before performing action
+    if (action == 'like' && likesRemaining <= 0) {
+      _showUpgradeDialog('likes');
+      Utils.toast(
+        'Daily like limit reached (0/10). Upgrade to premium for unlimited likes!',
+        color: Colors.red,
+      );
+      return;
+    }
+
+    if (action == 'super_like' && superLikesRemaining <= 0) {
+      _showUpgradeDialog('super_likes');
+      Utils.toast(
+        'Daily super like limit reached. Upgrade to premium!',
+        color: Colors.red,
+      );
+      return;
+    }
 
     final user = users[currentIndex];
     _isAnimating = true;

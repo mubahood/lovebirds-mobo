@@ -20,6 +20,7 @@ import '../../../../../features/moderation/widgets/block_user_dialog.dart';
 import '../../../../../features/moderation/widgets/report_content_dialog.dart';
 import '../../../../../models/RespondModel.dart';
 import '../../../../../utils/CustomTheme.dart';
+import '../../../../../utils/SubscriptionManager.dart';
 import '../../../../../utils/Utilities.dart';
 import '../../../../../utils/app_theme.dart';
 import '../../../../../widgets/fullscreen_video_player.dart';
@@ -458,6 +459,34 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     if (chatHead.id < 1) {
       Utils.toast("Chat not properly initialized. Please try again.");
       return;
+    }
+
+    // STRICT SUBSCRIPTION ENFORCEMENT: Check if user has reached daily message limit
+    final hasSubscription = await SubscriptionManager.hasActiveSubscription();
+    if (!hasSubscription) {
+      // Check message limit from backend
+      try {
+        final response = await Utils.http_get('swipe-stats', {});
+        final resp = RespondModel(response);
+
+        if (resp.code == 1) {
+          final messagesRemaining =
+              int.tryParse(
+                resp.data?['daily_messages_remaining']?.toString() ?? '0',
+              ) ??
+              0;
+          if (messagesRemaining <= 0) {
+            Utils.toast(
+              "Daily message limit reached (0/10). Upgrade to premium for unlimited messaging!",
+              color: Colors.red,
+            );
+            return; // Prevent sending message
+          }
+        }
+      } catch (e) {
+        print('Error checking message limits: $e');
+        // On error, allow the message but it will be caught by backend
+      }
     }
 
     // Check if user is blocked before sending

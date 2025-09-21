@@ -42,6 +42,10 @@ class _ProductScreenState extends State<ProductScreen> {
   int _currentImageIndex = 0;
   int _quantity = 1;
 
+  // Accordion state variables
+  bool _isShippingExpanded = false;
+  bool _isReturnsExpanded = false;
+
   _ProductScreenState(this.item);
 
   @override
@@ -178,6 +182,7 @@ class _ProductScreenState extends State<ProductScreen> {
               children: [
                 _buildProductInfo(),
                 _buildDescriptionSection(),
+                _buildShippingReturnsAccordion(), // New accordion section
                 _buildRelatedProducts(),
               ],
             ),
@@ -658,7 +663,7 @@ class _ProductScreenState extends State<ProductScreen> {
         color: CustomTheme.card,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: CustomTheme.color4.withOpacity(0.3),
+          color: CustomTheme.color4.withValues(alpha: 0.3),
           width: 0.5,
         ),
       ),
@@ -671,7 +676,7 @@ class _ProductScreenState extends State<ProductScreen> {
             decoration: BoxDecoration(
               border: Border(
                 bottom: BorderSide(
-                  color: CustomTheme.color4.withOpacity(0.3),
+                  color: CustomTheme.color4.withValues(alpha: 0.3),
                   width: 0.5,
                 ),
               ),
@@ -714,10 +719,10 @@ class _ProductScreenState extends State<ProductScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: CustomTheme.primary.withOpacity(0.1),
+                      color: CustomTheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: CustomTheme.primary.withOpacity(0.2),
+                        color: CustomTheme.primary.withValues(alpha: 0.2),
                         width: 0.5,
                       ),
                     ),
@@ -779,6 +784,381 @@ class _ProductScreenState extends State<ProductScreen> {
               text,
               color: CustomTheme.color2,
               height: 1.4,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShippingReturnsAccordion() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 360;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: CustomTheme.card,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: CustomTheme.color4.withValues(alpha: 0.3),
+          width: 0.5,
+        ),
+      ),
+      child: Column(
+        children: [
+          // Shipping Information Accordion
+          _buildAccordionItem(
+            icon: FeatherIcons.truck,
+            iconColor: CustomTheme.primary,
+            title: 'Shipping & Returns',
+            subtitle: 'View shipping information and return policy',
+            isExpanded: _isShippingExpanded,
+            onTap: () {
+              setState(() {
+                _isShippingExpanded = !_isShippingExpanded;
+                if (_isShippingExpanded) {
+                  _isReturnsExpanded =
+                      false; // Close returns when opening shipping
+                }
+              });
+            },
+            content: _buildShippingContent(isSmallScreen),
+          ),
+
+          // Divider
+          if (_isShippingExpanded || _isReturnsExpanded)
+            Container(
+              height: 0.5,
+              color: CustomTheme.color4.withValues(alpha: 0.3),
+            ),
+
+          // Returns Policy Accordion
+          _buildAccordionItem(
+            icon: FeatherIcons.rotateCcw,
+            iconColor: Colors.green,
+            title: '30-Day Return Policy',
+            subtitle: 'Easy returns and refund process',
+            isExpanded: _isReturnsExpanded,
+            onTap: () {
+              setState(() {
+                _isReturnsExpanded = !_isReturnsExpanded;
+                if (_isReturnsExpanded) {
+                  _isShippingExpanded =
+                      false; // Close shipping when opening returns
+                }
+              });
+            },
+            content: _buildReturnsContent(isSmallScreen),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAccordionItem({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required bool isExpanded,
+    required VoidCallback onTap,
+    required Widget content,
+  }) {
+    return Column(
+      children: [
+        InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: iconColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, color: iconColor, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      FxText.titleMedium(
+                        title,
+                        color: CustomTheme.colorLight,
+                        fontWeight: 600,
+                      ),
+                      FxText.bodySmall(subtitle, color: CustomTheme.color2),
+                    ],
+                  ),
+                ),
+                AnimatedRotation(
+                  turns: isExpanded ? 0.5 : 0,
+                  duration: const Duration(milliseconds: 300),
+                  child: Icon(
+                    FeatherIcons.chevronDown,
+                    color: CustomTheme.color2,
+                    size: 20,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          height: isExpanded ? null : 0,
+          child:
+              isExpanded
+                  ? Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: content,
+                  )
+                  : const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildShippingContent(bool isSmallScreen) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            CustomTheme.primary.withValues(alpha: 0.05),
+            CustomTheme.primary.withValues(alpha: 0.02),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: CustomTheme.primary.withValues(alpha: 0.1),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Shipping Information Header
+          Row(
+            children: [
+              Icon(
+                FeatherIcons.truck,
+                color: CustomTheme.primary,
+                size: isSmallScreen ? 18 : 20,
+              ),
+              const SizedBox(width: 8),
+              FxText.titleMedium(
+                'Shipping Information',
+                color: CustomTheme.primary,
+                fontWeight: 700,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Shipping Details
+          _buildShippingDetailItem(
+            '• Ships from Hambren warehouse in Toronto, ON',
+            isSmallScreen,
+          ),
+          _buildShippingDetailItem(
+            '• All orders are processed within 1-2 business days',
+            isSmallScreen,
+          ),
+          _buildShippingDetailItem(
+            '• Tracking information provided for all shipments',
+            isSmallScreen,
+          ),
+          _buildShippingDetailItem(
+            '• Signature required for orders over ${Utils.money('200')}',
+            isSmallScreen,
+          ),
+          _buildShippingDetailItem(
+            '• Free shipping on all orders over ${Utils.money('50')}',
+            isSmallScreen,
+          ),
+
+          const SizedBox(height: 16),
+
+          // Free Shipping Highlight
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.green.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: Colors.green.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  FeatherIcons.checkCircle,
+                  color: Colors.green,
+                  size: isSmallScreen ? 16 : 18,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: FxText.bodyMedium(
+                    'FREE SHIPPING on orders over ${Utils.money('50')}',
+                    color: Colors.green[700],
+                    fontWeight: 600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReturnsContent(bool isSmallScreen) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.green.withValues(alpha: 0.05),
+            Colors.green.withValues(alpha: 0.02),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.green.withValues(alpha: 0.1),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 30-Day Return Policy Header
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.green.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  FeatherIcons.rotateCcw,
+                  color: Colors.green,
+                  size: isSmallScreen ? 18 : 20,
+                ),
+                const SizedBox(width: 8),
+                FxText.titleMedium(
+                  '30-Day Return Policy',
+                  color: Colors.green[700],
+                  fontWeight: 700,
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          FxText.bodyMedium(
+            'Return any item within 30 days of delivery for a full refund. Items must be in original condition with tags attached.',
+            color: CustomTheme.color,
+            height: 1.5,
+          ),
+
+          const SizedBox(height: 16),
+
+          // Return Process Steps
+          FxText.titleMedium(
+            'Return Process',
+            color: CustomTheme.colorLight,
+            fontWeight: 600,
+          ),
+
+          const SizedBox(height: 12),
+
+          _buildReturnStep(
+            1,
+            'Contact Hambren support to initiate return',
+            isSmallScreen,
+          ),
+          _buildReturnStep(
+            2,
+            'Package item securely with original packaging',
+            isSmallScreen,
+          ),
+          _buildReturnStep(
+            3,
+            'Use the provided prepaid return label',
+            isSmallScreen,
+          ),
+          _buildReturnStep(
+            4,
+            'Receive refund within 5-7 business days',
+            isSmallScreen,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShippingDetailItem(String text, bool isSmallScreen) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: FxText.bodyMedium(
+        text,
+        color: CustomTheme.color,
+        fontSize: isSmallScreen ? 13 : 14,
+        height: 1.4,
+      ),
+    );
+  }
+
+  Widget _buildReturnStep(
+    int stepNumber,
+    String description,
+    bool isSmallScreen,
+  ) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: isSmallScreen ? 24 : 28,
+            height: isSmallScreen ? 24 : 28,
+            decoration: BoxDecoration(
+              color: CustomTheme.primary,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: FxText.bodyMedium(
+                stepNumber.toString(),
+                color: Colors.white,
+                fontWeight: 700,
+                fontSize: isSmallScreen ? 12 : 14,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: FxText.bodyMedium(
+                description,
+                color: CustomTheme.color,
+                fontSize: isSmallScreen ? 13 : 14,
+                height: 1.4,
+              ),
             ),
           ),
         ],
@@ -1015,10 +1395,10 @@ ${AppConfig.PLAYSTORE_LINK}
                           side: BorderSide(color: CustomTheme.primary),
                         ),
                         icon: Icon(FeatherIcons.copy, size: 16),
-                        label: FxText.bodySmall('Copy'
-                            , fontWeight: 600,
-                            color: CustomTheme.primary
-
+                        label: FxText.bodySmall(
+                          'Copy',
+                          fontWeight: 600,
+                          color: CustomTheme.primary,
                         ),
                       ),
                     ),

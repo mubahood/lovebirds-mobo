@@ -478,18 +478,18 @@ class _ProfileViewScreenState extends State<ProfileViewScreen>
                   size: 20,
                 ),
                 SizedBox(width: 8),
-                Text(
-                  enhancedUser.city.isNotEmpty
-                      ? enhancedUser.city
-                      : 'Location private',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                Expanded(
+                  child: Text(
+                    enhancedUser.city.isNotEmpty
+                        ? enhancedUser.city
+                        : 'Location private',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.9),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
-                Spacer(),
-                _buildCompatibilityBadge(),
               ],
             ),
             SizedBox(height: 16),
@@ -542,16 +542,6 @@ class _ProfileViewScreenState extends State<ProfileViewScreen>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.favorite, color: Colors.black, size: 16),
-          SizedBox(width: 4),
-          Text(
-            '$compatibilityScore% Match',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
         ],
       ),
     );
